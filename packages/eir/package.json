@@ -1,8 +1,35 @@
 {
   "name": "playwright-eir",
   "version": "0.0.1",
+  "description": "Self-healing locator engine for Playwright. Under active development.",
+  "keywords": ["playwright", "testing", "e2e", "self-healing", "locators"],
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Someone-anon-coder/Eir.git",
+    "directory": "packages/eir"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.40"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run"
   }
