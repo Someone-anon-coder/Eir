@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { eirVersion } from "./index.js";
 
-describe("placeholder", () => {
-  it("wires the test runner into packages/eir", () => {
-    expect(1 + 1).toBe(2);
+describe("eirVersion", () => {
+  it("returns the version declared in package.json", () => {
+    expect(eirVersion()).toBe("0.0.1");
   });
 });

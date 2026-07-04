@@ -3,3 +3,10 @@ coverage/
 node_modules/
 pnpm-lock.yaml
 ts-scratch/
+
+# Governing docs — edited deliberately per CLAUDE.md, never reformatted incidentally
+/BLUEPRINT.md
+/CLAUDE.md
+/EIR_BLUEPRINT_APPROACH.md
+/NOTES.md
+/README.md
