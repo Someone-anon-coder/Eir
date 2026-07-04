@@ -176,7 +176,9 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 **Change:** [what section, what changed]
 ```
 
-*(none yet — this section activates the first time a governing doc changes post-baseline)*
+### 2026-07-04 — CLAUDE.md — no direct pushes to main; PR-only workflow
+**Triggered by:** direct decision (Aayush, during Phase 0 tooling work, before the first push of the session)
+**Change:** §8 Git & Commits gains two rules: (1) Claude never pushes directly to `main` — every change lands on a feature branch and goes through a pull request via `gh pr create`, even Phase-0 scaffolding; (2) branch naming convention fixed as `<scope>-<purpose>-<YYYY-MM-DD>`.
 
 ---
 

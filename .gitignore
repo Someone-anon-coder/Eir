@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+
+# Aayush's TS-tip playground — scratch only, never shipped
+ts-scratch/

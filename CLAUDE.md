@@ -91,6 +91,8 @@ If a session starts mid-mess (broken CI, half-done work item), fixing to a clean
 - One logical change per commit; a work item may be several commits, never the reverse.
 - Tags: `phase-N-done` on phase close (annotated, message = DoD summary). Release tags per approach doc Phase 9.
 - Main stays green. Risky spikes happen on branches and either merge clean or die documented in NOTES.md.
+- **Never push directly to `main`.** All work lands on a feature branch and goes through a pull request, even Phase-0 scaffolding — no exceptions for "it's just config." Claude creates the branch, pushes it, and opens the PR with `gh pr create`; Aayush reviews and merges (or asks Claude to merge, explicitly, per request).
+- **Branch naming:** `<scope>-<purpose>-<YYYY-MM-DD>` — a high-level scope (e.g. a phase name or component), a short purpose phrase, and the date the branch was cut. Example: `phase-0-foundation-tooling-2026-07-04`.
 - Claude proposes commit messages; Aayush can amend. Claude never rewrites pushed history without explicit instruction.
 
 ## 9. Repository Map & Commands
