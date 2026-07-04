@@ -1,0 +1,6 @@
+{
+  "name": "ci-action",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module"
+}
