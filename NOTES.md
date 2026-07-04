@@ -161,7 +161,11 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Next: [where the next session picks up]
 ```
 
-*(log starts at Phase 0 kickoff)*
+### 2026-07-04 — Phase 0, all work items (1–6)
+- Did: pnpm workspace scaffold (eir/demo-app/benchmark/ci-action), strict tsconfig + ESLint + Prettier + Vitest, GitHub Actions CI, `packages/eir` package.json (peer dep on `@playwright/test`, exports map), `eirVersion()` stub, published `playwright-eir@0.0.1`. Merged via PR #2 (scaffolding) and PR #3 (LICENSE fix). Tagged `phase-0-done`.
+- Blocked/open: none carried forward from Phase 0 itself; NOTE-001/NOTE-002 remain DUE at their existing target phases (untouched this session).
+- CI: green (main: 2/2 runs green after both merges)
+- Next: Phase 1 — Demo App + Reference Suite (Ward). Starts with its Pre-Phase TS Tip.
 
 ---
 
