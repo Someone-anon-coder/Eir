@@ -3,6 +3,10 @@ dist/
 coverage/
 *.log
 .DS_Store
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
 # Aayush's TS-tip playground — scratch only, never shipped
 ts-scratch/
