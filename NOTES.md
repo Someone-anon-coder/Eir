@@ -83,7 +83,7 @@ This is a fundamentally different failure shape than "one element changed shape"
 **Why not now:**
 Phase 4 builds the taxonomy; Ward's demo app (Phase 1) needs to already contain qualifying near-duplicate pairs (the two-similar-tables page is one instance — check it also covers a nav/button pair and a form-field pair before treating this class as fully seeded).
 
-**Resolution:** *(pending — cross-check Ward's Phase 1 surfaces have enough near-duplicate pairs before Phase 4 begins; add more if not)*
+**Resolution:** *(pending Phase 4 decision — but the Phase 1 prerequisite cross-check is done: Ward already contains all three named pair shapes.)* Cross-checked 2026-07-05 during Phase 1 close: (1) **table-row pair** — the Active/Archived Devices tables share a row with identical name ("Front Desk Tablet"), same tag/structure, differing mainly in status/date; (2) **nav/button pair** — `DeviceTable`'s row actions render adjacent same-tag, same-container `Edit`/`Remove` buttons (and `Save`/`Cancel` once a row enters edit mode), and the account-deletion modal renders adjacent `Cancel`/`Confirm Delete` buttons; (3) **form-field pair** — the access-request wizard's Step 1 renders two adjacent plain-text `<input>`s ("Request Title", "Requested By") distinguished only by label. No additional surfaces were added for this; Phase 4 can build the near-duplicate-sibling-swap class against what already exists.
 
 ---
 
@@ -166,6 +166,12 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Blocked/open: none carried forward from Phase 0 itself; NOTE-001/NOTE-002 remain DUE at their existing target phases (untouched this session).
 - CI: green (main: 2/2 runs green after both merges)
 - Next: Phase 1 — Demo App + Reference Suite (Ward). Starts with its Pre-Phase TS Tip.
+
+### 2026-07-05 — Phase 1, all work items (1–4)
+- Did: scaffolded Ward (React+Vite): login, dashboard nav, devices table (two similar tables), provisioning form (label-for select), account delete modal, hash-routed 3-step wizard. Centralized every id/testid/class in `src/domProfile.ts`. Wrote 14-spec vanilla-Playwright reference suite (7 POM-style, 7 linear-style) with deliberately mixed selector quality. Wired CI to install Chromium and run `pnpm --filter demo-app e2e`. Cross-checked NOTE-002's Phase-4 prerequisite (near-duplicate pairs already present in table/button/form-field shapes — see NOTE-002).
+- Blocked/open: none. NOTE-001 remains DUE at its existing target phase, untouched.
+- CI: pending first run on PR (local: lint/typecheck/e2e all green, 14/14 specs passing twice in a row, 4 workers)
+- Next: Phase 2 — Interception Shell. Starts with its Pre-Phase TS Tip (classes/`implements`).
 
 ---
 
