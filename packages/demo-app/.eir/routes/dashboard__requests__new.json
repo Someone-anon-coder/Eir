@@ -1,0 +1,406 @@
+{
+  "getByLabel(\"Duration\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "id": "wizard-duration"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 288,
+      "y": 160
+    },
+    "label": "Duration",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "select",
+    "text": "7 days30 days90 days",
+    "v": 1
+  },
+  "getByLabel(\"Request Title\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-title",
+      "id": "wizard-title-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 128,
+      "y": 160
+    },
+    "label": "Request Title",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByLabel(\"Requested By\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-requested-by",
+      "id": "wizard-requested-by-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 416,
+      "y": 160
+    },
+    "label": "Requested By",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByLabel(\"Resource\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "id": "wizard-resource"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 128,
+      "x": 96,
+      "y": 160
+    },
+    "label": "Resource",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "select",
+    "text": "Device InventoryBilling ReportsAdmin Console",
+    "v": 1
+  },
+  "getByRole(\"button\", {\"name\":\"Back\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-back",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 32,
+      "x": 352,
+      "y": 160
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Back",
+    "v": 1
+  },
+  "getByRole(\"button\", {\"name\":\"Next\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-next",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 32,
+      "x": 608,
+      "y": 160
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Next",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Devices\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "nav"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "nav-link-devices"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 96,
+      "y": 0
+    },
+    "label": null,
+    "siblingCount": 4,
+    "siblingIndex": 0,
+    "tag": "a",
+    "text": "Devices",
+    "v": 1
+  },
+  "getByTestId(\"wizard-next\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-next",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 32,
+      "x": 384,
+      "y": 160
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "button",
+    "text": "Next",
+    "v": 1
+  },
+  "getByTestId(\"wizard-requested-by\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-requested-by",
+      "id": "wizard-requested-by-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 416,
+      "y": 160
+    },
+    "label": "Requested By",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByTestId(\"wizard-submit\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-submit",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 64,
+      "y": 256
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "button",
+    "text": "Submit",
+    "v": 1
+  },
+  "getByTestId(\"wizard-title\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "section"
+      },
+      {
+        "classes": [
+          "wizard-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "wizard-title",
+      "id": "wizard-title-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 128,
+      "y": 160
+    },
+    "label": "Request Title",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  }
+}

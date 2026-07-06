@@ -1,0 +1,198 @@
+{
+  "getByRole(\"button\", {\"name\":\"Confirm Delete\"})": {
+    "ancestors": [
+      {
+        "classes": [
+          "modal-dialog"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [
+          "modal-overlay"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [
+          "account-page"
+        ],
+        "id": null,
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "delete-account-confirm",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 544,
+      "y": 416
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "button",
+    "text": "Confirm Delete",
+    "v": 1
+  },
+  "getByRole(\"button\", {\"name\":\"Delete Account\"})": {
+    "ancestors": [
+      {
+        "classes": [
+          "account-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "open-delete-account",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 32,
+      "y": 192
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Delete Account",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Access Requests\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "nav"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "nav-link-requests"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 128,
+      "x": 352,
+      "y": 0
+    },
+    "label": null,
+    "siblingCount": 4,
+    "siblingIndex": 3,
+    "tag": "a",
+    "text": "Access Requests",
+    "v": 1
+  },
+  "getByTestId(\"delete-account-cancel\")": {
+    "ancestors": [
+      {
+        "classes": [
+          "modal-dialog"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [
+          "modal-overlay"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [
+          "account-page"
+        ],
+        "id": null,
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "delete-account-cancel",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 480,
+      "y": 416
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Cancel",
+    "v": 1
+  },
+  "getByTestId(\"open-delete-account\")": {
+    "ancestors": [
+      {
+        "classes": [
+          "account-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "open-delete-account",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 32,
+      "y": 192
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Delete Account",
+    "v": 1
+  }
+}
