@@ -14,16 +14,16 @@ machine, same `pnpm --filter demo-app dev` server, Chromium only:
   suite).
 - **Wrapped** — the same 12 spec files' `test`/`expect` import line
   temporarily changed to `playwright-eir` (a scripted, reverted swap — the
-  5 POM files needed *zero* changes, since their `import type { Page }`
+  5 POM files needed _zero_ changes, since their `import type { Page }`
   line was already correct and stayed untouched either way).
 
 ## Pass/fail parity
 
-| Run | Vanilla | Wrapped |
-|---|---|---|
-| 1 | 15/15 passed | 15/15 passed |
-| 2 | 15/15 passed | 15/15 passed |
-| 3 | 15/15 passed | 15/15 passed |
+| Run | Vanilla      | Wrapped      |
+| --- | ------------ | ------------ |
+| 1   | 15/15 passed | 15/15 passed |
+| 2   | 15/15 passed | 15/15 passed |
+| 3   | 15/15 passed | 15/15 passed |
 
 Identical verdicts across all three runs, both conditions. No spec changed
 outcome in either direction.
@@ -32,14 +32,14 @@ outcome in either direction.
 
 Playwright's own reported suite duration, three runs each:
 
-| Run | Vanilla | Wrapped |
-|---|---|---|
-| 1 | 4.8s | 4.6s |
-| 2 | 4.4s | 4.6s |
-| 3 | 4.4s | 4.3s |
+| Run         | Vanilla   | Wrapped   |
+| ----------- | --------- | --------- |
+| 1           | 4.8s      | 4.6s      |
+| 2           | 4.4s      | 4.6s      |
+| 3           | 4.4s      | 4.3s      |
 | **Average** | **4.53s** | **4.50s** |
 
-Delta: wrapped averaged ~0.7% *faster* than vanilla — noise, not signal.
+Delta: wrapped averaged ~0.7% _faster_ than vanilla — noise, not signal.
 Worth noting honestly: the two vanilla runs alone varied by ~9% from each
 other (4.4s–4.8s), which is larger than the vanilla-vs-wrapped delta itself.
 At this suite size, wrapping overhead is not distinguishable from ordinary

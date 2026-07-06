@@ -32,7 +32,11 @@ export function AccountPage() {
       </button>
 
       {dialogOpen && (
-        <Modal testId={domProfile.account.dialog} titleId="delete-account-title" title="Delete Account?">
+        <Modal
+          testId={domProfile.account.dialog}
+          titleId="delete-account-title"
+          title="Delete Account?"
+        >
           <p>This action cannot be undone.</p>
           <button
             type="button"
@@ -41,7 +45,11 @@ export function AccountPage() {
           >
             Cancel
           </button>
-          <button type="button" data-testid={domProfile.account.confirmButton} onClick={handleConfirm}>
+          <button
+            type="button"
+            data-testid={domProfile.account.confirmButton}
+            onClick={handleConfirm}
+          >
             Confirm Delete
           </button>
         </Modal>

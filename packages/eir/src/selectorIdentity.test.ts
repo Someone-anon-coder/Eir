@@ -6,7 +6,10 @@ describe("routeFromUrl", () => {
     { url: "http://localhost:5173/dashboard/devices", expected: "/dashboard/devices" },
     { url: "http://localhost:5173/", expected: "/" },
     { url: "http://localhost:5173/dashboard/devices?tab=archived", expected: "/dashboard/devices" },
-    { url: "http://localhost:5173/dashboard/requests/new#step-2", expected: "/dashboard/requests/new" },
+    {
+      url: "http://localhost:5173/dashboard/requests/new#step-2",
+      expected: "/dashboard/requests/new",
+    },
     { url: "https://example.com:8080/login", expected: "/login" },
   ];
 
