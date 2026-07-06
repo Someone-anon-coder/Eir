@@ -133,6 +133,27 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** Earlier phases (especially 5 — matching/tuning) are the most open-ended; overrun could force a rushed or cut fallback phase.
 **Mitigation:** Slippage rule already defined — if cumulative slip exceeds 2 days by end of Phase 5, Phase 8 consciously descopes to a documented extension point rather than being rushed. Tracked at every phase close (`CLAUDE.md` §5).
 
+### RISK-003 — `EirLocator` forwards undocumented Playwright internals (`_apiName`, `_expect`)
+**Status:** WATCHING
+**Raised:** 2026-07-06, during Phase 2 wrapper-class design
+**Phase affected:** Phase 2 (introduced), all downstream phases (inherited)
+**Risk:** Playwright's `expect(locator).toBeVisible()` and similar matchers duck-type a private `_apiName` field and call a private `_expect()` method — neither is part of the public `Locator` TypeScript type, so there's no compile-time contract protecting this. A future Playwright version could rename or restructure these without a type error warning us, silently breaking every assertion in a wrapped suite.
+**Mitigation:** Confirmed working via a throwaway spike (success path + failure-path error-message parity, both green) before committing to the design. The one cast needed is narrow, isolated to a single spot in `eirLocator.ts`, and commented. The invisibility proof (this phase's own gate) and CI on every future Playwright version bump are the ongoing detection mechanism — not a one-time check.
+
+### RISK-004 — Capture-point coverage stops at Blueprint §7.1's named 6 methods
+**Status:** WATCHING
+**Raised:** 2026-07-06, during Phase 2 wrapper-class design
+**Phase affected:** Phase 2 (introduced), Phase 3 (fingerprint coverage inherited)
+**Risk:** `EirLocator`/`EirPage` only extend `chainPath`/wrap the return value for the exact 6 methods Blueprint §7.1 names (`locator`, `getByRole`, `getByLabel`, `getByText`, `getByTestId`, `getByPlaceholder`). Chaining through any other Locator-returning method (`filter`, `first`, `last`, `and`, `or`, `normalize`, `contentFrame`, `getByAltText`, `getByTitle`) returns the real, unwrapped `Locator` — that branch silently stops being tracked (no capture log, no future fingerprinting) even though it still behaves correctly as vanilla Playwright.
+**Mitigation:** Not currently exercised — the reference suite uses none of these methods. Revisit and widen the capture-point list if a future suite (benchmark or real-world adoption) relies on one of them.
+
+### RISK-005 — Real Playwright methods that take a `Locator` argument may not accept an `EirLocator`
+**Status:** WATCHING
+**Raised:** 2026-07-06, during Phase 2 wrapper-class design
+**Phase affected:** Phase 2 (introduced)
+**Risk:** Methods like `.and(other)`, `.or(other)`, `dragTo(target)`, or `locator(sel, { has: other })` expect a real Playwright `Locator` and may reach into private internal state beyond `_apiName`/`_expect` (the only two members `EirLocator` forwards). Passing an `EirLocator` in one of these argument positions is untested and could fail in ways the current invisibility proof wouldn't catch, since the reference suite doesn't exercise them.
+**Mitigation:** Not currently exercised — no spec in the reference suite uses these APIs. Flagged so it isn't discovered by surprise if a future spec (or a real adopting suite) does.
+
 ---
 
 ## 4. Decisions Already Made (index, not detail)
