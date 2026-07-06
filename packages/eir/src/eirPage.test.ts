@@ -3,6 +3,7 @@ import type { Locator, Page } from "@playwright/test";
 import { EirPage } from "./eirPage.js";
 import { EirLocator } from "./eirLocator.js";
 import * as debugLog from "./debugLog.js";
+import type { FingerprintRecorder } from "./store/fingerprintStore.js";
 
 // Test double for Playwright's real Page: only members exercised by a given
 // test are implemented. Cast at the boundary is a test-double concern, not
@@ -12,6 +13,10 @@ function fakePage(overrides: Record<string, unknown> = {}): Page {
     url: () => "http://localhost:5173/dashboard/devices",
     ...overrides,
   } as unknown as Page;
+}
+
+function fakeRecorder(): FingerprintRecorder {
+  return { record: vi.fn(), trackPending: vi.fn() };
 }
 
 function fakeLocatorReturning(url: string): Locator {
@@ -37,7 +42,7 @@ describe("capture points", () => {
     const nested = fakeLocatorReturning("http://localhost:5173/dashboard/devices");
     const real = fakePage({ locator: vi.fn().mockReturnValue(nested) });
 
-    const eirPage = new EirPage(real);
+    const eirPage = new EirPage(real, fakeRecorder());
     const result = eirPage.locator("#login-username-input") as EirLocator;
 
     expect(real.locator).toHaveBeenCalledWith("#login-username-input");
@@ -45,17 +50,14 @@ describe("capture points", () => {
     expect(result.identity.chainPath).toEqual([
       { method: "locator", args: ["#login-username-input"] },
     ]);
-    expect(logSpy).toHaveBeenCalledWith(
-      "getByTestId('device-row-edit')",
-      "/dashboard/devices",
-    );
+    expect(logSpy).toHaveBeenCalledWith("getByTestId('device-row-edit')", "/dashboard/devices");
   });
 
   it("getByRole() wraps the result too", () => {
     const nested = fakeLocatorReturning("http://localhost:5173/dashboard/account");
     const real = fakePage({ getByRole: vi.fn().mockReturnValue(nested) });
 
-    const eirPage = new EirPage(real);
+    const eirPage = new EirPage(real, fakeRecorder());
     const result = eirPage.getByRole("dialog", { name: "Delete Account?" }) as EirLocator;
 
     expect(real.getByRole).toHaveBeenCalledWith("dialog", { name: "Delete Account?" });
@@ -68,7 +70,7 @@ describe("capture points", () => {
 describe("plain pass-through", () => {
   it("goto() delegates untouched", async () => {
     const real = fakePage({ goto: vi.fn().mockResolvedValue(null) });
-    const eirPage = new EirPage(real);
+    const eirPage = new EirPage(real, fakeRecorder());
 
     await eirPage.goto("/login");
 
@@ -77,7 +79,7 @@ describe("plain pass-through", () => {
 
   it("_apiName forwards to the real page's private internal", () => {
     const real = fakePage({ _apiName: "Page" });
-    const eirPage = new EirPage(real);
+    const eirPage = new EirPage(real, fakeRecorder());
 
     expect(eirPage._apiName).toBe("Page");
   });
@@ -86,7 +88,7 @@ describe("plain pass-through", () => {
 describe("removeAllListeners overload branching", () => {
   it("returns `this` for the no-options overload", () => {
     const real = fakePage({ removeAllListeners: vi.fn() });
-    const eirPage = new EirPage(real);
+    const eirPage = new EirPage(real, fakeRecorder());
 
     const result = eirPage.removeAllListeners("close");
 
@@ -97,7 +99,7 @@ describe("removeAllListeners overload branching", () => {
   it("forwards the real Promise for the options overload", async () => {
     const promise = Promise.resolve();
     const real = fakePage({ removeAllListeners: vi.fn().mockReturnValue(promise) });
-    const eirPage = new EirPage(real);
+    const eirPage = new EirPage(real, fakeRecorder());
 
     const result = eirPage.removeAllListeners("close", { behavior: "wait" });
 

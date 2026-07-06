@@ -17,12 +17,14 @@ export function logCaptured(selector: string, route: string): void {
 
 export type OutcomeStatus = "OK" | "FAILED";
 
-export function logOutcome(
-  method: string,
-  status: OutcomeStatus,
-  detail?: string,
-): void {
+export function logOutcome(method: string, status: OutcomeStatus, detail?: string): void {
   if (!isDebugEnabled()) return;
   const suffix = detail !== undefined ? `: ${detail}` : "";
   console.log(`[eir] outcome: ${method} ${status}${suffix}`);
+}
+
+/** Uses the normalized selector key (the actual store key), not the raw one-off selector. */
+export function logFingerprinted(selectorKey: string, route: string): void {
+  if (!isDebugEnabled()) return;
+  console.log(`[eir] fingerprinted: ${selectorKey} on ${route}`);
 }
