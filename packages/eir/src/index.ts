@@ -7,3 +7,6 @@ const { version } = require("../package.json") as { version: string };
 export function eirVersion(): string {
   return version;
 }
+
+export { test, expect } from "./fixture.js";
+
