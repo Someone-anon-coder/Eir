@@ -20,6 +20,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm --filter playwright-eir build
+
       - run: pnpm lint
 
       - run: pnpm typecheck

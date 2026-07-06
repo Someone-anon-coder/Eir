@@ -133,6 +133,34 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** Earlier phases (especially 5 — matching/tuning) are the most open-ended; overrun could force a rushed or cut fallback phase.
 **Mitigation:** Slippage rule already defined — if cumulative slip exceeds 2 days by end of Phase 5, Phase 8 consciously descopes to a documented extension point rather than being rushed. Tracked at every phase close (`CLAUDE.md` §5).
 
+### RISK-003 — `EirLocator` forwards undocumented Playwright internals (`_apiName`, `_expect`)
+**Status:** WATCHING
+**Raised:** 2026-07-06, during Phase 2 wrapper-class design
+**Phase affected:** Phase 2 (introduced), all downstream phases (inherited)
+**Risk:** Playwright's `expect(locator).toBeVisible()` and similar matchers duck-type a private `_apiName` field and call a private `_expect()` method — neither is part of the public `Locator` TypeScript type, so there's no compile-time contract protecting this. A future Playwright version could rename or restructure these without a type error warning us, silently breaking every assertion in a wrapped suite. `EirPage` has the same exposure for `_apiName` alone: `expect(page).toHaveURL()`/`.toHaveTitle()` route their actual polling through `page.mainFrame()._expect(...)` (a plain pass-through returning the real `Frame`), so `EirPage` only needs `_apiName` forwarded, not `_expect` — confirmed by a second spike. **Known gap, not yet covered:** `expect(page).toHaveScreenshot()` calls a third private method, `page._expectScreenshot(...)`, not forwarded by `EirPage` and not spiked — untested, since the reference suite doesn't use visual-regression assertions.
+**Mitigation:** Confirmed working via throwaway spikes (Locator success path + failure-path error-message parity; Page `toHaveURL`/`toHaveTitle`) before committing to the design. Each cast is narrow, isolated to one spot, and commented. The invisibility proof (this phase's own gate) and CI on every future Playwright version bump are the ongoing detection mechanism — not a one-time check. Add `_expectScreenshot` forwarding to `EirPage` if/when a suite using `toHaveScreenshot` needs to pass through Eir.
+
+### RISK-004 — Capture-point coverage stops at Blueprint §7.1's named 6 methods
+**Status:** WATCHING
+**Raised:** 2026-07-06, during Phase 2 wrapper-class design
+**Phase affected:** Phase 2 (introduced), Phase 3 (fingerprint coverage inherited)
+**Risk:** `EirLocator`/`EirPage` only extend `chainPath`/wrap the return value for the exact 6 methods Blueprint §7.1 names (`locator`, `getByRole`, `getByLabel`, `getByText`, `getByTestId`, `getByPlaceholder`). Chaining through any other Locator-returning method (`filter`, `first`, `last`, `and`, `or`, `normalize`, `contentFrame`, `getByAltText`, `getByTitle`) returns the real, unwrapped `Locator` — that branch silently stops being tracked (no capture log, no future fingerprinting) even though it still behaves correctly as vanilla Playwright.
+**Mitigation:** Not currently exercised — the reference suite uses none of these methods. Revisit and widen the capture-point list if a future suite (benchmark or real-world adoption) relies on one of them.
+
+### RISK-006 — `EirPage#removeAllListeners` needed hand-written overloads (resolved, kept for context)
+**Status:** MITIGATED
+**Raised:** 2026-07-06, during Phase 2 wrapper-class implementation
+**Phase affected:** Phase 2
+**Risk:** `Page.removeAllListeners` has two overloads with genuinely different return types — `(type?: string): this` for the common no-argument/single-argument case, and `(type, options): Promise<void>` for the rare `{ behavior: "wait" | "ignoreErrors" | "default" }` form. `Parameters<>`/`ReturnType<>` collapse to one overload, so the mechanical pattern used everywhere else in `eirPage.ts`/`eirLocator.ts` can't express this member. A first attempt suppressed the mismatch with `@ts-expect-error`, but that only silences the error at the declaration site — it resurfaced at every other place `EirPage` gets used as `Page` (e.g. the fixture), since each is a fresh structural comparison.
+**Mitigation:** Hand-wrote the 2 overload signatures directly on `removeAllListeners` (cheap at this scale, unlike the 19-signature event methods), with a single broader implementation signature (`(...args): this | Promise<void>`) that branches on argument count to return the right shape. This is a real, permanent fix, not a suppression — `tsc` now verifies it structurally everywhere `EirPage` is used as `Page`.
+
+### RISK-005 — Real Playwright methods that take a `Locator` argument may not accept an `EirLocator`
+**Status:** WATCHING
+**Raised:** 2026-07-06, during Phase 2 wrapper-class design
+**Phase affected:** Phase 2 (introduced)
+**Risk:** Methods like `.and(other)`, `.or(other)`, `dragTo(target)`, or `locator(sel, { has: other })` expect a real Playwright `Locator` and may reach into private internal state beyond `_apiName`/`_expect` (the only two members `EirLocator` forwards). Passing an `EirLocator` in one of these argument positions is untested and could fail in ways the current invisibility proof wouldn't catch, since the reference suite doesn't exercise them.
+**Mitigation:** Not currently exercised — no spec in the reference suite uses these APIs. Flagged so it isn't discovered by surprise if a future spec (or a real adopting suite) does.
+
 ---
 
 ## 4. Decisions Already Made (index, not detail)
