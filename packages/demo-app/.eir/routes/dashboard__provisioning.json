@@ -1,0 +1,372 @@
+{
+  "getByLabel(\"Billing Cycle\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "id": "provisioning-billing-cycle"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 32,
+      "y": 352
+    },
+    "label": "Billing Cycle",
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "select",
+    "text": "MonthlyQuarterlyAnnual",
+    "v": 1
+  },
+  "getByLabel(\"Requester Name\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-requester-name",
+      "id": "provisioning-requester-name-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 32,
+      "y": 160
+    },
+    "label": "Requester Name",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Account\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "nav"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "nav-link-account"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 256,
+      "y": 0
+    },
+    "label": null,
+    "siblingCount": 4,
+    "siblingIndex": 2,
+    "tag": "a",
+    "text": "Account",
+    "v": 1
+  },
+  "getByTestId(\"provisioning-effective-date\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-effective-date",
+      "id": "provisioning-effective-date-input",
+      "type": "date"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 128,
+      "x": 32,
+      "y": 224
+    },
+    "label": "Effective Date",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByTestId(\"provisioning-notes\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-notes",
+      "id": "provisioning-notes-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 32,
+      "y": 288
+    },
+    "label": "Notes",
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "textarea",
+    "text": "New hire onboarding",
+    "v": 1
+  },
+  "getByTestId(\"provisioning-requester-name\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-requester-name",
+      "id": "provisioning-requester-name-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 32,
+      "y": 160
+    },
+    "label": "Requester Name",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByTestId(\"provisioning-submit\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-submit",
+      "type": "submit"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 32,
+      "y": 384
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Submit Request",
+    "v": 1
+  },
+  "locator(\"form button[type='submit']\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-submit",
+      "type": "submit"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 32,
+      "y": 384
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Submit Request",
+    "v": 1
+  },
+  "locator(\"input[type='date']\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-effective-date",
+      "id": "provisioning-effective-date-input",
+      "type": "date"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 128,
+      "x": 32,
+      "y": 224
+    },
+    "label": "Effective Date",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "locator(\"textarea\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "provisioning-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "main"
+      }
+    ],
+    "attrs": {
+      "data-testid": "provisioning-notes",
+      "id": "provisioning-notes-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 32,
+      "y": 288
+    },
+    "label": "Notes",
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "textarea",
+    "text": "Temporary contractor access",
+    "v": 1
+  }
+}

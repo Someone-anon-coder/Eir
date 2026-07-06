@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 
 test("fills out the provisioning form using label text and css selectors", async ({ page }) => {
   await page.goto("/login");

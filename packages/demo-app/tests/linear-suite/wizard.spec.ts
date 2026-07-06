@@ -1,6 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 
-test("navigates the wizard forward and back using button text, watching the hash change", async ({ page }) => {
+test("navigates the wizard forward and back using button text, watching the hash change", async ({
+  page,
+}) => {
   await page.goto("/login");
   await page.locator("#login-username-input").fill("jordan");
   await page.locator("#login-password-input").fill("hunter2");

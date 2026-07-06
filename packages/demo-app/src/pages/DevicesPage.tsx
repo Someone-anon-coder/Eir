@@ -6,19 +6,79 @@ type TableKey = "active" | "archived";
 type SortDirection = "none" | "asc" | "desc";
 
 const initialActiveDevices: DeviceRow[] = [
-  { id: "dev-1", name: "Front Desk Tablet", owner: "A. Ramirez", status: "online", lastSeen: "2026-07-05 08:12" },
-  { id: "dev-2", name: "Warehouse Scanner", owner: "K. Nguyen", status: "online", lastSeen: "2026-07-05 07:58" },
-  { id: "dev-3", name: "Conference Room Display", owner: "S. Patel", status: "offline", lastSeen: "2026-07-04 22:10" },
-  { id: "dev-4", name: "Loading Dock Printer", owner: "M. Alvarez", status: "online", lastSeen: "2026-07-05 06:40" },
-  { id: "dev-5", name: "Reception Kiosk", owner: "T. Chen", status: "online", lastSeen: "2026-07-05 08:00" },
+  {
+    id: "dev-1",
+    name: "Front Desk Tablet",
+    owner: "A. Ramirez",
+    status: "online",
+    lastSeen: "2026-07-05 08:12",
+  },
+  {
+    id: "dev-2",
+    name: "Warehouse Scanner",
+    owner: "K. Nguyen",
+    status: "online",
+    lastSeen: "2026-07-05 07:58",
+  },
+  {
+    id: "dev-3",
+    name: "Conference Room Display",
+    owner: "S. Patel",
+    status: "offline",
+    lastSeen: "2026-07-04 22:10",
+  },
+  {
+    id: "dev-4",
+    name: "Loading Dock Printer",
+    owner: "M. Alvarez",
+    status: "online",
+    lastSeen: "2026-07-05 06:40",
+  },
+  {
+    id: "dev-5",
+    name: "Reception Kiosk",
+    owner: "T. Chen",
+    status: "online",
+    lastSeen: "2026-07-05 08:00",
+  },
 ];
 
 const initialArchivedDevices: DeviceRow[] = [
-  { id: "dev-9", name: "Front Desk Tablet", owner: "A. Ramirez", status: "offline", lastSeen: "2026-05-11 10:00" },
-  { id: "dev-10", name: "Legacy Barcode Scanner", owner: "K. Nguyen", status: "offline", lastSeen: "2026-01-20 09:15" },
-  { id: "dev-11", name: "Old Conference Display", owner: "S. Patel", status: "offline", lastSeen: "2025-11-02 14:30" },
-  { id: "dev-12", name: "Retired Dock Printer", owner: "M. Alvarez", status: "offline", lastSeen: "2025-09-18 11:05" },
-  { id: "dev-13", name: "Decommissioned Kiosk", owner: "T. Chen", status: "offline", lastSeen: "2025-08-01 09:45" },
+  {
+    id: "dev-9",
+    name: "Front Desk Tablet",
+    owner: "A. Ramirez",
+    status: "offline",
+    lastSeen: "2026-05-11 10:00",
+  },
+  {
+    id: "dev-10",
+    name: "Legacy Barcode Scanner",
+    owner: "K. Nguyen",
+    status: "offline",
+    lastSeen: "2026-01-20 09:15",
+  },
+  {
+    id: "dev-11",
+    name: "Old Conference Display",
+    owner: "S. Patel",
+    status: "offline",
+    lastSeen: "2025-11-02 14:30",
+  },
+  {
+    id: "dev-12",
+    name: "Retired Dock Printer",
+    owner: "M. Alvarez",
+    status: "offline",
+    lastSeen: "2025-09-18 11:05",
+  },
+  {
+    id: "dev-13",
+    name: "Decommissioned Kiosk",
+    owner: "T. Chen",
+    status: "offline",
+    lastSeen: "2025-08-01 09:45",
+  },
 ];
 
 function sortRows(rows: readonly DeviceRow[], direction: SortDirection): DeviceRow[] {
@@ -36,9 +96,14 @@ export function DevicesPage() {
     active: "none",
     archived: "none",
   });
-  const [editing, setEditing] = useState<{ table: TableKey; id: string; draft: string } | null>(null);
+  const [editing, setEditing] = useState<{ table: TableKey; id: string; draft: string } | null>(
+    null,
+  );
 
-  const activeRows = useMemo(() => sortRows(tables.active, sortDir.active), [tables.active, sortDir.active]);
+  const activeRows = useMemo(
+    () => sortRows(tables.active, sortDir.active),
+    [tables.active, sortDir.active],
+  );
   const archivedRows = useMemo(
     () => sortRows(tables.archived, sortDir.archived),
     [tables.archived, sortDir.archived],

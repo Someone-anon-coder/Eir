@@ -1,0 +1,20 @@
+{
+  "locator(\"#delayed-button\")": {
+    "ancestors": [],
+    "attrs": {
+      "id": "delayed-button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 0,
+      "y": 0
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Delayed Button",
+    "v": 1
+  }
+}

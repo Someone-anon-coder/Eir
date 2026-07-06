@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 
 test("removes an archived device using a text-based row locator", async ({ page }) => {
   await page.goto("/login");
@@ -13,7 +13,9 @@ test("removes an archived device using a text-based row locator", async ({ page 
   await expect(page.getByText("Legacy Barcode Scanner")).toHaveCount(0);
 });
 
-test("edits a device inside the archived table using a class-anchored xpath ancestor walk", async ({ page }) => {
+test("edits a device inside the archived table using a class-anchored xpath ancestor walk", async ({
+  page,
+}) => {
   await page.goto("/login");
   await page.locator("#login-username-input").fill("jordan");
   await page.locator("#login-password-input").fill("hunter2");

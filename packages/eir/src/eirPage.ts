@@ -3,6 +3,7 @@ import { EirLocator } from "./eirLocator.js";
 import { logCaptured } from "./debugLog.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
 import { extendChain, routeFromUrl } from "./selectorIdentity.js";
+import type { FingerprintRecorder } from "./store/fingerprintStore.js";
 
 /**
  * `expect(page).toHaveURL()` / `.toHaveTitle()` duck-type `_apiName` on the
@@ -22,9 +23,11 @@ function internalsOf(real: Page): PagePrivateInternals {
 
 export class EirPage implements Page {
   readonly #real: Page;
+  readonly #recorder: FingerprintRecorder;
 
-  constructor(real: Page) {
+  constructor(real: Page, recorder: FingerprintRecorder) {
     this.#real = real;
+    this.#recorder = recorder;
   }
 
   // ---- capture points (Blueprint §7.1): wrap the returned Locator so chains stay tracked ----
@@ -33,35 +36,35 @@ export class EirPage implements Page {
     const real = this.#real.locator(...args);
     const chainPath = extendChain([], "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByRole(...args: Parameters<Page["getByRole"]>): ReturnType<Page["getByRole"]> {
     const real = this.#real.getByRole(...args);
     const chainPath = extendChain([], "getByRole", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByLabel(...args: Parameters<Page["getByLabel"]>): ReturnType<Page["getByLabel"]> {
     const real = this.#real.getByLabel(...args);
     const chainPath = extendChain([], "getByLabel", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByText(...args: Parameters<Page["getByText"]>): ReturnType<Page["getByText"]> {
     const real = this.#real.getByText(...args);
     const chainPath = extendChain([], "getByText", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByTestId(...args: Parameters<Page["getByTestId"]>): ReturnType<Page["getByTestId"]> {
     const real = this.#real.getByTestId(...args);
     const chainPath = extendChain([], "getByTestId", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByPlaceholder(
@@ -70,7 +73,7 @@ export class EirPage implements Page {
     const real = this.#real.getByPlaceholder(...args);
     const chainPath = extendChain([], "getByPlaceholder", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   // ---- everything else on Page: plain pass-through, untouched (Blueprint §7.1 scopes ----
@@ -87,7 +90,9 @@ export class EirPage implements Page {
     return this;
   }
 
-  addLocatorHandler(...args: Parameters<Page["addLocatorHandler"]>): ReturnType<Page["addLocatorHandler"]> {
+  addLocatorHandler(
+    ...args: Parameters<Page["addLocatorHandler"]>
+  ): ReturnType<Page["addLocatorHandler"]> {
     return this.#real.addLocatorHandler(...args);
   }
 
@@ -107,7 +112,9 @@ export class EirPage implements Page {
     return this.#real.bringToFront(...args);
   }
 
-  cancelPickLocator(...args: Parameters<Page["cancelPickLocator"]>): ReturnType<Page["cancelPickLocator"]> {
+  cancelPickLocator(
+    ...args: Parameters<Page["cancelPickLocator"]>
+  ): ReturnType<Page["cancelPickLocator"]> {
     return this.#real.cancelPickLocator(...args);
   }
 
@@ -115,11 +122,15 @@ export class EirPage implements Page {
     return this.#real.check(...args);
   }
 
-  clearConsoleMessages(...args: Parameters<Page["clearConsoleMessages"]>): ReturnType<Page["clearConsoleMessages"]> {
+  clearConsoleMessages(
+    ...args: Parameters<Page["clearConsoleMessages"]>
+  ): ReturnType<Page["clearConsoleMessages"]> {
     return this.#real.clearConsoleMessages(...args);
   }
 
-  clearPageErrors(...args: Parameters<Page["clearPageErrors"]>): ReturnType<Page["clearPageErrors"]> {
+  clearPageErrors(
+    ...args: Parameters<Page["clearPageErrors"]>
+  ): ReturnType<Page["clearPageErrors"]> {
     return this.#real.clearPageErrors(...args);
   }
 
@@ -131,7 +142,9 @@ export class EirPage implements Page {
     return this.#real.close(...args);
   }
 
-  consoleMessages(...args: Parameters<Page["consoleMessages"]>): ReturnType<Page["consoleMessages"]> {
+  consoleMessages(
+    ...args: Parameters<Page["consoleMessages"]>
+  ): ReturnType<Page["consoleMessages"]> {
     return this.#real.consoleMessages(...args);
   }
 
@@ -321,9 +334,7 @@ export class EirPage implements Page {
     options: { behavior?: "wait" | "ignoreErrors" | "default" },
   ): Promise<void>;
   removeAllListeners(...args: unknown[]): this | Promise<void> {
-    const result = (this.#real.removeAllListeners as (...a: unknown[]) => unknown)(
-      ...args,
-    );
+    const result = (this.#real.removeAllListeners as (...a: unknown[]) => unknown)(...args);
     return args.length > 1 ? (result as Promise<void>) : this;
   }
 
@@ -332,7 +343,9 @@ export class EirPage implements Page {
     return this;
   }
 
-  removeLocatorHandler(...args: Parameters<Page["removeLocatorHandler"]>): ReturnType<Page["removeLocatorHandler"]> {
+  removeLocatorHandler(
+    ...args: Parameters<Page["removeLocatorHandler"]>
+  ): ReturnType<Page["removeLocatorHandler"]> {
     return this.#real.removeLocatorHandler(...args);
   }
 
@@ -378,11 +391,15 @@ export class EirPage implements Page {
     return this.#real.setDefaultNavigationTimeout(...args);
   }
 
-  setDefaultTimeout(...args: Parameters<Page["setDefaultTimeout"]>): ReturnType<Page["setDefaultTimeout"]> {
+  setDefaultTimeout(
+    ...args: Parameters<Page["setDefaultTimeout"]>
+  ): ReturnType<Page["setDefaultTimeout"]> {
     return this.#real.setDefaultTimeout(...args);
   }
 
-  setExtraHTTPHeaders(...args: Parameters<Page["setExtraHTTPHeaders"]>): ReturnType<Page["setExtraHTTPHeaders"]> {
+  setExtraHTTPHeaders(
+    ...args: Parameters<Page["setExtraHTTPHeaders"]>
+  ): ReturnType<Page["setExtraHTTPHeaders"]> {
     return this.#real.setExtraHTTPHeaders(...args);
   }
 
@@ -390,7 +407,9 @@ export class EirPage implements Page {
     return this.#real.setInputFiles(...args);
   }
 
-  setViewportSize(...args: Parameters<Page["setViewportSize"]>): ReturnType<Page["setViewportSize"]> {
+  setViewportSize(
+    ...args: Parameters<Page["setViewportSize"]>
+  ): ReturnType<Page["setViewportSize"]> {
     return this.#real.setViewportSize(...args);
   }
 
@@ -438,11 +457,15 @@ export class EirPage implements Page {
     (this.#real.waitForEvent as (...a: unknown[]) => unknown)(...args),
   );
 
-  waitForLoadState(...args: Parameters<Page["waitForLoadState"]>): ReturnType<Page["waitForLoadState"]> {
+  waitForLoadState(
+    ...args: Parameters<Page["waitForLoadState"]>
+  ): ReturnType<Page["waitForLoadState"]> {
     return this.#real.waitForLoadState(...args);
   }
 
-  waitForNavigation(...args: Parameters<Page["waitForNavigation"]>): ReturnType<Page["waitForNavigation"]> {
+  waitForNavigation(
+    ...args: Parameters<Page["waitForNavigation"]>
+  ): ReturnType<Page["waitForNavigation"]> {
     return this.#real.waitForNavigation(...args);
   }
 
@@ -450,13 +473,14 @@ export class EirPage implements Page {
     return this.#real.waitForRequest(...args);
   }
 
-  waitForResponse(...args: Parameters<Page["waitForResponse"]>): ReturnType<Page["waitForResponse"]> {
+  waitForResponse(
+    ...args: Parameters<Page["waitForResponse"]>
+  ): ReturnType<Page["waitForResponse"]> {
     return this.#real.waitForResponse(...args);
   }
 
-  readonly waitForSelector: Page["waitForSelector"] = forwardOverloaded(
-    (...args: unknown[]) =>
-      (this.#real.waitForSelector as (...a: unknown[]) => unknown)(...args),
+  readonly waitForSelector: Page["waitForSelector"] = forwardOverloaded((...args: unknown[]) =>
+    (this.#real.waitForSelector as (...a: unknown[]) => unknown)(...args),
   );
 
   waitForTimeout(...args: Parameters<Page["waitForTimeout"]>): ReturnType<Page["waitForTimeout"]> {
@@ -489,23 +513,20 @@ export class EirPage implements Page {
     (this.#real.$$eval as (...a: unknown[]) => unknown)(...args),
   );
 
-  readonly addInitScript: Page["addInitScript"] = forwardOverloaded(
-    (...args: unknown[]) =>
-      (this.#real.addInitScript as (...a: unknown[]) => unknown)(...args),
+  readonly addInitScript: Page["addInitScript"] = forwardOverloaded((...args: unknown[]) =>
+    (this.#real.addInitScript as (...a: unknown[]) => unknown)(...args),
   );
 
   readonly evaluate: Page["evaluate"] = forwardOverloaded((...args: unknown[]) =>
     (this.#real.evaluate as (...a: unknown[]) => unknown)(...args),
   );
 
-  readonly evaluateHandle: Page["evaluateHandle"] = forwardOverloaded(
-    (...args: unknown[]) =>
-      (this.#real.evaluateHandle as (...a: unknown[]) => unknown)(...args),
+  readonly evaluateHandle: Page["evaluateHandle"] = forwardOverloaded((...args: unknown[]) =>
+    (this.#real.evaluateHandle as (...a: unknown[]) => unknown)(...args),
   );
 
-  readonly waitForFunction: Page["waitForFunction"] = forwardOverloaded(
-    (...args: unknown[]) =>
-      (this.#real.waitForFunction as (...a: unknown[]) => unknown)(...args),
+  readonly waitForFunction: Page["waitForFunction"] = forwardOverloaded((...args: unknown[]) =>
+    (this.#real.waitForFunction as (...a: unknown[]) => unknown)(...args),
   );
 
   // ---- readonly properties: plain pass-through getters ----

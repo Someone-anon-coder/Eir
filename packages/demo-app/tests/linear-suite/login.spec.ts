@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 
 test("logs in using id-based locators", async ({ page }) => {
   await page.goto("/login");

@@ -1,0 +1,248 @@
+{
+  "getByRole(\"button\", {\"name\":\"Log Out\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "nav"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "nav-logout",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 480,
+      "y": 0
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Log Out",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Provisioning\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "nav"
+      },
+      {
+        "classes": [
+          "dashboard-layout"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "nav-link-provisioning"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 160,
+      "y": 0
+    },
+    "label": null,
+    "siblingCount": 4,
+    "siblingIndex": 1,
+    "tag": "a",
+    "text": "Provisioning",
+    "v": 1
+  },
+  "getByTestId(\"table-active-devices\") > getByTestId(\"device-sort-name\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "th"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tr"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "thead"
+      }
+    ],
+    "attrs": {
+      "data-testid": "device-sort-name",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 96,
+      "x": 64,
+      "y": 160
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Device Name",
+    "v": 1
+  },
+  "getByText(\"Legacy Barcode Scanner\") > locator(\"xpath=ancestor::tr\") > getByRole(\"button\", {\"name\":\"Remove\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "td"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tr"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tbody"
+      }
+    ],
+    "attrs": {
+      "data-testid": "device-row-remove",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 1056,
+      "y": 608
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "button",
+    "text": "Remove",
+    "v": 1
+  },
+  "locator(\"xpath=//h2[text()='{TEXT}']/ancestor::section[contains(@class,'table-card')]\") > locator(\".data-table tbody tr\", {\"hasText\":\"S. Patel\"}) > getByRole(\"button\", {\"name\":\"Edit\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "td"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tr"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tbody"
+      }
+    ],
+    "attrs": {
+      "data-testid": "device-row-edit",
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 32,
+      "x": 1024,
+      "y": 672
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Edit",
+    "v": 1
+  },
+  "locator(\"xpath=//h2[text()='{TEXT}']/ancestor::section[contains(@class,'table-card')]\") > locator(\".data-table tbody tr\", {\"hasText\":\"S. Patel\"}) > getByRole(\"button\", {\"name\":\"Save\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "td"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tr"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tbody"
+      }
+    ],
+    "attrs": {
+      "type": "button"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 32,
+      "x": 1024,
+      "y": 672
+    },
+    "label": null,
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Save",
+    "v": 1
+  },
+  "locator(\"xpath=//h2[text()='{TEXT}']/ancestor::section[contains(@class,'table-card')]\") > locator(\".data-table tbody tr\", {\"hasText\":\"S. Patel\"}) > locator(\"input\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "td"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tr"
+      },
+      {
+        "classes": [],
+        "id": null,
+        "tag": "tbody"
+      }
+    ],
+    "attrs": {
+      "aria-label": "Edit name for Old Conference Display"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 64,
+      "y": 672
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  }
+}

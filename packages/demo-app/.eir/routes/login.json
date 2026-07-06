@@ -1,0 +1,226 @@
+{
+  "getByRole(\"button\", {\"name\":\"Sign In\"})": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "login-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "login-submit",
+      "type": "submit"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 0,
+      "y": 192
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Sign In",
+    "v": 1
+  },
+  "getByTestId(\"login-password\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "login-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "login-password",
+      "id": "login-password-input",
+      "type": "password"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 0,
+      "y": 160
+    },
+    "label": "Password",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "getByTestId(\"login-submit\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "login-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "login-submit",
+      "type": "submit"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 64,
+      "x": 0,
+      "y": 192
+    },
+    "label": null,
+    "siblingCount": 1,
+    "siblingIndex": 0,
+    "tag": "button",
+    "text": "Sign In",
+    "v": 1
+  },
+  "getByTestId(\"login-username\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "login-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "login-username",
+      "id": "login-username-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 0,
+      "y": 96
+    },
+    "label": "Username",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "locator(\"#login-password-input\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "login-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "login-password",
+      "id": "login-password-input",
+      "type": "password"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 0,
+      "y": 160
+    },
+    "label": "Password",
+    "siblingCount": 2,
+    "siblingIndex": 1,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  },
+  "locator(\"#login-username-input\")": {
+    "ancestors": [
+      {
+        "classes": [],
+        "id": null,
+        "tag": "form"
+      },
+      {
+        "classes": [
+          "login-page"
+        ],
+        "id": null,
+        "tag": "div"
+      },
+      {
+        "classes": [],
+        "id": "root",
+        "tag": "div"
+      }
+    ],
+    "attrs": {
+      "data-testid": "login-username",
+      "id": "login-username-input"
+    },
+    "bbox": {
+      "h": 32,
+      "w": 192,
+      "x": 0,
+      "y": 96
+    },
+    "label": "Username",
+    "siblingCount": 2,
+    "siblingIndex": 0,
+    "tag": "input",
+    "text": null,
+    "v": 1
+  }
+}

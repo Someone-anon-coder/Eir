@@ -63,7 +63,11 @@ export function RequestWizardPage() {
             value={requestedBy}
             onChange={(event) => setRequestedBy(event.target.value)}
           />
-          <button type="button" data-testid={domProfile.wizard.nextButton} onClick={() => goToStep(2)}>
+          <button
+            type="button"
+            data-testid={domProfile.wizard.nextButton}
+            onClick={() => goToStep(2)}
+          >
             Next
           </button>
         </section>
@@ -92,10 +96,18 @@ export function RequestWizardPage() {
             <option value="30 days">30 days</option>
             <option value="90 days">90 days</option>
           </select>
-          <button type="button" data-testid={domProfile.wizard.backButton} onClick={() => goToStep(1)}>
+          <button
+            type="button"
+            data-testid={domProfile.wizard.backButton}
+            onClick={() => goToStep(1)}
+          >
             Back
           </button>
-          <button type="button" data-testid={domProfile.wizard.nextButton} onClick={() => goToStep(3)}>
+          <button
+            type="button"
+            data-testid={domProfile.wizard.nextButton}
+            onClick={() => goToStep(3)}
+          >
             Next
           </button>
         </section>
@@ -110,7 +122,11 @@ export function RequestWizardPage() {
             <li>Resource: {resource}</li>
             <li>Duration: {duration}</li>
           </ul>
-          <button type="button" data-testid={domProfile.wizard.backButton} onClick={() => goToStep(2)}>
+          <button
+            type="button"
+            data-testid={domProfile.wizard.backButton}
+            onClick={() => goToStep(2)}
+          >
             Back
           </button>
           <button type="button" data-testid={domProfile.wizard.submitButton} onClick={handleSubmit}>

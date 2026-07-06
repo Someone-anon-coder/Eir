@@ -1,12 +1,17 @@
 import type { Locator } from "@playwright/test";
-import { logCaptured, logOutcome } from "./debugLog.js";
+import { captureFingerprint } from "./capture/captureFingerprint.js";
+import { logCaptured, logFingerprinted, logOutcome } from "./debugLog.js";
+import type { Fingerprint } from "./fingerprint.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
+import { normalizeRoute } from "./routeNormalize.js";
 import {
   type ChainHop,
   type SelectorIdentity,
   extendChain,
   routeFromUrl,
 } from "./selectorIdentity.js";
+import { normalizeSelector } from "./selectorNormalize.js";
+import type { FingerprintRecorder } from "./store/fingerprintStore.js";
 
 /**
  * Playwright's `expect()` duck-types these two members at runtime
@@ -33,19 +38,64 @@ function messageOf(error: unknown): string {
 export class EirLocator implements Locator {
   readonly #real: Locator;
   readonly #identity: SelectorIdentity;
+  readonly #recorder: FingerprintRecorder;
 
-  constructor(real: Locator, chainPath: readonly ChainHop[]) {
+  constructor(real: Locator, chainPath: readonly ChainHop[], recorder: FingerprintRecorder) {
     this.#real = real;
     this.#identity = {
       rawSelector: real.toString(),
       chainPath,
       routeAtCreation: routeFromUrl(real.page().url()),
     };
+    this.#recorder = recorder;
   }
 
   /** Not part of Playwright's `Locator` type — Eir's own book-keeping, read starting Phase 3. */
   get identity(): SelectorIdentity {
     return this.#identity;
+  }
+
+  /**
+   * `captureFingerprint` is started *concurrently with the action itself*
+   * (see each imperative method below), not strictly after it resolves —
+   * a deliberate, documented reinterpretation of Blueprint §7.2's "after a
+   * successful action" as "conditioned on success," not "temporally
+   * after." A live experiment against the demo app showed why: an action
+   * that navigates away (a login submit, a nav link) destroys its own
+   * element before a *post*-success `evaluate()` call can reach it, so
+   * every navigational selector silently never got fingerprinted. Starting
+   * the browser round-trip while the element is still guaranteed to exist
+   * — and only ever *recording* the result here, after success is
+   * confirmed — closes that gap. Confirmed via 3 repeated full-suite runs:
+   * deterministic capture, no change to any action's own pass/fail
+   * behavior or timing.
+   *
+   * Fire-and-forget (Blueprint P1) either way: never awaited by a caller,
+   * so the outcome shells return the instant the real action resolves.
+   * The trailing `.catch()` guards this method's own code
+   * (normalizeRoute/normalizeSelector/recorder.record) — `captureFingerprint`
+   * itself is built to never reject, but an unhandled rejection from
+   * *this* callback would still crash the worker process.
+   *
+   * Registered with `trackPending` so worker teardown can await it —
+   * "fire-and-forget" means the test never waits, not that nothing ever
+   * does; something has to, or the last action's capture can be silently
+   * dropped when the worker shuts down before the browser round-trip
+   * finishes.
+   */
+  #recordCapture(capture: Promise<Fingerprint | null>): void {
+    const pending = capture
+      .then((fingerprint) => {
+        if (fingerprint === null) return;
+        const route = normalizeRoute(this.#identity.routeAtCreation);
+        const { key } = normalizeSelector(this.#identity.chainPath);
+        logFingerprinted(key, route);
+        this.#recorder.record(route, key, fingerprint);
+      })
+      .catch(() => {
+        // Observability must never affect the test — see the docstring above.
+      });
+    this.#recorder.trackPending(pending);
   }
 
   // ---- capture points (Blueprint §7.1): wrap the returned Locator so chains stay tracked ----
@@ -54,50 +104,52 @@ export class EirLocator implements Locator {
     const real = this.#real.locator(...args);
     const chainPath = extendChain(this.#identity.chainPath, "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByRole(...args: Parameters<Locator["getByRole"]>): Locator {
     const real = this.#real.getByRole(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByRole", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByLabel(...args: Parameters<Locator["getByLabel"]>): Locator {
     const real = this.#real.getByLabel(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByLabel", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByText(...args: Parameters<Locator["getByText"]>): Locator {
     const real = this.#real.getByText(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByText", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByTestId(...args: Parameters<Locator["getByTestId"]>): Locator {
     const real = this.#real.getByTestId(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByTestId", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   getByPlaceholder(...args: Parameters<Locator["getByPlaceholder"]>): Locator {
     const real = this.#real.getByPlaceholder(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByPlaceholder", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath);
+    return new EirLocator(real, chainPath, this.#recorder);
   }
 
   // ---- imperative outcomes (Blueprint §7.1): try/catch shell, log, rethrow — no reaction yet ----
 
   async click(...args: Parameters<Locator["click"]>): ReturnType<Locator["click"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.click(...args);
       logOutcome("click", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("click", "FAILED", messageOf(error));
@@ -106,9 +158,11 @@ export class EirLocator implements Locator {
   }
 
   async fill(...args: Parameters<Locator["fill"]>): ReturnType<Locator["fill"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.fill(...args);
       logOutcome("fill", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("fill", "FAILED", messageOf(error));
@@ -117,9 +171,11 @@ export class EirLocator implements Locator {
   }
 
   async type(...args: Parameters<Locator["type"]>): ReturnType<Locator["type"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.type(...args);
       logOutcome("type", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("type", "FAILED", messageOf(error));
@@ -128,9 +184,11 @@ export class EirLocator implements Locator {
   }
 
   async press(...args: Parameters<Locator["press"]>): ReturnType<Locator["press"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.press(...args);
       logOutcome("press", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("press", "FAILED", messageOf(error));
@@ -139,9 +197,11 @@ export class EirLocator implements Locator {
   }
 
   async check(...args: Parameters<Locator["check"]>): ReturnType<Locator["check"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.check(...args);
       logOutcome("check", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("check", "FAILED", messageOf(error));
@@ -150,9 +210,11 @@ export class EirLocator implements Locator {
   }
 
   async uncheck(...args: Parameters<Locator["uncheck"]>): ReturnType<Locator["uncheck"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.uncheck(...args);
       logOutcome("uncheck", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("uncheck", "FAILED", messageOf(error));
@@ -163,9 +225,11 @@ export class EirLocator implements Locator {
   async selectOption(
     ...args: Parameters<Locator["selectOption"]>
   ): ReturnType<Locator["selectOption"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.selectOption(...args);
       logOutcome("selectOption", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("selectOption", "FAILED", messageOf(error));
@@ -174,9 +238,11 @@ export class EirLocator implements Locator {
   }
 
   async hover(...args: Parameters<Locator["hover"]>): ReturnType<Locator["hover"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.hover(...args);
       logOutcome("hover", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("hover", "FAILED", messageOf(error));
@@ -185,9 +251,11 @@ export class EirLocator implements Locator {
   }
 
   async waitFor(...args: Parameters<Locator["waitFor"]>): ReturnType<Locator["waitFor"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.waitFor(...args);
       logOutcome("waitFor", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("waitFor", "FAILED", messageOf(error));
@@ -195,12 +263,12 @@ export class EirLocator implements Locator {
     }
   }
 
-  async innerText(
-    ...args: Parameters<Locator["innerText"]>
-  ): ReturnType<Locator["innerText"]> {
+  async innerText(...args: Parameters<Locator["innerText"]>): ReturnType<Locator["innerText"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.innerText(...args);
       logOutcome("innerText", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("innerText", "FAILED", messageOf(error));
@@ -211,9 +279,11 @@ export class EirLocator implements Locator {
   async textContent(
     ...args: Parameters<Locator["textContent"]>
   ): ReturnType<Locator["textContent"]> {
+    const capture = captureFingerprint(this.#real);
     try {
       const result = await this.#real.textContent(...args);
       logOutcome("textContent", "OK");
+      this.#recordCapture(capture);
       return result;
     } catch (error) {
       logOutcome("textContent", "FAILED", messageOf(error));
@@ -245,11 +315,15 @@ export class EirLocator implements Locator {
     return this.#real.all(...args);
   }
 
-  allInnerTexts(...args: Parameters<Locator["allInnerTexts"]>): ReturnType<Locator["allInnerTexts"]> {
+  allInnerTexts(
+    ...args: Parameters<Locator["allInnerTexts"]>
+  ): ReturnType<Locator["allInnerTexts"]> {
     return this.#real.allInnerTexts(...args);
   }
 
-  allTextContents(...args: Parameters<Locator["allTextContents"]>): ReturnType<Locator["allTextContents"]> {
+  allTextContents(
+    ...args: Parameters<Locator["allTextContents"]>
+  ): ReturnType<Locator["allTextContents"]> {
     return this.#real.allTextContents(...args);
   }
 
@@ -289,7 +363,9 @@ export class EirLocator implements Locator {
     return this.#real.description(...args);
   }
 
-  dispatchEvent(...args: Parameters<Locator["dispatchEvent"]>): ReturnType<Locator["dispatchEvent"]> {
+  dispatchEvent(
+    ...args: Parameters<Locator["dispatchEvent"]>
+  ): ReturnType<Locator["dispatchEvent"]> {
     return this.#real.dispatchEvent(...args);
   }
 
@@ -301,11 +377,15 @@ export class EirLocator implements Locator {
     return this.#real.drop(...args);
   }
 
-  elementHandle(...args: Parameters<Locator["elementHandle"]>): ReturnType<Locator["elementHandle"]> {
+  elementHandle(
+    ...args: Parameters<Locator["elementHandle"]>
+  ): ReturnType<Locator["elementHandle"]> {
     return this.#real.elementHandle(...args);
   }
 
-  elementHandles(...args: Parameters<Locator["elementHandles"]>): ReturnType<Locator["elementHandles"]> {
+  elementHandles(
+    ...args: Parameters<Locator["elementHandles"]>
+  ): ReturnType<Locator["elementHandles"]> {
     return this.#real.elementHandles(...args);
   }
 
@@ -337,7 +417,9 @@ export class EirLocator implements Locator {
     return this.#real.getByTitle(...args);
   }
 
-  hideHighlight(...args: Parameters<Locator["hideHighlight"]>): ReturnType<Locator["hideHighlight"]> {
+  hideHighlight(
+    ...args: Parameters<Locator["hideHighlight"]>
+  ): ReturnType<Locator["hideHighlight"]> {
     return this.#real.hideHighlight(...args);
   }
 
@@ -409,7 +491,9 @@ export class EirLocator implements Locator {
     return this.#real.setChecked(...args);
   }
 
-  setInputFiles(...args: Parameters<Locator["setInputFiles"]>): ReturnType<Locator["setInputFiles"]> {
+  setInputFiles(
+    ...args: Parameters<Locator["setInputFiles"]>
+  ): ReturnType<Locator["setInputFiles"]> {
     return this.#real.setInputFiles(...args);
   }
 
@@ -432,9 +516,8 @@ export class EirLocator implements Locator {
     (this.#real.evaluateAll as (...a: unknown[]) => unknown)(...args),
   );
 
-  readonly evaluateHandle: Locator["evaluateHandle"] = forwardOverloaded(
-    (...args: unknown[]) =>
-      (this.#real.evaluateHandle as (...a: unknown[]) => unknown)(...args),
+  readonly evaluateHandle: Locator["evaluateHandle"] = forwardOverloaded((...args: unknown[]) =>
+    (this.#real.evaluateHandle as (...a: unknown[]) => unknown)(...args),
   );
 
   // ---- private runtime hooks `expect()` needs; not part of the public Locator type ----

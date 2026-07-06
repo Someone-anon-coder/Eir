@@ -9,4 +9,3 @@ export function eirVersion(): string {
 }
 
 export { test, expect } from "./fixture.js";
-

@@ -10,3 +10,8 @@ playwright/.cache/
 
 # Aayush's TS-tip playground — scratch only, never shipped
 ts-scratch/
+
+# Eir fingerprint store: per-worker scratch shards, merged away in
+# globalTeardown and never meant to be committed. `.eir/routes/` is NOT
+# ignored — that's the committed baseline (Blueprint §7.3).
+.eir/.shards/

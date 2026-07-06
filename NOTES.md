@@ -147,6 +147,20 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** `EirLocator`/`EirPage` only extend `chainPath`/wrap the return value for the exact 6 methods Blueprint §7.1 names (`locator`, `getByRole`, `getByLabel`, `getByText`, `getByTestId`, `getByPlaceholder`). Chaining through any other Locator-returning method (`filter`, `first`, `last`, `and`, `or`, `normalize`, `contentFrame`, `getByAltText`, `getByTitle`) returns the real, unwrapped `Locator` — that branch silently stops being tracked (no capture log, no future fingerprinting) even though it still behaves correctly as vanilla Playwright.
 **Mitigation:** Not currently exercised — the reference suite uses none of these methods. Revisit and widen the capture-point list if a future suite (benchmark or real-world adoption) relies on one of them.
 
+### RISK-007 — Post-success fingerprint capture loses every navigational action (resolved, kept for context)
+**Status:** MITIGATED
+**Raised:** 2026-07-06, during Phase 3 wiring (integration run against the demo app)
+**Phase affected:** Phase 3
+**Risk:** Capture was originally wired to start strictly *after* an imperative action resolved (`click()` awaited, then `evaluate()` on the same real element). For any action that navigates the page away (the login page's "Sign In" submit, dashboard nav-sidebar links), the element — and its whole document — is destroyed before that post-success `evaluate()` call can reach it. Confirmed via a full 15-spec reference-suite run: the login button's fingerprint was deterministically absent every time, not flaky. Every navigational selector in the suite would have silently never been captured.
+**Mitigation:** Start the `captureFingerprint()` browser round-trip *concurrently with the action* instead of after it, while the element is still guaranteed to exist; only *record* the result into the store once the action's own success is confirmed (see `EirLocator#recordCapture`). This is a deliberate, documented reinterpretation of Blueprint §7.2's "after a successful action" as "conditioned on success," not "temporally after" — edited into BLUEPRINT.md and EIR_BLUEPRINT_APPROACH.md directly (see §6 Changelog) rather than left as silent drift. Verified via 3 repeated full-suite runs: deterministic capture of the previously-lost selector, no change to any action's own pass/fail behavior or timing, no new errors.
+
+### RISK-008 — Selector-normalization templating collapsed distinct static selectors into one key (resolved, kept for context)
+**Status:** MITIGATED
+**Raised:** 2026-07-06/07, during Phase 3 wiring (4-worker vs 1-worker consistency check against the demo app)
+**Phase affected:** Phase 3
+**Risk:** As originally built, `normalizeSelector` templated *any* `getByText`/`getByLabel`/`getByPlaceholder` literal and `getByRole`'s `options.name` into `{TEXT}`, on the theory that a varying literal always means the same parameterized selector reused with different runtime values (the f-string case Blueprint §7.3 actually describes for hand-built `locator()` XPath strings). In practice, most such calls are simply *different, static, hardcoded* selectors that happen to share a method — a wrapper only ever sees `{ method, args }`, with no way to tell the two cases apart. Confirmed two distinct real bugs from this: (1) `getByLabel("Requested By")` and `getByLabel("Duration")` — two different form fields on `/dashboard/requests/new` — collapsed to one store key, silently overwritten depending on execution order (surfaced as a 1-worker-vs-4-worker content mismatch, not just reordering); (2) worse, `getByRole("link"/"button", {name})` collapsed *four or five distinct nav links/buttons per route* down to a single entry, deterministically every run (same-spec sequential ordering hid it from the worker-count diff check — only inspecting file contents directly revealed it).
+**Mitigation:** Templating is now scoped to exactly what Blueprint §7.3 names by example: a text literal embedded *inside a hand-constructed selector string* passed to `locator()` (the XPath `normalize-space()='...'`/`text()='...'`/`contains(text(),...)` shapes). Every other method's literal argument — `getByText`, `getByLabel`, `getByPlaceholder`, `getByRole`'s `name`, `getByTestId` — is kept as-is in the key, never templated. Verified via repeated 1-worker/4-worker runs producing byte-identical `.eir/routes/*.json`, and by direct inspection confirming every distinct selector (all nav links, both row-action buttons, both wizard-navigation buttons, both form-field labels) now gets its own entry.
+
 ### RISK-006 — `EirPage#removeAllListeners` needed hand-written overloads (resolved, kept for context)
 **Status:** MITIGATED
 **Raised:** 2026-07-06, during Phase 2 wrapper-class implementation
@@ -207,6 +221,14 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - CI: green (PR #6 — wrapper/proof; PR #7 — version bump). Both merged to main.
 - Next: Phase 3 — Fingerprint Capture & Store. Starts with its Pre-Phase TS Tip (`unknown` at the browser boundary).
 
+### 2026-07-07 — Phase 3, all work items (1–6)
+- Did: fingerprint schema decided and signed off (`docs/fingerprint-schema.md`) before any code. In-page capture (`capture/rawExtract.ts`, self-contained, no module-scope references — a real `ReferenceError` from an early mistake confirmed why) plus five small Node-side pure shaping functions (attrs allow-list, class filter, text truncation, bbox quantization), assembled behind an `unknown`-boundary type predicate in `captureFingerprint.ts`. Route + selector normalizers — selector templating ended up scoped to only the Blueprint-named XPath-embedded-literal case, after two rounds of live-run discovery (see below). Fingerprint store: one JSON file per route, key-sorted, atomic writes, per-worker shards merged deterministically in a new `playwright-eir/globalTeardown` export; the merge itself is a pure, disk-independent function. Capture wired into all 11 imperative outcome shells, started concurrently with the action rather than strictly after (a deliberate, documented reinterpretation of Blueprint §7.2). Reference suite permanently swapped from `@playwright/test` to `playwright-eir`; `.eir/routes/*.json` committed as the first calibration baseline (6 files, ~26 KB).
+- Two real bugs surfaced and fixed during integration testing against the demo app, not just imagined edge cases: (1) post-success capture silently lost every navigational selector (login submit, nav links) because the element's document was destroyed before the fire-and-forget `evaluate()` ran — fixed by starting capture concurrently with the action; (2) selector-normalization templating collapsed distinct static selectors sharing a method (`getByLabel("Requested By")` vs `getByLabel("Duration")`; four different `getByRole` nav links) into one store key, silently overwriting one fingerprint with another — fixed by scoping templating to only the XPath-embedded-literal case Blueprint actually names. Both logged as NOTES.md RISK-007/RISK-008 (mitigated), both required editing BLUEPRINT.md/EIR_BLUEPRINT_APPROACH.md wording deliberately rather than silently drifting from it.
+- All DoD proofs run for real: green suite → `.eir/routes/*.json` with all specs' selectors present; second identical run → zero diff; deliberate label-text change → minimal single-field diff; 4-worker parallel run → no corruption, byte-identical to a 1-worker run; store size ~26 KB (envelope is 500 KB); 137 Vitest unit tests green (up from 24 at Phase 2 close).
+- Blocked/open: none. NOTE-001/NOTE-002 remain DUE at their existing target phases, untouched.
+- CI: green (PR #9). Not yet merged — awaiting Aayush's go.
+- Next: Phase 4 — Mutation Engine & Benchmark Harness. Starts with its Pre-Phase TS Tip (discriminated unions for outcome classes).
+
 ---
 
 ## 6. Changelog to Governing Documents
@@ -223,6 +245,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 ### 2026-07-04 — CLAUDE.md — no direct pushes to main; PR-only workflow
 **Triggered by:** direct decision (Aayush, during Phase 0 tooling work, before the first push of the session)
 **Change:** §8 Git & Commits gains two rules: (1) Claude never pushes directly to `main` — every change lands on a feature branch and goes through a pull request via `gh pr create`, even Phase-0 scaffolding; (2) branch naming convention fixed as `<scope>-<purpose>-<YYYY-MM-DD>`.
+
+### 2026-07-06 — BLUEPRINT.md, EIR_BLUEPRINT_APPROACH.md — capture starts concurrently with the action, not strictly after
+**Triggered by:** direct decision (Aayush, during Phase 3 wiring, after a live experiment showed navigational actions lose their post-success capture race — see RISK-007)
+**Change:** BLUEPRINT.md §7.2's "Runs in-page via injected `page.evaluate()` script against the resolved element after a successful action" is amended to describe the round-trip starting concurrently with the action, committed to the store only on confirmed success. EIR_BLUEPRINT_APPROACH.md Phase 3 work item 2 updated to match and point to §7.2 for the reasoning.
 
 ---
 
