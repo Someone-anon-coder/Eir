@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 import { LoginPage } from "../pom/LoginPage";
 import { DevicesPage } from "../pom/DevicesPage";
 import { domProfile } from "../../src/domProfile";
@@ -40,7 +40,9 @@ test.describe("devices dashboard (POM)", () => {
     await expect(devices.activeTable().getByText("Warehouse Scanner (Bay 2)")).toBeVisible();
   });
 
-  test("targets the correct table when active and archived share a device name", async ({ page }) => {
+  test("targets the correct table when active and archived share a device name", async ({
+    page,
+  }) => {
     const devices = new DevicesPage(page);
     await devices.goto();
 

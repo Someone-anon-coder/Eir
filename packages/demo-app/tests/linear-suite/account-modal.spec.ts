@@ -1,6 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 
-test("deletes the account using role-based locators and a text match on the confirmation", async ({ page }) => {
+test("deletes the account using role-based locators and a text match on the confirmation", async ({
+  page,
+}) => {
   await page.goto("/login");
   await page.locator("#login-username-input").fill("jordan");
   await page.locator("#login-password-input").fill("hunter2");

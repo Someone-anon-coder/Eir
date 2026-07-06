@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 import { LoginPage } from "../pom/LoginPage";
 import { AccountPage } from "../pom/AccountPage";
 import { domProfile } from "../../src/domProfile";

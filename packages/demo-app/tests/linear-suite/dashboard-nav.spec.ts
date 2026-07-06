@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "playwright-eir";
 
 test("navigates between all dashboard sections via the sidebar links", async ({ page }) => {
   await page.goto("/login");
