@@ -201,6 +201,12 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - CI: pending first run on PR (local: lint/typecheck/e2e all green, 14/14 specs passing twice in a row, 4 workers)
 - Next: Phase 2 — Interception Shell. Starts with its Pre-Phase TS Tip (classes/`implements`).
 
+### 2026-07-06 — Phase 2, all work items (1–7)
+- Did: fixture override (`base.extend` on `page`) plus explicit composition wrapper classes `EirPage`/`EirLocator` (Q3-B, no Proxy) over Blueprint §7.1's full interception surface — 6 capture points (wrap return value, extend `chainPath`), 11 imperative outcomes (try/catch shell + `EIR_DEBUG=1` logging), 4 interrogatives (structurally untouched, zero logging), full remaining `Locator`/`Page` surface as verified pass-throughs. Selector-identity plumbing (`rawSelector`/`chainPath`/`routeAtCreation`) populated, unread until Phase 3. Two spikes (deleted, not shipped) confirmed `expect(locator)`/`expect(page)` work via narrow `_apiName`/`_expect` forwarding before committing to the design. ~20 overloaded/generic Playwright methods needed full-property typing instead of `Parameters<>`/`ReturnType<>` (Aayush-approved). 24 Vitest unit tests. Invisibility proof: 15-spec suite (14 Phase 1 + 1 new auto-wait regression spec) run 3×2, vanilla vs wrapped — identical pass/fail, ~0.7% timing delta, auto-wait spec green wrapped (`packages/eir/docs/invisibility.md`). Published `playwright-eir@0.1.0`. Logged NOTES.md RISK-003 through RISK-006 for design boundaries surfaced along the way (undocumented internals, capture-point scope limit, Locator-as-argument, `removeAllListeners`'s split-return overload).
+- Blocked/open: none. NOTE-001/NOTE-002 remain DUE at their existing target phases, untouched. RISK-003 through RISK-006 are WATCHING/MITIGATED, not blocking.
+- CI: green (PR #6 — wrapper/proof; PR #7 — version bump). Both merged to main.
+- Next: Phase 3 — Fingerprint Capture & Store. Starts with its Pre-Phase TS Tip (`unknown` at the browser boundary).
+
 ---
 
 ## 6. Changelog to Governing Documents
