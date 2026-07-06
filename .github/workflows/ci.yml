@@ -26,6 +26,8 @@ jobs:
 
       - run: pnpm test
 
+      - run: pnpm --filter playwright-eir build
+
       - run: pnpm --filter demo-app exec playwright install --with-deps chromium
 
       - run: pnpm --filter demo-app e2e
