@@ -1,7 +1,12 @@
-import { type SubmitEvent, useState } from "react";
+import { type ReactNode, type SubmitEvent, useState } from "react";
 import { domProfile } from "../domProfile";
+import { isWrapped } from "../mutation/overrides";
 
 type BillingCycle = "monthly" | "quarterly" | "annual";
+
+function wrapIfMutated(mutationKey: string, node: ReactNode): ReactNode {
+  return isWrapped(mutationKey) ? <div>{node}</div> : node;
+}
 
 export function ProvisioningPage() {
   const [requesterName, setRequesterName] = useState("");
@@ -20,29 +25,38 @@ export function ProvisioningPage() {
       <h2>New Device Provisioning Request</h2>
       <form data-testid={domProfile.provisioning.form} onSubmit={handleSubmit}>
         <label htmlFor={domProfile.provisioning.requesterNameInputId}>Requester Name</label>
-        <input
-          id={domProfile.provisioning.requesterNameInputId}
-          data-testid={domProfile.provisioning.requesterNameInput}
-          value={requesterName}
-          onChange={(event) => setRequesterName(event.target.value)}
-        />
+        {wrapIfMutated(
+          "provisioning.requesterNameInput",
+          <input
+            id={domProfile.provisioning.requesterNameInputId}
+            data-testid={domProfile.provisioning.requesterNameInput}
+            value={requesterName}
+            onChange={(event) => setRequesterName(event.target.value)}
+          />,
+        )}
 
         <label htmlFor={domProfile.provisioning.effectiveDateInputId}>Effective Date</label>
-        <input
-          id={domProfile.provisioning.effectiveDateInputId}
-          type="date"
-          data-testid={domProfile.provisioning.effectiveDateInput}
-          value={effectiveDate}
-          onChange={(event) => setEffectiveDate(event.target.value)}
-        />
+        {wrapIfMutated(
+          "provisioning.effectiveDateInput",
+          <input
+            id={domProfile.provisioning.effectiveDateInputId}
+            type="date"
+            data-testid={domProfile.provisioning.effectiveDateInput}
+            value={effectiveDate}
+            onChange={(event) => setEffectiveDate(event.target.value)}
+          />,
+        )}
 
         <label htmlFor={domProfile.provisioning.notesTextareaId}>Notes</label>
-        <textarea
-          id={domProfile.provisioning.notesTextareaId}
-          data-testid={domProfile.provisioning.notesTextarea}
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-        />
+        {wrapIfMutated(
+          "provisioning.notesTextarea",
+          <textarea
+            id={domProfile.provisioning.notesTextareaId}
+            data-testid={domProfile.provisioning.notesTextarea}
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+          />,
+        )}
 
         <label htmlFor={domProfile.provisioning.billingCycleSelectId}>Billing Cycle</label>
         <select

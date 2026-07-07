@@ -1,7 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { domProfile } from "../domProfile";
+import { isWrapped, overrideOrder, overrideText } from "../mutation/overrides";
 
 type Step = 1 | 2 | 3;
+
+function wrapIfMutated(mutationKey: string, node: ReactNode): ReactNode {
+  return isWrapped(mutationKey) ? <div>{node}</div> : node;
+}
 
 function parseStepFromHash(hash: string): Step {
   if (hash === "#step-2") return 2;
@@ -49,26 +54,36 @@ export function RequestWizardPage() {
       {step === 1 && (
         <section>
           <h2 data-testid={domProfile.wizard.stepHeading}>Step 1: Basic Info</h2>
-          <label htmlFor={domProfile.wizard.titleInputId}>Request Title</label>
-          <input
-            id={domProfile.wizard.titleInputId}
-            data-testid={domProfile.wizard.titleInput}
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
-          <label htmlFor={domProfile.wizard.requestedByInputId}>Requested By</label>
-          <input
-            id={domProfile.wizard.requestedByInputId}
-            data-testid={domProfile.wizard.requestedByInput}
-            value={requestedBy}
-            onChange={(event) => setRequestedBy(event.target.value)}
-          />
+          <label htmlFor={domProfile.wizard.titleInputId}>
+            {overrideText("wizard.titleInput.label", "Request Title")}
+          </label>
+          {wrapIfMutated(
+            "wizard.titleInput",
+            <input
+              id={domProfile.wizard.titleInputId}
+              data-testid={domProfile.wizard.titleInput}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />,
+          )}
+          <label htmlFor={domProfile.wizard.requestedByInputId}>
+            {overrideText("wizard.requestedByInput.label", "Requested By")}
+          </label>
+          {wrapIfMutated(
+            "wizard.requestedByInput",
+            <input
+              id={domProfile.wizard.requestedByInputId}
+              data-testid={domProfile.wizard.requestedByInput}
+              value={requestedBy}
+              onChange={(event) => setRequestedBy(event.target.value)}
+            />,
+          )}
           <button
             type="button"
             data-testid={domProfile.wizard.nextButton}
             onClick={() => goToStep(2)}
           >
-            Next
+            {overrideText("wizard.nextButton.step1.text", "Next")}
           </button>
         </section>
       )}
@@ -82,9 +97,17 @@ export function RequestWizardPage() {
             value={resource}
             onChange={(event) => setResource(event.target.value)}
           >
-            <option value="Device Inventory">Device Inventory</option>
-            <option value="Billing Reports">Billing Reports</option>
-            <option value="Admin Console">Admin Console</option>
+            {overrideOrder("wizard.resourceSelect.optionOrder", [
+              <option key="Device Inventory" value="Device Inventory">
+                Device Inventory
+              </option>,
+              <option key="Billing Reports" value="Billing Reports">
+                Billing Reports
+              </option>,
+              <option key="Admin Console" value="Admin Console">
+                Admin Console
+              </option>,
+            ])}
           </select>
           <label htmlFor={domProfile.wizard.durationSelectId}>Duration</label>
           <select
@@ -92,9 +115,17 @@ export function RequestWizardPage() {
             value={duration}
             onChange={(event) => setDuration(event.target.value)}
           >
-            <option value="7 days">7 days</option>
-            <option value="30 days">30 days</option>
-            <option value="90 days">90 days</option>
+            {overrideOrder("wizard.durationSelect.optionOrder", [
+              <option key="7 days" value="7 days">
+                7 days
+              </option>,
+              <option key="30 days" value="30 days">
+                30 days
+              </option>,
+              <option key="90 days" value="90 days">
+                90 days
+              </option>,
+            ])}
           </select>
           <button
             type="button"

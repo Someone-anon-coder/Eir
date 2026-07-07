@@ -156,6 +156,7 @@ export function DevicesPage() {
         sortButtonTestId={domProfile.devices.nameHeaderButton}
         editActionTestId={domProfile.devices.editAction}
         removeActionTestId={domProfile.devices.removeAction}
+        mutationScope="active"
         rows={activeRows}
         editing={editingStateFor("active")}
         onSort={() => handleSort("active")}
@@ -175,6 +176,7 @@ export function DevicesPage() {
         sortButtonTestId={domProfile.devices.nameHeaderButton}
         editActionTestId={domProfile.devices.editAction}
         removeActionTestId={domProfile.devices.removeAction}
+        mutationScope="archived"
         rows={archivedRows}
         editing={editingStateFor("archived")}
         onSort={() => handleSort("archived")}
