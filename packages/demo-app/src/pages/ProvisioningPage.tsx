@@ -1,6 +1,6 @@
 import { type ReactNode, type SubmitEvent, useState } from "react";
 import { domProfile } from "../domProfile";
-import { isWrapped } from "../mutation/overrides";
+import { isWrapped, overrideAttr } from "../mutation/overrides";
 
 type BillingCycle = "monthly" | "quarterly" | "annual";
 
@@ -21,7 +21,7 @@ export function ProvisioningPage() {
   }
 
   return (
-    <div className="provisioning-page">
+    <div className={overrideAttr("provisioning.pageClassName", "provisioning-page")}>
       <h2>New Device Provisioning Request</h2>
       <form data-testid={domProfile.provisioning.form} onSubmit={handleSubmit}>
         <label htmlFor={domProfile.provisioning.requesterNameInputId}>Requester Name</label>

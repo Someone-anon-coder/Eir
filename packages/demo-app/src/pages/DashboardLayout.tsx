@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { domProfile } from "../domProfile";
 import { signOut } from "../auth";
-import { isWrapped, overrideTag, overrideText } from "../mutation/overrides";
+import { isWrapped, overrideAttr, overrideTag, overrideText } from "../mutation/overrides";
 
 interface NavItemProps {
   mutationKey: string;
@@ -89,7 +89,7 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className="dashboard-layout">
+    <div className={overrideAttr("nav.layoutClassName", "dashboard-layout")}>
       <nav data-testid={domProfile.nav.root}>{wrapNav ? <div>{navChildren}</div> : navChildren}</nav>
       <main>
         <Outlet />

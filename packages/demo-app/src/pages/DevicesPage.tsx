@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { domProfile } from "../domProfile";
 import { DeviceTable, type DeviceRow, type EditingState } from "../components/DeviceTable";
+import { overrideAttr } from "../mutation/overrides";
 
 type TableKey = "active" | "archived";
 type SortDirection = "none" | "asc" | "desc";
@@ -145,7 +146,7 @@ export function DevicesPage() {
   }
 
   return (
-    <div className="devices-page">
+    <div className={overrideAttr("devices.pageClassName", "devices-page")}>
       <DeviceTable
         heading="Active Devices"
         headingTestId={domProfile.devices.active.heading}

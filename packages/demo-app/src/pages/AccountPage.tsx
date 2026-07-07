@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { domProfile } from "../domProfile";
 import { Modal } from "../components/Modal";
-import { isWrapped, overrideTag, overrideText } from "../mutation/overrides";
+import { isWrapped, overrideAttr, overrideTag, overrideText } from "../mutation/overrides";
 
 function wrapIfMutated(mutationKey: string, node: ReactNode): ReactNode {
   return isWrapped(mutationKey) ? <div>{node}</div> : node;
@@ -60,7 +60,7 @@ export function AccountPage() {
     );
 
   return (
-    <div className="account-page">
+    <div className={overrideAttr("account.pageClassName", "account-page")}>
       <h2>Account</h2>
       <p>Manage your Ward account. Deleting your account removes dashboard access.</p>
       {wrapIfMutated("account.openDeleteButton", openDeleteButton)}
