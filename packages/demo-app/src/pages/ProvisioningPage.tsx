@@ -1,6 +1,6 @@
 import { type ReactNode, type SubmitEvent, useState } from "react";
 import { domProfile } from "../domProfile";
-import { isWrapped, overrideAttr } from "../mutation/overrides";
+import { isWrapped, overrideAttr, overrideTag } from "../mutation/overrides";
 
 type BillingCycle = "monthly" | "quarterly" | "annual";
 
@@ -69,9 +69,15 @@ export function ProvisioningPage() {
           <option value="annual">Annual</option>
         </select>
 
-        <button type="submit" data-testid={domProfile.provisioning.submitButton}>
-          Submit Request
-        </button>
+        {overrideTag("provisioning.submitButton.tag", "button") === "a" ? (
+          <a href="#submit-request" data-testid={domProfile.provisioning.submitButton}>
+            Submit Request
+          </a>
+        ) : (
+          <button type="submit" data-testid={domProfile.provisioning.submitButton}>
+            Submit Request
+          </button>
+        )}
       </form>
       {submitted && (
         <p data-testid={domProfile.provisioning.successBanner}>

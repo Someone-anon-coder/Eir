@@ -44,11 +44,25 @@ export interface MutationTarget {
 
 // ---- shared interaction helpers -------------------------------------------
 
+/**
+ * Every target's `interact` reaches its own route through this shared
+ * login step first — including the id-rename targets that mutate
+ * `login.usernameInput`/`login.usernameInputId` themselves. Using
+ * domProfile-driven selectors here would mean the *first* target to
+ * mutate a login field breaks login for every other target in the same
+ * run, for the wrong reason (can't even reach the page under test, not
+ * "the mutated selector correctly failed"). `.login-page` is a real class
+ * on `LoginPage.tsx` that is deliberately never wired to the mutation
+ * override, so scoping through it — plus the `type="password"` /
+ * `type="submit"` attributes, which are likewise never mutated — makes
+ * this harness-internal step immune to every registered mutation class.
+ */
 async function login(page: Page): Promise<void> {
   await page.goto("/login");
-  await page.getByTestId("login-username").fill("aayush");
-  await page.getByTestId("login-password").fill("correct-horse");
-  await page.getByTestId("login-submit").click();
+  const form = page.locator(".login-page form");
+  await form.locator('input:not([type="password"])').fill("aayush");
+  await form.locator('input[type="password"]').fill("correct-horse");
+  await form.locator('button[type="submit"]').click();
   await page.waitForURL("**/dashboard/devices");
 }
 
@@ -80,10 +94,17 @@ function fillCssId(route: string, cssId: string, value: string): Interaction {
   };
 }
 
+// `exact: true` everywhere below is deliberate: Playwright's default
+// getByRole/getByText name matching is a case-insensitive *substring*
+// match, so a text-change replacement like "Provisioning" -> "Provisioning
+// Requests" would otherwise still satisfy the frozen, pre-mutation query —
+// the mutation would silently fail to register as broken. Exact matching
+// is also the more honest simulation of "does an element with precisely
+// this accessible name still exist."
 function clickRole(route: string, role: "button" | "link", name: string): Interaction {
   return async (page) => {
     await arrive(page, route);
-    await page.getByRole(role, { name }).click();
+    await page.getByRole(role, { name, exact: true }).click();
   };
 }
 
@@ -125,7 +146,7 @@ function clickRowRoleButton(
   return async (page) => {
     await arrive(page, route);
     const row = page.getByTestId(tableTestId).locator("tr", { hasText: rowText });
-    await row.getByRole("button", { name: buttonName }).click();
+    await row.getByRole("button", { name: buttonName, exact: true }).click();
   };
 }
 
@@ -144,7 +165,7 @@ function clickEditModeButton(
     await arrive(page, route);
     await startEdit(page, tableTestId, rowText);
     const row = page.getByTestId(tableTestId).locator("tr", { hasText: rowText });
-    await row.getByRole("button", { name: buttonName }).click();
+    await row.getByRole("button", { name: buttonName, exact: true }).click();
   };
 }
 
@@ -171,7 +192,7 @@ function assertNthRowOwner(
 function assertFirstOptionValue(route: string, selectId: string, expectedValue: string): Interaction {
   return async (page) => {
     await arrive(page, route);
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     const value = await page.locator(`#${selectId} option:first-child`).getAttribute("value");
     if (value !== expectedValue) {
       throw new Error(
@@ -201,27 +222,38 @@ function clickActionsOrderFirst(
   };
 }
 
-/** wrapper-inject: an exact-*depth* XPath (`parent::`) — Ward's real ancestor-XPath selectors walk `ancestor::`, which is depth-agnostic by design and survives wrapping; only an exact-hop axis actually demonstrates this class. */
+/**
+ * wrapper-inject: an exact-*depth* XPath (`parent::`) — Ward's real
+ * ancestor-XPath selectors walk `ancestor::`, which is depth-agnostic by
+ * design and survives wrapping; only an exact-hop axis actually
+ * demonstrates this class. `expectedParent` names the element's *real*,
+ * unwrapped parent precisely enough to distinguish it from the bare
+ * `<div>` `wrapIfMutated` (demo-app) injects: a tag alone (`"section"`,
+ * `"form"`) where no other div sits at that depth, or a tag qualified by
+ * an attribute (`"div[@class='account-page']"`, `"div[@role='dialog']"`)
+ * where the natural parent is itself a plain `<div>` and an unqualified
+ * `parent::div` would match with or without the wrapper present.
+ */
 function fillViaExactParent(
   route: string,
   cssId: string,
-  parentTag: string,
+  expectedParent: string,
   value: string,
 ): Interaction {
   return async (page) => {
     await arrive(page, route);
     await page
-      .locator(`xpath=//*[@id='${cssId}']/parent::${parentTag}`)
+      .locator(`xpath=//*[@id='${cssId}']/parent::${expectedParent}`)
       .locator(`#${cssId}`)
       .fill(value);
   };
 }
 
-function clickViaExactParent(route: string, testId: string, parentTag: string): Interaction {
+function clickViaExactParent(route: string, testId: string, expectedParent: string): Interaction {
   return async (page) => {
     await arrive(page, route);
     await page
-      .locator(`xpath=//*[@data-testid='${testId}']/parent::${parentTag}`)
+      .locator(`xpath=//*[@data-testid='${testId}']/parent::${expectedParent}`)
       .getByTestId(testId)
       .click();
   };
@@ -347,8 +379,8 @@ const textChangeTargets: MutationTarget[] = [
     payload: { text: { "account.confirmButton.text": "Yes, Delete" } },
     interact: async (page) => {
       await arrive(page, "/dashboard/account");
-      await page.getByRole("button", { name: "Delete Account" }).click();
-      await page.getByRole("button", { name: "Confirm Delete" }).click();
+      await page.getByRole("button", { name: "Delete Account", exact: true }).click();
+      await page.getByRole("button", { name: "Confirm Delete", exact: true }).click();
     },
   },
   {
@@ -433,8 +465,8 @@ const tagSwapTargets: MutationTarget[] = [
     payload: { tags: { "account.confirmButton.tag": "a" } },
     interact: async (page) => {
       await arrive(page, "/dashboard/account");
-      await page.getByRole("button", { name: "Delete Account" }).click();
-      await page.getByRole("button", { name: "Confirm Delete" }).click();
+      await page.getByRole("button", { name: "Delete Account", exact: true }).click();
+      await page.getByRole("button", { name: "Confirm Delete", exact: true }).click();
     },
   },
   {
@@ -658,19 +690,19 @@ const wrapperInjectTargets: MutationTarget[] = [
     route: "/dashboard/account",
     frozenSelectorKey: "xpath parent::div[@class='account-page'] probe on open-delete-account",
     payload: { wrap: ["account.openDeleteButton"] },
-    interact: clickViaExactParent("/dashboard/account", "open-delete-account", "div"),
+    interact: clickViaExactParent("/dashboard/account", "open-delete-account", "div[@class='account-page']"),
   },
   {
     id: "wrapper-inject.account.cancelButton",
     mutationClass: "wrapper-inject",
     route: "/dashboard/account",
-    frozenSelectorKey: "xpath parent::div[dialog] probe on delete-account-cancel",
+    frozenSelectorKey: "xpath parent::div[@role='dialog'] probe on delete-account-cancel",
     payload: { wrap: ["account.cancelButton"] },
     interact: async (page) => {
       await arrive(page, "/dashboard/account");
       await page.getByTestId("open-delete-account").click();
       await page
-        .locator("xpath=//*[@data-testid='delete-account-cancel']/parent::div")
+        .locator("xpath=//*[@data-testid='delete-account-cancel']/parent::div[@role='dialog']")
         .getByTestId("delete-account-cancel")
         .click();
     },
@@ -679,13 +711,13 @@ const wrapperInjectTargets: MutationTarget[] = [
     id: "wrapper-inject.account.confirmButton",
     mutationClass: "wrapper-inject",
     route: "/dashboard/account",
-    frozenSelectorKey: "xpath parent::div[dialog] probe on delete-account-confirm",
+    frozenSelectorKey: "xpath parent::div[@role='dialog'] probe on delete-account-confirm",
     payload: { wrap: ["account.confirmButton"] },
     interact: async (page) => {
       await arrive(page, "/dashboard/account");
       await page.getByTestId("open-delete-account").click();
       await page
-        .locator("xpath=//*[@data-testid='delete-account-confirm']/parent::div")
+        .locator("xpath=//*[@data-testid='delete-account-confirm']/parent::div[@role='dialog']")
         .getByTestId("delete-account-confirm")
         .click();
     },
@@ -785,7 +817,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       interact: async (page) => {
         await arrive(page, "/dashboard/account");
         await page.getByTestId("open-delete-account").click();
-        await page.getByRole("button", { name: "Cancel" }).click();
+        await page.getByRole("button", { name: "Cancel", exact: true }).click();
       },
       distractorId: "near-dup.accountModal.confirm",
     },
@@ -798,7 +830,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       interact: async (page) => {
         await arrive(page, "/dashboard/account");
         await page.getByTestId("open-delete-account").click();
-        await page.getByRole("button", { name: "Confirm Delete" }).click();
+        await page.getByRole("button", { name: "Confirm Delete", exact: true }).click();
       },
       distractorId: "near-dup.accountModal.cancel",
     },

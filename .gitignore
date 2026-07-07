@@ -15,3 +15,8 @@ ts-scratch/
 # globalTeardown and never meant to be committed. `.eir/routes/` is NOT
 # ignored — that's the committed baseline (Blueprint §7.3).
 .eir/.shards/
+
+# The benchmark's probe runs also go through playwright-eir (for realism —
+# see probes/probe.spec.ts), but they're synthetic per-run captures, not a
+# calibrated baseline worth preserving — unlike demo-app's `.eir/routes/`.
+packages/benchmark/.eir/
