@@ -1,0 +1,135 @@
+{
+  "mutationClass": "near-duplicate-sibling-swap",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:35:52.110Z",
+  "outcomes": [
+    {
+      "targetId": "near-dup.table-row.archived",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByTestId(\"table-archived-devices\") > locator('tr', {hasText:\"Front Desk Tablet\"}) > getByTestId(\"device-row-remove\")",
+      "distractorId": "near-dup.table-row.active",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-archived-devices').locator('tr').filter({ hasText: 'Front Desk Tablet' }).getByTestId('device-row-remove')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.editRemove.dev-2.edit",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "row(\"K. Nguyen\") > getByRole(\"button\", {\"name\":\"Edit\"})",
+      "distractorId": "near-dup.editRemove.dev-2.remove",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'K. Nguyen' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.saveCancel.dev-3.cancel",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "row(\"S. Patel\") edit-mode > getByRole(\"button\", {\"name\":\"Cancel\"})",
+      "distractorId": "near-dup.saveCancel.dev-3.save",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'S. Patel' }).getByRole('button', { name: 'Cancel', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.accountModal.confirm",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Confirm Delete\"})",
+      "distractorId": "near-dup.accountModal.cancel",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Confirm Delete', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.editRemove.dev-4.edit",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "row(\"M. Alvarez\") > getByRole(\"button\", {\"name\":\"Edit\"})",
+      "distractorId": "near-dup.editRemove.dev-4.remove",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'M. Alvarez' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.saveCancel.dev-5.cancel",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "row(\"T. Chen\") edit-mode > getByRole(\"button\", {\"name\":\"Cancel\"})",
+      "distractorId": "near-dup.saveCancel.dev-5.save",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'T. Chen' }).getByRole('button', { name: 'Cancel', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.wizardFields.title",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "getByLabel(\"Request Title\")",
+      "distractorId": "near-dup.wizardFields.requestedBy",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Request Title')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "near-dup.editRemove.dev-9.remove",
+      "mutationClass": "near-duplicate-sibling-swap",
+      "sourceClass": "near-duplicate-sibling-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "row(\"Front Desk Tablet\", archived) > getByRole(\"button\", {\"name\":\"Remove\"})",
+      "distractorId": "near-dup.editRemove.dev-9.edit",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-archived-devices').locator('tr').filter({ hasText: 'Front Desk Tablet' }).getByRole('button', { name: 'Remove', exact: true })\u001b[22m\n"
+      }
+    }
+  ]
+}

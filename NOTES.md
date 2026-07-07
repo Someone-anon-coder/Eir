@@ -69,7 +69,7 @@ Requires the fingerprint schema (Phase 3) and the policy layer (Phase 6) to exis
 ---
 
 ### NOTE-002 — New benchmark mutation class: "near-duplicate-sibling swap"
-**Status:** DUE
+**Status:** RESOLVED
 **Raised:** 2026-07-04, same discussion as NOTE-001
 **Target phase:** Phase 4 (taxonomy design) — formal add alongside the original six classes
 **Blueprint touchpoint:** §7.8 (mutation taxonomy)
@@ -83,7 +83,7 @@ This is a fundamentally different failure shape than "one element changed shape"
 **Why not now:**
 Phase 4 builds the taxonomy; Ward's demo app (Phase 1) needs to already contain qualifying near-duplicate pairs (the two-similar-tables page is one instance — check it also covers a nav/button pair and a form-field pair before treating this class as fully seeded).
 
-**Resolution:** *(pending Phase 4 decision — but the Phase 1 prerequisite cross-check is done: Ward already contains all three named pair shapes.)* Cross-checked 2026-07-05 during Phase 1 close: (1) **table-row pair** — the Active/Archived Devices tables share a row with identical name ("Front Desk Tablet"), same tag/structure, differing mainly in status/date; (2) **nav/button pair** — `DeviceTable`'s row actions render adjacent same-tag, same-container `Edit`/`Remove` buttons (and `Save`/`Cancel` once a row enters edit mode), and the account-deletion modal renders adjacent `Cancel`/`Confirm Delete` buttons; (3) **form-field pair** — the access-request wizard's Step 1 renders two adjacent plain-text `<input>`s ("Request Title", "Requested By") distinguished only by label. No additional surfaces were added for this; Phase 4 can build the near-duplicate-sibling-swap class against what already exists.
+**Resolution:** Formally adopted 2026-07-07 during Phase 4 as the 7th mutation class (`near-duplicate-sibling-swap`), alongside Blueprint §7.8's six plus `compound-release`. Implemented in `packages/benchmark/src/targets.ts`/`groundTruth.ts`: 8 pairs built against the three confirmed shapes — 1 table-row pair (Active vs Archived "Front Desk Tablet", mutating the *container* testid rather than the shared row-action testid, since Edit/Remove testids are identical across both tables and mutating them would break the distractor too), 5 button-adjacent pairs (Edit/Remove ×3 rows, Save/Cancel ×2 rows, Account modal Cancel/Confirm-Delete), and 1 form-field pair (wizard Title/Requested-By labels). Each pair's ground truth carries a `distractorId` pointing at the live, valid sibling a future matcher could wrongly prefer — the one structural difference from the other six classes' ground truth, which need no such field. A seeded PRNG picks exactly one direction per pair per run (never both — mutating both would destroy the distractor), so total live entries per run is always 8, matching the other classes' `>=8` bar. Phase 4 only records the distractor; nothing scores or matches against it yet — that's Phase 5.
 
 ---
 
@@ -175,6 +175,13 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** Methods like `.and(other)`, `.or(other)`, `dragTo(target)`, or `locator(sel, { has: other })` expect a real Playwright `Locator` and may reach into private internal state beyond `_apiName`/`_expect` (the only two members `EirLocator` forwards). Passing an `EirLocator` in one of these argument positions is untested and could fail in ways the current invisibility proof wouldn't catch, since the reference suite doesn't exercise them.
 **Mitigation:** Not currently exercised — no spec in the reference suite uses these APIs. Flagged so it isn't discovered by surprise if a future spec (or a real adopting suite) does.
 
+### RISK-009 — `sibling-reorder`-class breakage is invisible to Eir's own failure-triage layer
+**Status:** WATCHING
+**Raised:** 2026-07-07, during Phase 4 mutation-taxonomy design
+**Phase affected:** Phase 4 (discovered), Phase 5 (matching engine — the actual place this would need addressing)
+**Risk:** Blueprint §7.4's failure triage only ever considers *zero-match* and *detached* as heal-eligible failure species — both require the action to actually throw. A position-anchored selector (`locator("tbody tr:nth-child(1)")`) mutated by `sibling-reorder` doesn't throw at all after the DOM reorders: the CSS selector still resolves to *some* `<tr>`, the click/fill still succeeds, and Eir's own outcome log records a plain `OK`. The drift is only visible to something that separately asserts on the resolved element's *content* — which the benchmark's probe does (that's how `sibling-reorder`'s targets classify correctly as `missed` at the benchmark level in `packages/benchmark/src/targets.ts`), but Eir's own engine has no equivalent check and would sail straight through a real occurrence of this today, with no signal that anything changed.
+**Mitigation:** Not a Phase 4 problem to fix — Phase 4's job was only to prove the mutation exists and classify it, which it does, honestly, via the benchmark's own assertions rather than Eir's triage layer. Flagged here so Phase 5's failure-species list (currently just zero-match/detached) is designed with this gap in view — a "resolved but plausibly wrong element" species may need its own detection heuristic (e.g., comparing the resolved element's captured feature set against its last-known fingerprint even on a nominally successful action) rather than assuming a thrown error is the only signal worth triaging.
+
 ---
 
 ## 4. Decisions Already Made (index, not detail)
@@ -228,6 +235,15 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Blocked/open: none. NOTE-001/NOTE-002 remain DUE at their existing target phases, untouched.
 - CI: green (PR #9). Not yet merged — awaiting Aayush's go.
 - Next: Phase 4 — Mutation Engine & Benchmark Harness. Starts with its Pre-Phase TS Tip (discriminated unions for outcome classes).
+
+### 2026-07-07 — Phase 4, all work items (1–6)
+- Did: mutation taxonomy against Ward — Blueprint §7.8's six classes plus NOTE-002's `near-duplicate-sibling-swap` (formally adopted this session) and `compound-release`, eight classes total. Mutations are applied via a small, permanent, additive override module in `demo-app` (`src/mutation/overrides.ts`), read from `VITE_EIR_MUTATIONS` — unset (the default everywhere except the benchmark harness) it's a pure pass-through, verified against the full 15-spec reference suite and a byte-identical `.eir/routes/` diff. The harness's own probe specs use *frozen* selector literals rather than a live `domProfile` import, deliberately — mutating `domProfile.ts` directly would let both app and test drift together and never observe breakage (the domProfile-double-import trap, caught during design before any code). `packages/benchmark` (target registry ≥8 selectors/class, seeded PRNG for near-dup direction/compound mix, ground-truth emission, dev-server-orchestrating harness runner, report generator with a generic `groupBy`, CLI) runs end-to-end: `pnpm bench --class <c> --seed <n>` and `pnpm bench --all`.
+- Four real bugs surfaced and fixed during live verification, not just imagined edge cases: (1) the harness's shared `login()` helper used domProfile-driven selectors, so the first id-rename target to mutate a login field broke login for every *other* target in the same run; (2) `wrapper-inject`'s parent-detection XPath first tried a uniform "bare `<div>`" check, which broke the *control* run for every target since several of Ward's real containers are themselves already plain divs — fixed by naming each target's actual natural parent instead; (3) Playwright's `getByRole`/`getByText` default to substring matching, so several `text-change` mutations silently kept matching the frozen query — fixed with `exact: true`; (4) `ProvisioningPage`'s submit button had no tag-swap wiring at all. A fifth, structural bug (compound-release's outcomes reported under their *origin* classes instead of their own row, discovered on the first full 8-class baseline run) is logged separately below since it's a design-level finding, not a target-registry typo.
+- Baseline committed (`pnpm bench:all --seed 42`): all 8 classes, 100% miss / 0% heal / 0% false-heal / 0% suggestion — the correct, expected result, since no matcher exists yet (Phase 5). Reproducibility proven directly: two independent runs of the same (class, seed) diffed byte-identical once `generatedAt` is excluded.
+- All DoD proofs run for real: `pnpm bench --class id-rename --seed 42` run twice, byte-identical; all 8 classes' target counts ≥8 in the registry (`targets.test.ts`) and confirmed in the committed baseline table; ground truth emitted and validated per class (`groundTruth.test.ts`); 70 Vitest unit tests green in `packages/benchmark`; CI runs one fast bench class after the e2e step.
+- Blocked/open: NOTE-001 remains DUE at its existing target phase (Phase 5), untouched. New RISK-009 logged (below) — a design-level gap discovered while building `sibling-reorder`, not a bug fixed this phase.
+- CI: green, PR pending.
+- Next: Phase 5 — Matching Engine & Failure Triage. Starts with its Pre-Phase TS Tip (pure functions + `readonly`).
 
 ---
 

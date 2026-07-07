@@ -1,0 +1,127 @@
+{
+  "mutationClass": "class-shuffle",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:33:24.324Z",
+  "outcomes": [
+    {
+      "targetId": "class-shuffle.devices.active.table",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator(\".data-table tbody tr\", {\"hasText\":\"A. Ramirez\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"table-active-devices\"].data-table')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.devices.archived.table",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator(\".data-table tbody tr\", {\"hasText\":\"K. Nguyen\"}) (archived)",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"table-archived-devices\"].data-table')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.devices.active.card",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator(\".table-card\") scoped to Active",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.table-card:has([data-testid=\"table-active-devices\"])')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.devices.archived.card",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator(\".table-card\") scoped to Archived",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.table-card:has([data-testid=\"table-archived-devices\"])')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.devices.pageClassName",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator(\".devices-page\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.devices-page')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.provisioning.pageClassName",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "locator(\".provisioning-page\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.provisioning-page')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.account.pageClassName",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "locator(\".account-page\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.account-page')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "class-shuffle.nav.layoutClassName",
+      "mutationClass": "class-shuffle",
+      "sourceClass": "class-shuffle",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator(\".dashboard-layout\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.dashboard-layout')\u001b[22m\n"
+      }
+    }
+  ]
+}

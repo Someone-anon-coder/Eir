@@ -1,0 +1,127 @@
+{
+  "mutationClass": "tag-swap",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:32:21.997Z",
+  "outcomes": [
+    {
+      "targetId": "tag-swap.nav.logoutButton",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Log Out\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Log Out', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.nav.devicesLink",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Devices\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Devices', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.nav.provisioningLink",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Provisioning\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Provisioning', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.nav.accountLink",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Account\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Account', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.nav.requestsLink",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Access Requests\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Access Requests', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.account.openDeleteButton",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Delete Account\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Delete Account', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.account.confirmButton",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Confirm Delete\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Delete Account', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "tag-swap.provisioning.submitButton",
+      "mutationClass": "tag-swap",
+      "sourceClass": "tag-swap",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Submit Request\"}) (synthetic, freshly registered)",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Submit Request', exact: true })\u001b[22m\n"
+      }
+    }
+  ]
+}

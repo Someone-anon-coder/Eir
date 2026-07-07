@@ -1,0 +1,127 @@
+{
+  "mutationClass": "sibling-reorder",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:33:46.835Z",
+  "outcomes": [
+    {
+      "targetId": "sibling-reorder.devices.active.rowOrder.row1",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator('[data-testid=\"table-active-devices\"] tbody tr:nth-child(1)')",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected owner \"A. Ramirez\" at row 1, found \"K. Nguyen\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.devices.active.rowOrder.row2",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator('[data-testid=\"table-active-devices\"] tbody tr:nth-child(2)')",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected owner \"K. Nguyen\" at row 2, found \"A. Ramirez\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.devices.archived.rowOrder.row1",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator('[data-testid=\"table-archived-devices\"] tbody tr:nth-child(1)')",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected owner \"A. Ramirez\" at row 1, found \"K. Nguyen\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.devices.archived.rowOrder.row2",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator('[data-testid=\"table-archived-devices\"] tbody tr:nth-child(2)')",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected owner \"K. Nguyen\" at row 2, found \"A. Ramirez\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.wizard.resourceSelect",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "locator(\"#wizard-resource option:first-child\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected first <option> value \"Device Inventory\", found \"Billing Reports\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.wizard.durationSelect",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "locator(\"#wizard-duration option:first-child\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected first <option> value \"7 days\", found \"30 days\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.devices.row.dev-2.actionsOrder",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator('tr:has-text(\"K. Nguyen\") td:nth-child(5) button:first-child')",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected first action \"Edit\", found \"Remove\""
+      }
+    },
+    {
+      "targetId": "sibling-reorder.devices.row.dev-4.actionsOrder",
+      "mutationClass": "sibling-reorder",
+      "sourceClass": "sibling-reorder",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "locator('tr:has-text(\"M. Alvarez\") td:nth-child(5) button:first-child')",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "Error: sibling-reorder probe: expected first action \"Edit\", found \"Remove\""
+      }
+    }
+  ]
+}

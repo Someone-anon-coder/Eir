@@ -1,0 +1,127 @@
+{
+  "mutationClass": "id-rename",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:30:16.918Z",
+  "outcomes": [
+    {
+      "targetId": "id-rename.login.usernameInputId",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/login",
+      "frozenSelectorKey": "locator(\"#login-username-input\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#login-username-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.login.passwordInputId",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/login",
+      "frozenSelectorKey": "locator(\"#login-password-input\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#login-password-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.login.usernameInput",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/login",
+      "frozenSelectorKey": "getByTestId(\"login-username\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('login-username')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.provisioning.requesterNameInput",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "getByTestId(\"provisioning-requester-name\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('provisioning-requester-name')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.provisioning.submitButton",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "getByTestId(\"provisioning-submit\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('provisioning-submit')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.wizard.titleInput",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "getByTestId(\"wizard-title\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('wizard-title')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.wizard.requestedByInput",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "getByTestId(\"wizard-requested-by\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('wizard-requested-by')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "id-rename.account.openDeleteButton",
+      "mutationClass": "id-rename",
+      "sourceClass": "id-rename",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "getByTestId(\"open-delete-account\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('open-delete-account')\u001b[22m\n"
+      }
+    }
+  ]
+}
