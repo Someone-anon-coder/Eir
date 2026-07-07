@@ -250,6 +250,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 **Triggered by:** direct decision (Aayush, during Phase 3 wiring, after a live experiment showed navigational actions lose their post-success capture race — see RISK-007)
 **Change:** BLUEPRINT.md §7.2's "Runs in-page via injected `page.evaluate()` script against the resolved element after a successful action" is amended to describe the round-trip starting concurrently with the action, committed to the store only on confirmed success. EIR_BLUEPRINT_APPROACH.md Phase 3 work item 2 updated to match and point to §7.2 for the reasoning.
 
+### 2026-07-07 — CLAUDE.md — never delete a branch without asking first
+**Triggered by:** direct decision (Aayush, closing a Phase 3 process gap)
+**Change:** §8 Git & Commits gains a rule, immediately after the no-direct-push-to-main rule: Claude never deletes a branch — including via `--delete-branch` on `gh pr merge` or any other flag/command that deletes as a side effect — without asking Aayush first, in every future session. Raised because Phase 3's PR #9 merge used `gh pr merge --delete-branch` without asking first; no work was lost (the commit was recovered from its SHA and the branch was recreated), but this repo's branches double as a portfolio/history record, so branch deletion now gets the same explicit go-ahead standard already required for merging and publishing.
+
 ---
 
 *This file has no end state — it grows for the life of the project. If it gets unwieldy, split by section into `notes/parked.md`, `notes/log.md`, `notes/risks.md` and leave a pointer here; don't let size become a reason to stop maintaining it.*
