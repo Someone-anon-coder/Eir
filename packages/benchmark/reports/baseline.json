@@ -1,0 +1,109 @@
+{
+  "generatedAt": "2026-07-07T11:38:02.035Z",
+  "aggregates": [
+    {
+      "mutationClass": "id-rename",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "text-change",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "tag-swap",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "sibling-reorder",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "totalAffected": 8,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 8,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    },
+    {
+      "mutationClass": "compound-release",
+      "totalAffected": 24,
+      "healedCorrect": 0,
+      "healedWrong": 0,
+      "suggested": 0,
+      "missed": 24,
+      "mutationIneffective": 0,
+      "healRate": 0,
+      "falseHealRate": 0,
+      "suggestionRate": 0,
+      "missRate": 1
+    }
+  ]
+}

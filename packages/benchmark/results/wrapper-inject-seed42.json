@@ -1,0 +1,127 @@
+{
+  "mutationClass": "wrapper-inject",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:34:49.534Z",
+  "outcomes": [
+    {
+      "targetId": "wrapper-inject.wizard.titleInput",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "xpath parent::section probe on #wizard-title-input",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'wizard-title-input\\']/parent::section').locator('#wizard-title-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.wizard.requestedByInput",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "xpath parent::section probe on #wizard-requested-by-input",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'wizard-requested-by-input\\']/parent::section').locator('#wizard-requested-by-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.provisioning.requesterNameInput",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "xpath parent::form probe on #provisioning-requester-name-input",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'provisioning-requester-name-input\\']/parent::form').locator('#provisioning-requester-name-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.provisioning.effectiveDateInput",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "xpath parent::form probe on #provisioning-effective-date-input",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'provisioning-effective-date-input\\']/parent::form').locator('#provisioning-effective-date-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.provisioning.notesTextarea",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/provisioning",
+      "frozenSelectorKey": "xpath parent::form probe on #provisioning-notes-input",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'provisioning-notes-input\\']/parent::form').locator('#provisioning-notes-input')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.account.openDeleteButton",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "xpath parent::div[@class='account-page'] probe on open-delete-account",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@data-testid=\\'open-delete-account\\']/parent::div[@class=\\'account-page\\']').getByTestId('open-delete-account')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.account.cancelButton",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "xpath parent::div[@role='dialog'] probe on delete-account-cancel",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@data-testid=\\'delete-account-cancel\\']/parent::div[@role=\\'dialog\\']').getByTestId('delete-account-cancel')\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "wrapper-inject.account.confirmButton",
+      "mutationClass": "wrapper-inject",
+      "sourceClass": "wrapper-inject",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "xpath parent::div[@role='dialog'] probe on delete-account-confirm",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@data-testid=\\'delete-account-confirm\\']/parent::div[@role=\\'dialog\\']').getByTestId('delete-account-confirm')\u001b[22m\n"
+      }
+    }
+  ]
+}

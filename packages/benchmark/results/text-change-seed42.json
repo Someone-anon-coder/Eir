@@ -1,0 +1,127 @@
+{
+  "mutationClass": "text-change",
+  "seed": 42,
+  "generatedAt": "2026-07-07T11:31:19.483Z",
+  "outcomes": [
+    {
+      "targetId": "text-change.nav.provisioningLink",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Provisioning\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Provisioning', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.nav.logoutButton",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Log Out\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Log Out', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.nav.accountLink",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Account\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Account', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.nav.requestsLink",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByRole(\"link\", {\"name\":\"Access Requests\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Access Requests', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.account.openDeleteButton",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Delete Account\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Delete Account', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.account.confirmButton",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/account",
+      "frozenSelectorKey": "getByRole(\"button\", {\"name\":\"Confirm Delete\"})",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Delete Account', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.devices.archivedRowName",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/devices",
+      "frozenSelectorKey": "getByText(\"Legacy Barcode Scanner\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-archived-devices').locator('tr').filter({ hasText: 'Legacy Barcode Scanner' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n"
+      }
+    },
+    {
+      "targetId": "text-change.wizard.nextButtonStep1",
+      "mutationClass": "text-change",
+      "sourceClass": "text-change",
+      "route": "/dashboard/requests/new",
+      "frozenSelectorKey": "getByTestId(\"wizard-next\") (rendered text \"Next\")",
+      "controlPassed": true,
+      "probeOutcome": {
+        "status": "mutation-effective",
+        "outcome": {
+          "kind": "missed"
+        },
+        "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Next', exact: true })\u001b[22m\n"
+      }
+    }
+  ]
+}
