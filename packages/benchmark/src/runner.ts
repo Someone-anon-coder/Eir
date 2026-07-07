@@ -6,7 +6,18 @@ import type { MutationClass } from "./mutationClasses.js";
 
 export interface TargetOutcome {
   readonly targetId: string;
+  /**
+   * The *run's* class — what this outcome counts toward in the report.
+   * For every class except `compound-release` this is identical to the
+   * target's own home class. For `compound-release`, the underlying
+   * targets are drawn from (and still individually tagged with) one of
+   * the six base classes — `sourceClass` preserves that provenance, but
+   * `mutationClass` here is always `"compound-release"` so its outcomes
+   * report as their own row instead of silently inflating whichever base
+   * classes happened to get mixed in this run's seed.
+   */
   readonly mutationClass: MutationClass;
+  readonly sourceClass: MutationClass;
   readonly route: string;
   readonly frozenSelectorKey: string;
   readonly distractorId?: string;
@@ -69,7 +80,8 @@ export async function runBenchmark(mutationClass: MutationClass, seed: number): 
     }
     return {
       targetId: entry.targetId,
-      mutationClass: entry.mutationClass,
+      mutationClass,
+      sourceClass: entry.mutationClass,
       route: entry.route,
       frozenSelectorKey: entry.frozenSelectorKey,
       ...(entry.distractorId !== undefined ? { distractorId: entry.distractorId } : {}),

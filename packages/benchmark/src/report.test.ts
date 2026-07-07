@@ -6,6 +6,7 @@ function outcome(mutationClass: TargetOutcome["mutationClass"], overrides: Parti
   return {
     targetId: "t",
     mutationClass,
+    sourceClass: mutationClass,
     route: "/x",
     frozenSelectorKey: "getByTestId(\"x\")",
     controlPassed: true,
@@ -84,6 +85,36 @@ describe("aggregateRuns", () => {
   it("produces no aggregate for a class with zero runs", () => {
     const aggregates = aggregateRuns([run("id-rename", [outcome("id-rename")])]);
     expect(aggregates.some((a) => a.mutationClass === "text-change")).toBe(false);
+  });
+
+  it("regression: compound-release outcomes report under compound-release, never under their sourceClass", () => {
+    // A compound-release run draws targets from several base classes, so
+    // each outcome's sourceClass legitimately differs from the run's own
+    // mutationClass — aggregation must key off mutationClass (the run),
+    // not sourceClass (the target's origin), or a base class's own direct
+    // run would silently get inflated by every compound run that happens
+    // to reuse one of its targets (and compound-release itself would
+    // never appear in the report at all).
+    const compoundOutcomes = [
+      outcome("compound-release", { sourceClass: "id-rename" }),
+      outcome("compound-release", { sourceClass: "text-change" }),
+      outcome("compound-release", { sourceClass: "sibling-reorder" }),
+    ];
+    const idRenameOutcomes = [outcome("id-rename", { sourceClass: "id-rename" })];
+    const aggregates = aggregateRuns([
+      run("compound-release", compoundOutcomes),
+      run("id-rename", idRenameOutcomes),
+    ]);
+
+    const compoundAggregate = aggregates.find((a) => a.mutationClass === "compound-release");
+    const idRenameAggregate = aggregates.find((a) => a.mutationClass === "id-rename");
+
+    expect(compoundAggregate?.totalAffected).toBe(3);
+    // Not 4 — the compound run's id-rename-sourced outcome must not bleed
+    // into id-rename's own direct-run aggregate.
+    expect(idRenameAggregate?.totalAffected).toBe(1);
+    expect(aggregates.some((a) => a.mutationClass === "text-change")).toBe(false);
+    expect(aggregates.some((a) => a.mutationClass === "sibling-reorder")).toBe(false);
   });
 });
 
