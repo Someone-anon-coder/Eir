@@ -43,3 +43,8 @@ export function classifyProbeRun(passed: boolean, errorMessage: string | undefin
   }
   return { status: "mutation-effective", outcome: classifyUnhealedFailure(), error: errorMessage ?? "" };
 }
+
+/** Exhaustive dispatch guard for `Outcome.kind` — a new kind added to the union without a matching branch fails to compile here, not silently at runtime. */
+export function assertNeverOutcome(value: never): never {
+  throw new Error(`Unreachable outcome kind: ${JSON.stringify(value)}`);
+}
