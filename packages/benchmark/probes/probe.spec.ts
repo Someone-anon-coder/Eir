@@ -2,6 +2,7 @@ import { test } from "playwright-eir";
 import { isMutationClass } from "../src/mutationClasses.js";
 import { buildMutationRun } from "../src/groundTruth.js";
 import { targetById } from "../src/targets.js";
+import { appendGroundTruthFile } from "../src/groundTruthFile.js";
 
 /**
  * One test per live ground-truth entry, generated in a loop at file-load
@@ -35,6 +36,29 @@ const run = buildMutationRun(mutationClassEnv, seed);
 for (const entry of run.groundTruth) {
   test(entry.targetId, async ({ page }) => {
     const target = targetById(entry.targetId);
-    await target.interact(page);
+    try {
+      await target.interact(page);
+    } catch (error) {
+      // near-duplicate-sibling-swap ground truth (Phase 5): read the live
+      // distractor's bounding box — never clicked — so the harness can
+      // independently judge whether Eir's matcher would have picked the
+      // correct element or its near-duplicate twin. A no-op for every
+      // other mutation class (no distractor, nothing to read) and outside
+      // the benchmark (EIR_GROUND_TRUTH_FILE unset).
+      if (entry.distractorId !== undefined) {
+        const distractorTarget = targetById(entry.distractorId);
+        if (distractorTarget.locate !== undefined) {
+          const box = await distractorTarget
+            .locate(page)
+            .then((locator) => locator.boundingBox())
+            .catch(() => null);
+          await appendGroundTruthFile(
+            entry.targetId,
+            box === null ? null : { x: box.x, y: box.y, w: box.width, h: box.height },
+          );
+        }
+      }
+      throw error;
+    }
   });
 }

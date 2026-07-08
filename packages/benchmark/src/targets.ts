@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import type { MutationClass } from "./mutationClasses.js";
 
 /**
@@ -20,6 +20,19 @@ export interface OverridePayload {
 
 export type Interaction = (page: Page) => Promise<void>;
 
+/**
+ * Read-only counterpart to `Interaction`, used only by
+ * `near-duplicate-sibling-swap` targets (Phase 5): resolves this target's
+ * own live element *without clicking it*, so the benchmark can
+ * independently read a distractor's live bounding box as ground truth for
+ * "did Eir's matcher pick the right one or its near-duplicate twin?" —
+ * never used to drive the probe itself. Necessarily has side effects of
+ * its own where the demo app requires them (opening the delete-account
+ * modal, entering a row's edit mode) — it only avoids the *specific*
+ * click the matching `Interaction` performs.
+ */
+export type Locate = (page: Page) => Promise<Locator>;
+
 export interface MutationTarget {
   /** Stable, unique, never reused across the registry. */
   readonly id: string;
@@ -40,6 +53,8 @@ export interface MutationTarget {
    * risk of choosing it.
    */
   readonly distractorId?: string;
+  /** near-duplicate-sibling-swap only — see `Locate`'s docstring. */
+  readonly locate?: Locate;
 }
 
 // ---- shared interaction helpers -------------------------------------------
@@ -219,6 +234,56 @@ function clickActionsOrderFirst(
       );
     }
     await firstAction.click();
+  };
+}
+
+// ---- read-only `locate` counterparts (Phase 5: near-duplicate-sibling-swap ground truth only) ----
+
+function locateRowAction(
+  route: string,
+  tableTestId: string,
+  rowText: string,
+  actionTestId: string,
+): Locate {
+  return async (page) => {
+    await arrive(page, route);
+    const row = page.getByTestId(tableTestId).locator("tr", { hasText: rowText });
+    return row.getByTestId(actionTestId);
+  };
+}
+
+function locateRowRoleButton(
+  route: string,
+  tableTestId: string,
+  rowText: string,
+  buttonName: string,
+): Locate {
+  return async (page) => {
+    await arrive(page, route);
+    const row = page.getByTestId(tableTestId).locator("tr", { hasText: rowText });
+    return row.getByRole("button", { name: buttonName, exact: true });
+  };
+}
+
+/** Necessarily starts edit mode first (a real side effect) — Save/Cancel don't exist in the DOM otherwise. */
+function locateEditModeButton(
+  route: string,
+  tableTestId: string,
+  rowText: string,
+  buttonName: string,
+): Locate {
+  return async (page) => {
+    await arrive(page, route);
+    await startEdit(page, tableTestId, rowText);
+    const row = page.getByTestId(tableTestId).locator("tr", { hasText: rowText });
+    return row.getByRole("button", { name: buttonName, exact: true });
+  };
+}
+
+function locateLabelField(route: string, label: string): Locate {
+  return async (page) => {
+    await arrive(page, route);
+    return page.getByLabel(label);
   };
 }
 
@@ -749,6 +814,12 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
         "Front Desk Tablet",
         "device-row-remove",
       ),
+      locate: locateRowAction(
+        "/dashboard/devices",
+        "table-active-devices",
+        "Front Desk Tablet",
+        "device-row-remove",
+      ),
       distractorId: "near-dup.table-row.archived",
     },
     {
@@ -759,6 +830,12 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
         'getByTestId("table-archived-devices") > locator(\'tr\', {hasText:"Front Desk Tablet"}) > getByTestId("device-row-remove")',
       payload: { attrs: { "devices.archived.testId": "table-archived-devices-mut" } },
       interact: clickRowAction(
+        "/dashboard/devices",
+        "table-archived-devices",
+        "Front Desk Tablet",
+        "device-row-remove",
+      ),
+      locate: locateRowAction(
         "/dashboard/devices",
         "table-archived-devices",
         "Front Desk Tablet",
@@ -775,6 +852,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("K. Nguyen") > getByRole("button", {"name":"Edit"})',
       payload: { text: { "devices.row.dev-2.editText": "Modify" } },
       interact: clickRowRoleButton("/dashboard/devices", "table-active-devices", "K. Nguyen", "Edit"),
+      locate: locateRowRoleButton("/dashboard/devices", "table-active-devices", "K. Nguyen", "Edit"),
       distractorId: "near-dup.editRemove.dev-2.remove",
     },
     {
@@ -784,6 +862,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("K. Nguyen") > getByRole("button", {"name":"Remove"})',
       payload: { text: { "devices.row.dev-2.removeText": "Delete" } },
       interact: clickRowRoleButton("/dashboard/devices", "table-active-devices", "K. Nguyen", "Remove"),
+      locate: locateRowRoleButton("/dashboard/devices", "table-active-devices", "K. Nguyen", "Remove"),
       distractorId: "near-dup.editRemove.dev-2.edit",
     },
   ],
@@ -795,6 +874,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("S. Patel") edit-mode > getByRole("button", {"name":"Save"})',
       payload: { text: { "devices.row.dev-3.saveText": "Apply" } },
       interact: clickEditModeButton("/dashboard/devices", "table-active-devices", "S. Patel", "Save"),
+      locate: locateEditModeButton("/dashboard/devices", "table-active-devices", "S. Patel", "Save"),
       distractorId: "near-dup.saveCancel.dev-3.cancel",
     },
     {
@@ -804,6 +884,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("S. Patel") edit-mode > getByRole("button", {"name":"Cancel"})',
       payload: { text: { "devices.row.dev-3.cancelText": "Discard" } },
       interact: clickEditModeButton("/dashboard/devices", "table-active-devices", "S. Patel", "Cancel"),
+      locate: locateEditModeButton("/dashboard/devices", "table-active-devices", "S. Patel", "Cancel"),
       distractorId: "near-dup.saveCancel.dev-3.save",
     },
   ],
@@ -819,6 +900,11 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
         await page.getByTestId("open-delete-account").click();
         await page.getByRole("button", { name: "Cancel", exact: true }).click();
       },
+      locate: async (page) => {
+        await arrive(page, "/dashboard/account");
+        await page.getByTestId("open-delete-account").click();
+        return page.getByRole("button", { name: "Cancel", exact: true });
+      },
       distractorId: "near-dup.accountModal.confirm",
     },
     {
@@ -832,6 +918,11 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
         await page.getByTestId("open-delete-account").click();
         await page.getByRole("button", { name: "Confirm Delete", exact: true }).click();
       },
+      locate: async (page) => {
+        await arrive(page, "/dashboard/account");
+        await page.getByTestId("open-delete-account").click();
+        return page.getByRole("button", { name: "Confirm Delete", exact: true });
+      },
       distractorId: "near-dup.accountModal.cancel",
     },
   ],
@@ -843,6 +934,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("M. Alvarez") > getByRole("button", {"name":"Edit"})',
       payload: { text: { "devices.row.dev-4.editText": "Modify" } },
       interact: clickRowRoleButton("/dashboard/devices", "table-active-devices", "M. Alvarez", "Edit"),
+      locate: locateRowRoleButton("/dashboard/devices", "table-active-devices", "M. Alvarez", "Edit"),
       distractorId: "near-dup.editRemove.dev-4.remove",
     },
     {
@@ -852,6 +944,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("M. Alvarez") > getByRole("button", {"name":"Remove"})',
       payload: { text: { "devices.row.dev-4.removeText": "Delete" } },
       interact: clickRowRoleButton("/dashboard/devices", "table-active-devices", "M. Alvarez", "Remove"),
+      locate: locateRowRoleButton("/dashboard/devices", "table-active-devices", "M. Alvarez", "Remove"),
       distractorId: "near-dup.editRemove.dev-4.edit",
     },
   ],
@@ -863,6 +956,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("T. Chen") edit-mode > getByRole("button", {"name":"Save"})',
       payload: { text: { "devices.row.dev-5.saveText": "Apply" } },
       interact: clickEditModeButton("/dashboard/devices", "table-active-devices", "T. Chen", "Save"),
+      locate: locateEditModeButton("/dashboard/devices", "table-active-devices", "T. Chen", "Save"),
       distractorId: "near-dup.saveCancel.dev-5.cancel",
     },
     {
@@ -872,6 +966,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("T. Chen") edit-mode > getByRole("button", {"name":"Cancel"})',
       payload: { text: { "devices.row.dev-5.cancelText": "Discard" } },
       interact: clickEditModeButton("/dashboard/devices", "table-active-devices", "T. Chen", "Cancel"),
+      locate: locateEditModeButton("/dashboard/devices", "table-active-devices", "T. Chen", "Cancel"),
       distractorId: "near-dup.saveCancel.dev-5.save",
     },
   ],
@@ -883,6 +978,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'getByLabel("Request Title")',
       payload: { text: { "wizard.titleInput.label": "Title" } },
       interact: fillLabel("/dashboard/requests/new", "Request Title", "New request"),
+      locate: locateLabelField("/dashboard/requests/new", "Request Title"),
       distractorId: "near-dup.wizardFields.requestedBy",
     },
     {
@@ -892,6 +988,7 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'getByLabel("Requested By")',
       payload: { text: { "wizard.requestedByInput.label": "Submitter" } },
       interact: fillLabel("/dashboard/requests/new", "Requested By", "A. Ramirez"),
+      locate: locateLabelField("/dashboard/requests/new", "Requested By"),
       distractorId: "near-dup.wizardFields.title",
     },
   ],
@@ -908,6 +1005,12 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
         "Front Desk Tablet",
         "Edit",
       ),
+      locate: locateRowRoleButton(
+        "/dashboard/devices",
+        "table-archived-devices",
+        "Front Desk Tablet",
+        "Edit",
+      ),
       distractorId: "near-dup.editRemove.dev-9.remove",
     },
     {
@@ -917,6 +1020,12 @@ const nearDuplicatePairs: readonly (readonly [MutationTarget, MutationTarget])[]
       frozenSelectorKey: 'row("Front Desk Tablet", archived) > getByRole("button", {"name":"Remove"})',
       payload: { text: { "devices.row.dev-9.removeText": "Delete" } },
       interact: clickRowRoleButton(
+        "/dashboard/devices",
+        "table-archived-devices",
+        "Front Desk Tablet",
+        "Remove",
+      ),
+      locate: locateRowRoleButton(
         "/dashboard/devices",
         "table-archived-devices",
         "Front Desk Tablet",
