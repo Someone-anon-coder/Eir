@@ -5,6 +5,7 @@ import {
   classifyProbeRun,
   classifyUnhealedFailure,
   MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD,
+  MEASUREMENT_MIN_MARGIN,
 } from "./outcome.js";
 
 function features(overrides: Partial<MatchLogFeatures> = {}): MatchLogFeatures {
@@ -89,6 +90,29 @@ describe("classifyUnhealedFailure", () => {
       kind: "suggested",
       confidence: MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD - 0.1,
     });
+  });
+
+  it(
+    "classifies as suggested — not healed-correct — when confidence clears the bar but margin " +
+      "doesn't (the real near-dup.table-row shape: 0.8457 confidence, 0.0085 margin)",
+    () => {
+      const entry = matchedEntry({
+        confidence: 0.8457,
+        margin: MEASUREMENT_MIN_MARGIN - 0.01,
+      });
+      expect(classifyUnhealedFailure(entry, undefined)).toEqual({
+        kind: "suggested",
+        confidence: 0.8457,
+      });
+    },
+  );
+
+  it("classifies as healed-correct when both confidence and margin clear their bars", () => {
+    const entry = matchedEntry({
+      confidence: MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD + 0.1,
+      margin: MEASUREMENT_MIN_MARGIN + 0.1,
+    });
+    expect(classifyUnhealedFailure(entry, undefined).kind).toBe("healed-correct");
   });
 
   describe("near-dup precision check (distractorBBox present)", () => {

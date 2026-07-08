@@ -18,9 +18,18 @@ export type Outcome =
  * job, per Blueprint §7.6). Used here purely to *label* the benchmark's
  * own report rows so the tuning loop has something to read; Phase 6
  * proposes its own real threshold(s) informed by, but not bound to, this
- * number. Starting value is a v0 guess, tuned in docs/tuning-log.md.
+ * number. Starting values are v0 guesses, tuned in docs/tuning-log.md.
+ *
+ * Margin gates independently of confidence, not as a tiebreaker: the
+ * near-dup.table-row case measured live during this phase scored 0.8457
+ * confidence — comfortably over the confidence bar — with a margin of
+ * only 0.0085 to its runner-up (the distractor). Confidence alone would
+ * call that a confident heal; a razor-thin margin is precisely the
+ * "two similar table rows" case Blueprint §7.5 warns is where false heals
+ * happen. Both bars must clear, or the match downgrades to `suggested`.
  */
 export const MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD = 0.7;
+export const MEASUREMENT_MIN_MARGIN = 0.05;
 
 function bboxDistance(a: QuantizedBoundingBox, b: QuantizedBoundingBox): number {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
@@ -72,10 +81,10 @@ export function classifyUnhealedFailure(
     return { kind: "missed" };
   }
 
-  const { confidence, winner, fingerprint } = result;
+  const { confidence, margin, winner, fingerprint } = result;
   const wrong = matchedTheDistractor(winner.bbox, fingerprint.bbox, distractorBBox);
 
-  if (confidence >= MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD) {
+  if (confidence >= MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD && margin >= MEASUREMENT_MIN_MARGIN) {
     if (wrong) {
       return { kind: "healed-wrong", confidence, matchedWrong: describeWinner(winner) };
     }
