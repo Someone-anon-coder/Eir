@@ -1,5 +1,8 @@
 import { test as base } from "@playwright/test";
 import { EirPage } from "./eirPage.js";
+import { MatchLog } from "./matching/matchLog.js";
+import { appendMatchLogFile } from "./matching/matchLogFile.js";
+import { loadFingerprintReader, type FingerprintReader } from "./store/fingerprintReader.js";
 import { FingerprintStore } from "./store/fingerprintStore.js";
 import { writeShard } from "./store/shardWriter.js";
 
@@ -20,8 +23,36 @@ import { writeShard } from "./store/shardWriter.js";
  * written. No coordination between workers is needed beyond that, since
  * each worker only ever writes its own file — the final merge across all
  * workers' shards happens separately, in `globalTeardown`.
+ *
+ * That worker-level drain alone isn't enough, though — discovered live
+ * while chasing a Phase 5 benchmark result that was missing a fingerprint
+ * it should have had. `page` is *test*-scoped: Playwright tears down the
+ * real underlying page/browser context the instant this fixture's own
+ * `use()` call returns, which happens as soon as the test body finishes —
+ * before `eirStore`'s worker-level teardown ever runs. A test whose last
+ * action's capture is still in flight, with no later action in the same
+ * test to buy it time, loses that capture deterministically: the page is
+ * already gone by the time the worker-level `waitForPending()` gets to
+ * it. Awaiting `eirStore.waitForPending()` here too — in *this* fixture's
+ * own teardown, while the real page is still alive — closes that gap.
+ * Redundant with the worker-level await for every capture that already
+ * finished (an already-resolved promise awaits instantly), never harmful.
+ *
+ * `eirFingerprintReader` is worker-scoped too — loaded once from the
+ * committed baseline, read-only for the life of the worker (Phase 5's
+ * matcher reasons against the baseline as of run start, never against
+ * fingerprints this same run may have just refreshed).
+ *
+ * `eirMatchLog` is test-scoped (Playwright's default): a fresh `MatchLog`
+ * per test, so a heal attempt can always be tagged with the exact test
+ * that produced it. Its teardown writes to `EIR_MATCH_LOG_FILE` only if
+ * that env var is set (only `packages/benchmark` ever sets it) — a no-op,
+ * zero-footprint write for every real user.
  */
-export const test = base.extend<{ page: EirPage }, { eirStore: FingerprintStore }>({
+export const test = base.extend<
+  { page: EirPage; eirMatchLog: MatchLog },
+  { eirStore: FingerprintStore; eirFingerprintReader: FingerprintReader }
+>({
   eirStore: [
     // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
     async ({}, use, workerInfo) => {
@@ -32,8 +63,28 @@ export const test = base.extend<{ page: EirPage }, { eirStore: FingerprintStore 
     },
     { scope: "worker" },
   ],
-  page: async ({ page, eirStore }, use) => {
-    await use(new EirPage(page, eirStore));
+  eirFingerprintReader: [
+    // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
+    async ({}, use) => {
+      await use(await loadFingerprintReader());
+    },
+    { scope: "worker" },
+  ],
+  eirMatchLog: async (
+    // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
+    {},
+    use,
+    testInfo,
+  ) => {
+    const log = new MatchLog();
+    await use(log);
+    await appendMatchLogFile(testInfo.title, log.entries);
+  },
+  page: async ({ page, eirStore, eirFingerprintReader, eirMatchLog }, use) => {
+    await use(new EirPage(page, eirStore, { reader: eirFingerprintReader, log: eirMatchLog }));
+    // See the docstring above: the real page is still alive here, but
+    // won't be by the time eirStore's own (worker-scoped) teardown runs.
+    await eirStore.waitForPending();
   },
 });
 

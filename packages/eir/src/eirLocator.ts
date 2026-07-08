@@ -1,8 +1,10 @@
-import type { Locator } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { captureFingerprint } from "./capture/captureFingerprint.js";
-import { logCaptured, logFingerprinted, logOutcome } from "./debugLog.js";
+import { logCaptured, logFingerprinted, logHealError, logMatchResult, logOutcome } from "./debugLog.js";
 import type { Fingerprint } from "./fingerprint.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
+import type { MatchingContext } from "./matching/context.js";
+import { attemptMatch } from "./matching/matcher.js";
 import { normalizeRoute } from "./routeNormalize.js";
 import {
   type ChainHop,
@@ -35,12 +37,35 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Gate 2's "page sane" half (Blueprint §7.4): a dead server, a browser
+ * error page, or a document that never finished loading all mean healing
+ * here would be noise, not drift. Best-effort and cheap — an unresponsive
+ * page fails this check rather than hanging the triage attempt.
+ */
+async function isPageSane(page: Page): Promise<boolean> {
+  try {
+    const url = page.url();
+    if (url.startsWith("chrome-error://") || url === "about:blank") return false;
+    const readyState = await page.evaluate(() => document.readyState);
+    return readyState === "complete" || readyState === "interactive";
+  } catch {
+    return false;
+  }
+}
+
 export class EirLocator implements Locator {
   readonly #real: Locator;
   readonly #identity: SelectorIdentity;
   readonly #recorder: FingerprintRecorder;
+  readonly #matching: MatchingContext;
 
-  constructor(real: Locator, chainPath: readonly ChainHop[], recorder: FingerprintRecorder) {
+  constructor(
+    real: Locator,
+    chainPath: readonly ChainHop[],
+    recorder: FingerprintRecorder,
+    matching: MatchingContext,
+  ) {
     this.#real = real;
     this.#identity = {
       rawSelector: real.toString(),
@@ -48,6 +73,7 @@ export class EirLocator implements Locator {
       routeAtCreation: routeFromUrl(real.page().url()),
     };
     this.#recorder = recorder;
+    this.#matching = matching;
   }
 
   /** Not part of Playwright's `Locator` type — Eir's own book-keeping, read starting Phase 3. */
@@ -98,48 +124,89 @@ export class EirLocator implements Locator {
     this.#recorder.trackPending(pending);
   }
 
+  /**
+   * Blueprint §7.5's full funnel, run on every heal-eligible imperative
+   * failure. Phase 5 scope: the result is *recorded* via `MatchingContext`
+   * — never retried, never changes what the caller sees (the original
+   * error still rethrows unconditionally right after this resolves).
+   * Awaited rather than fire-and-forget, unlike fingerprint capture:
+   * there's no later "success" event to hang this off of, and Phase 6's
+   * retry (not yet built) will need this same result synchronously
+   * available before the catch block decides anything.
+   *
+   * Never throws — matching must never affect the test's own outcome, the
+   * same invariant `#recordCapture` documents above.
+   */
+  async #attemptHeal(method: string, error: unknown): Promise<void> {
+    try {
+      const page = this.#real.page();
+      const route = normalizeRoute(this.#identity.routeAtCreation);
+      const { key: selectorKey } = normalizeSelector(this.#identity.chainPath);
+      const currentRoute = normalizeRoute(routeFromUrl(page.url()));
+      const documentReady = await isPageSane(page);
+
+      const result = await attemptMatch({
+        route,
+        selectorKey,
+        reader: this.#matching.reader,
+        routeAtCreation: route,
+        currentRoute,
+        documentReady,
+        errorMessage: messageOf(error),
+        isImperativeMethod: true,
+        page,
+      });
+
+      logMatchResult(selectorKey, result.kind);
+      this.#matching.log.record({ method, route, selectorKey, result });
+    } catch (healError) {
+      // Matching must never affect the test's own outcome — see the docstring above.
+      logHealError(this.#identity.rawSelector, healError);
+    }
+  }
+
   // ---- capture points (Blueprint §7.1): wrap the returned Locator so chains stay tracked ----
 
   locator(...args: Parameters<Locator["locator"]>): Locator {
     const real = this.#real.locator(...args);
     const chainPath = extendChain(this.#identity.chainPath, "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder);
+    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
   }
 
   getByRole(...args: Parameters<Locator["getByRole"]>): Locator {
     const real = this.#real.getByRole(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByRole", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder);
+    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
   }
 
   getByLabel(...args: Parameters<Locator["getByLabel"]>): Locator {
     const real = this.#real.getByLabel(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByLabel", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder);
+    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
   }
 
   getByText(...args: Parameters<Locator["getByText"]>): Locator {
     const real = this.#real.getByText(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByText", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder);
+    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
   }
 
   getByTestId(...args: Parameters<Locator["getByTestId"]>): Locator {
     const real = this.#real.getByTestId(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByTestId", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder);
+    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
   }
 
   getByPlaceholder(...args: Parameters<Locator["getByPlaceholder"]>): Locator {
     const real = this.#real.getByPlaceholder(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByPlaceholder", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder);
+    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
   }
 
   // ---- imperative outcomes (Blueprint §7.1): try/catch shell, log, rethrow — no reaction yet ----
@@ -153,6 +220,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("click", "FAILED", messageOf(error));
+      await this.#attemptHeal("click", error);
       throw error;
     }
   }
@@ -166,6 +234,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("fill", "FAILED", messageOf(error));
+      await this.#attemptHeal("fill", error);
       throw error;
     }
   }
@@ -179,6 +248,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("type", "FAILED", messageOf(error));
+      await this.#attemptHeal("type", error);
       throw error;
     }
   }
@@ -192,6 +262,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("press", "FAILED", messageOf(error));
+      await this.#attemptHeal("press", error);
       throw error;
     }
   }
@@ -205,6 +276,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("check", "FAILED", messageOf(error));
+      await this.#attemptHeal("check", error);
       throw error;
     }
   }
@@ -218,6 +290,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("uncheck", "FAILED", messageOf(error));
+      await this.#attemptHeal("uncheck", error);
       throw error;
     }
   }
@@ -233,6 +306,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("selectOption", "FAILED", messageOf(error));
+      await this.#attemptHeal("selectOption", error);
       throw error;
     }
   }
@@ -246,6 +320,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("hover", "FAILED", messageOf(error));
+      await this.#attemptHeal("hover", error);
       throw error;
     }
   }
@@ -259,6 +334,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("waitFor", "FAILED", messageOf(error));
+      await this.#attemptHeal("waitFor", error);
       throw error;
     }
   }
@@ -272,6 +348,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("innerText", "FAILED", messageOf(error));
+      await this.#attemptHeal("innerText", error);
       throw error;
     }
   }
@@ -287,6 +364,7 @@ export class EirLocator implements Locator {
       return result;
     } catch (error) {
       logOutcome("textContent", "FAILED", messageOf(error));
+      await this.#attemptHeal("textContent", error);
       throw error;
     }
   }

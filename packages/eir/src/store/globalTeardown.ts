@@ -1,11 +1,7 @@
 import { readFile, readdir, rm } from "node:fs/promises";
 import path from "node:path";
-import {
-  isSerializedRouteFile,
-  isSerializedShard,
-  mergeRouteFiles,
-  type SerializedRouteFile,
-} from "./mergeStore.js";
+import { isSerializedShard, mergeRouteFiles, type SerializedRouteFile } from "./mergeStore.js";
+import { loadRouteFiles } from "./loadRouteFiles.js";
 import { routesDir, shardsDir } from "./paths.js";
 import { stableStringify } from "./stableStringify.js";
 import { writeFileAtomic } from "./atomicWrite.js";
@@ -24,18 +20,6 @@ async function listJsonFiles(dir: string): Promise<string[]> {
 function sortShardFilenames(filenames: readonly string[]): string[] {
   const indexOf = (name: string): number => Number(/worker-(\d+)\.json/.exec(name)?.[1] ?? 0);
   return [...filenames].sort((a, b) => indexOf(a) - indexOf(b));
-}
-
-async function readBaseline(dir: string): Promise<Record<string, SerializedRouteFile>> {
-  const filenames = await listJsonFiles(dir);
-  const result: Record<string, SerializedRouteFile> = {};
-  for (const filename of filenames) {
-    const raw: unknown = JSON.parse(await readFile(path.join(dir, filename), "utf8"));
-    if (isSerializedRouteFile(raw)) {
-      result[filename] = raw;
-    }
-  }
-  return result;
 }
 
 async function readShards(dir: string): Promise<Readonly<Record<string, SerializedRouteFile>>[]> {
@@ -60,7 +44,7 @@ export async function runGlobalTeardown(baseDir: string = process.cwd()): Promis
   const routes = routesDir(baseDir);
   const shards = shardsDir(baseDir);
 
-  const baseline = await readBaseline(routes);
+  const baseline = await loadRouteFiles(routes);
   const shardsInOrder = await readShards(shards);
   const merged = mergeRouteFiles(baseline, shardsInOrder);
 

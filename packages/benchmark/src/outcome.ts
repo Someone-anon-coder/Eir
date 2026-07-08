@@ -1,3 +1,6 @@
+import type { QuantizedBoundingBox } from "./groundTruthFile.js";
+import type { MatchLogEntry } from "./matchLog.js";
+
 /**
  * Blueprint §7.8's four outcome classes, as a discriminated union — a
  * `missed` outcome cannot carry a `confidence` field; the shape itself
@@ -11,16 +14,84 @@ export type Outcome =
   | { readonly kind: "missed" };
 
 /**
- * Phase 4 has no matching engine — that's Phase 5's job. Every genuinely
- * broken selector can only ever classify as `missed`, by construction:
- * nothing in the current engine is capable of producing healed-correct,
- * healed-wrong, or suggested. This function exists (rather than a bare
- * `{ kind: "missed" }` literal scattered at call sites) so Phase 5 has
- * exactly one place to extend when a real matcher exists to actually
- * decide among the four kinds.
+ * Measurement lens only — NOT enacted runtime policy (that's Phase 6's
+ * job, per Blueprint §7.6). Used here purely to *label* the benchmark's
+ * own report rows so the tuning loop has something to read; Phase 6
+ * proposes its own real threshold(s) informed by, but not bound to, this
+ * number. Starting values are v0 guesses, tuned in docs/tuning-log.md.
+ *
+ * Margin gates independently of confidence, not as a tiebreaker: the
+ * near-dup.table-row case measured live during this phase scored 0.8457
+ * confidence — comfortably over the confidence bar — with a margin of
+ * only 0.0085 to its runner-up (the distractor). Confidence alone would
+ * call that a confident heal; a razor-thin margin is precisely the
+ * "two similar table rows" case Blueprint §7.5 warns is where false heals
+ * happen. Both bars must clear, or the match downgrades to `suggested`.
  */
-export function classifyUnhealedFailure(): Outcome {
-  return { kind: "missed" };
+export const MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD = 0.7;
+export const MEASUREMENT_MIN_MARGIN = 0.05;
+
+function bboxDistance(a: QuantizedBoundingBox, b: QuantizedBoundingBox): number {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+
+/**
+ * near-duplicate-sibling-swap precision check (Phase 5): the *only* class
+ * with a real, live distractor to compare against (see NOTES.md NOTE-002 /
+ * Blueprint §7.5 — the other six classes' taxonomy leaves no legitimate
+ * second candidate, so "healed-wrong" there would need a different,
+ * heavier ground-truth mechanism this phase deliberately doesn't build —
+ * see the session's recorded design decision). `undefined` distractorBBox
+ * means "not a near-dup target, or its live element wasn't captured" —
+ * never treated as evidence of a wrong match.
+ */
+function matchedTheDistractor(
+  winnerBBox: QuantizedBoundingBox,
+  correctBBox: QuantizedBoundingBox,
+  distractorBBox: QuantizedBoundingBox | null | undefined,
+): boolean {
+  if (distractorBBox === null || distractorBBox === undefined) return false;
+  return bboxDistance(winnerBBox, distractorBBox) < bboxDistance(winnerBBox, correctBBox);
+}
+
+function describeWinner(winner: { readonly tag: string; readonly attrs: Readonly<Record<string, string>> }): string {
+  const attrSummary = Object.entries(winner.attrs)
+    .map(([key, value]) => `${key}="${value}"`)
+    .join(" ");
+  return attrSummary.length > 0 ? `<${winner.tag} ${attrSummary}>` : `<${winner.tag}>`;
+}
+
+/**
+ * Phase 5's real classifier: reads what Eir's own matcher actually
+ * decided (`matchAttempt`, recorded via `MatchingContext` — see
+ * `packages/eir/src/matching/matchLogFile.ts`) plus, for near-dup targets
+ * only, an independently-read distractor position, and turns them into
+ * one of Blueprint §7.8's four outcome classes. No attempt recorded at
+ * all, a triage-gate rejection, or no live candidates found are all
+ * `missed` — Eir never got (or never took) a real shot at this one.
+ */
+export function classifyUnhealedFailure(
+  matchAttempt: MatchLogEntry | undefined,
+  distractorBBox: QuantizedBoundingBox | null | undefined,
+): Outcome {
+  if (matchAttempt === undefined) return { kind: "missed" };
+
+  const { result } = matchAttempt;
+  if (result.kind === "rejected" || result.kind === "no-candidates") {
+    return { kind: "missed" };
+  }
+
+  const { confidence, margin, winner, fingerprint } = result;
+  const wrong = matchedTheDistractor(winner.bbox, fingerprint.bbox, distractorBBox);
+
+  if (confidence >= MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD && margin >= MEASUREMENT_MIN_MARGIN) {
+    if (wrong) {
+      return { kind: "healed-wrong", confidence, matchedWrong: describeWinner(winner) };
+    }
+    return { kind: "healed-correct", confidence };
+  }
+
+  return { kind: "suggested", confidence };
 }
 
 /**
@@ -37,11 +108,20 @@ export type ProbeOutcome =
   | { readonly status: "mutation-effective"; readonly outcome: Outcome; readonly error: string }
   | { readonly status: "mutation-ineffective" };
 
-export function classifyProbeRun(passed: boolean, errorMessage: string | undefined): ProbeOutcome {
+export function classifyProbeRun(
+  passed: boolean,
+  errorMessage: string | undefined,
+  matchAttempt: MatchLogEntry | undefined,
+  distractorBBox: QuantizedBoundingBox | null | undefined,
+): ProbeOutcome {
   if (passed) {
     return { status: "mutation-ineffective" };
   }
-  return { status: "mutation-effective", outcome: classifyUnhealedFailure(), error: errorMessage ?? "" };
+  return {
+    status: "mutation-effective",
+    outcome: classifyUnhealedFailure(matchAttempt, distractorBBox),
+    error: errorMessage ?? "",
+  };
 }
 
 /** Exhaustive dispatch guard for `Outcome.kind` — a new kind added to the union without a matching branch fails to compile here, not silently at runtime. */

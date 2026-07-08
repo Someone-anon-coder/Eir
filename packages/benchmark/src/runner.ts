@@ -86,7 +86,12 @@ export async function runBenchmark(mutationClass: MutationClass, seed: number): 
       frozenSelectorKey: entry.frozenSelectorKey,
       ...(entry.distractorId !== undefined ? { distractorId: entry.distractorId } : {}),
       controlPassed: control.passed,
-      probeOutcome: classifyProbeRun(mutated.passed, mutated.errorMessage),
+      probeOutcome: classifyProbeRun(
+        mutated.passed,
+        mutated.errorMessage,
+        mutated.matchAttempt,
+        mutated.distractorBBox,
+      ),
     };
   });
 

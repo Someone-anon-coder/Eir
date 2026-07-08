@@ -1,57 +1,57 @@
 {
-  "generatedAt": "2026-07-07T11:38:02.035Z",
+  "generatedAt": "2026-07-08T14:14:13.200Z",
   "aggregates": [
     {
       "mutationClass": "id-rename",
       "totalAffected": 8,
-      "healedCorrect": 0,
+      "healedCorrect": 6,
       "healedWrong": 0,
-      "suggested": 0,
-      "missed": 8,
+      "suggested": 2,
+      "missed": 0,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 0.75,
       "falseHealRate": 0,
-      "suggestionRate": 0,
-      "missRate": 1
+      "suggestionRate": 0.25,
+      "missRate": 0
     },
     {
       "mutationClass": "text-change",
       "totalAffected": 8,
-      "healedCorrect": 0,
+      "healedCorrect": 7,
       "healedWrong": 0,
-      "suggested": 0,
-      "missed": 8,
+      "suggested": 1,
+      "missed": 0,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 0.875,
       "falseHealRate": 0,
-      "suggestionRate": 0,
-      "missRate": 1
+      "suggestionRate": 0.125,
+      "missRate": 0
     },
     {
       "mutationClass": "tag-swap",
       "totalAffected": 8,
-      "healedCorrect": 0,
+      "healedCorrect": 8,
       "healedWrong": 0,
       "suggested": 0,
-      "missed": 8,
+      "missed": 0,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 1,
       "falseHealRate": 0,
       "suggestionRate": 0,
-      "missRate": 1
+      "missRate": 0
     },
     {
       "mutationClass": "class-shuffle",
       "totalAffected": 8,
-      "healedCorrect": 0,
+      "healedCorrect": 2,
       "healedWrong": 0,
-      "suggested": 0,
-      "missed": 8,
+      "suggested": 6,
+      "missed": 0,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 0.25,
       "falseHealRate": 0,
-      "suggestionRate": 0,
-      "missRate": 1
+      "suggestionRate": 0.75,
+      "missRate": 0
     },
     {
       "mutationClass": "sibling-reorder",
@@ -69,41 +69,41 @@
     {
       "mutationClass": "wrapper-inject",
       "totalAffected": 8,
-      "healedCorrect": 0,
+      "healedCorrect": 8,
       "healedWrong": 0,
       "suggested": 0,
-      "missed": 8,
+      "missed": 0,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 1,
       "falseHealRate": 0,
       "suggestionRate": 0,
-      "missRate": 1
+      "missRate": 0
     },
     {
       "mutationClass": "near-duplicate-sibling-swap",
       "totalAffected": 8,
-      "healedCorrect": 0,
+      "healedCorrect": 2,
       "healedWrong": 0,
-      "suggested": 0,
-      "missed": 8,
+      "suggested": 6,
+      "missed": 0,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 0.25,
       "falseHealRate": 0,
-      "suggestionRate": 0,
-      "missRate": 1
+      "suggestionRate": 0.75,
+      "missRate": 0
     },
     {
       "mutationClass": "compound-release",
       "totalAffected": 24,
-      "healedCorrect": 0,
+      "healedCorrect": 12,
       "healedWrong": 0,
-      "suggested": 0,
-      "missed": 24,
+      "suggested": 6,
+      "missed": 6,
       "mutationIneffective": 0,
-      "healRate": 0,
+      "healRate": 0.5,
       "falseHealRate": 0,
-      "suggestionRate": 0,
-      "missRate": 1
+      "suggestionRate": 0.25,
+      "missRate": 0.25
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "mutationClass": "text-change",
   "seed": 42,
-  "generatedAt": "2026-07-07T11:31:19.483Z",
+  "generatedAt": "2026-07-08T14:07:25.439Z",
   "outcomes": [
     {
       "targetId": "text-change.nav.provisioningLink",
@@ -13,7 +13,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8882464985994398
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Provisioning', exact: true })\u001b[22m\n"
       }
@@ -28,7 +29,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8674117647058823
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Log Out', exact: true })\u001b[22m\n"
       }
@@ -43,7 +45,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8895686274509804
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Account', exact: true })\u001b[22m\n"
       }
@@ -58,7 +61,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8687058823529412
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: 'Access Requests', exact: true })\u001b[22m\n"
       }
@@ -73,7 +77,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8867002801120448
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Delete Account', exact: true })\u001b[22m\n"
       }
@@ -88,7 +93,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8867002801120448
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Delete Account', exact: true })\u001b[22m\n"
       }
@@ -103,7 +109,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "suggested",
+          "confidence": 0.992901202510441
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-archived-devices').locator('tr').filter({ hasText: 'Legacy Barcode Scanner' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n"
       }
@@ -118,7 +125,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.778156862745098
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Next', exact: true })\u001b[22m\n"
       }
