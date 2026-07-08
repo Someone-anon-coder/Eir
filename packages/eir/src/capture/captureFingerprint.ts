@@ -11,7 +11,7 @@ import { truncateText } from "./textTruncate.js";
  * `unknown` — the Pre-Phase TS Tip pattern, applied for real. Nothing past
  * this predicate touches a field until the shape is proven.
  */
-function isRawCapture(x: unknown): x is RawCapture {
+export function isRawCapture(x: unknown): x is RawCapture {
   if (typeof x !== "object" || x === null) return false;
   const candidate = x as Record<string, unknown>;
   return (
