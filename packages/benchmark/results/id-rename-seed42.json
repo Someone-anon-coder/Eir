@@ -1,7 +1,7 @@
 {
   "mutationClass": "id-rename",
   "seed": 42,
-  "generatedAt": "2026-07-07T11:30:16.918Z",
+  "generatedAt": "2026-07-08T14:06:22.599Z",
   "outcomes": [
     {
       "targetId": "id-rename.login.usernameInputId",
@@ -13,7 +13,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "suggested",
+          "confidence": 0.625
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#login-username-input')\u001b[22m\n"
       }
@@ -28,7 +29,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8392857142857143
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#login-password-input')\u001b[22m\n"
       }
@@ -43,7 +45,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "suggested",
+          "confidence": 0.625
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('login-username')\u001b[22m\n"
       }
@@ -58,7 +61,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8125
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('provisioning-requester-name')\u001b[22m\n"
       }
@@ -73,7 +77,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.7352941176470589
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('provisioning-submit')\u001b[22m\n"
       }
@@ -88,7 +93,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8125
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('wizard-title')\u001b[22m\n"
       }
@@ -103,7 +109,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8125
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('wizard-requested-by')\u001b[22m\n"
       }
@@ -118,7 +125,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.7352941176470589
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('open-delete-account')\u001b[22m\n"
       }

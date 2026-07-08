@@ -48,9 +48,9 @@ Ideas, design additions, or scope expansions surfaced during work on an earlier 
 ---
 
 ### NOTE-001 — Post-condition verification for heal-and-continue
-**Status:** DUE
+**Status:** DUE (formally decided this phase; implementation remains Phase 6's job)
 **Raised:** 2026-07-04, during pre-Phase-0 design discussion (the login/signup button scenario)
-**Target phase:** Phase 3 (capture) + Phase 6 (verify) — decide formally at Phase 5's tuning-loop start, once real benchmark data exists
+**Target phase:** Phase 6 (verify) — Phase 3's capture dependency resolved without needing a schema change (see decision below); formal decision made 2026-07-08 during Phase 5's tuning loop, once real benchmark data existed
 **Blueprint touchpoint:** §7.2 (fingerprint schema — add optional post-condition field), §7.6 (policy — add verification step before accepting a heal)
 
 **The idea:**
@@ -61,10 +61,19 @@ Proposed fix: during record mode, capture a lightweight **expected post-conditio
 **Why it matters:**
 This is the sharpest edge case found so far against P4 (false heals are worse than failures). Without it, a wrong heal on a navigational element doesn't fail where it happened — it fails one or more lines later, on an unrelated-looking assertion, with a "successful" healed step sitting misleadingly clean in the report. That's actively worse for debugging than no healing at all.
 
-**Why not now:**
+**Why not now (superseded — see decision below):**
 Requires the fingerprint schema (Phase 3) and the policy layer (Phase 6) to exist first, and its real necessity/design should be argued from measured benchmark false-heal data (Phase 5), not speculation. Also implies a **new benchmark mutation class** (see NOTE-002) that doesn't exist yet.
 
-**Resolution:** *(pending)*
+**Phase 5 formal decision — ADOPT for Phase 6, evidence-backed:**
+
+Two real, measured data points from this phase's live tuning loop and the near-dup precision check (`packages/benchmark/src/groundTruthFile.ts`), run against Ward:
+
+1. **The one genuinely hard case in the current taxonomy (`near-dup.table-row` — see `docs/phase5-results.md`) was correctly caught, but only barely.** Measured: confidence 0.8457, margin 0.0085 against its live distractor (the Active table's own identically-named row). Five of six scorers tie *exactly* between the correct element and the distractor; the entire margin comes from one low-weighted scorer (`bboxProximity`). The newly-added `MEASUREMENT_MIN_MARGIN` gate (added specifically because of this real result, during this phase's decision-margin Understanding Gate) is what keeps this classified `suggested`-worthy-of-scrutiny rather than a confident, unverified heal — measured false-heal rate is 0% across every class this phase, specifically *because* margin-gating is doing real work here, not because the underlying ambiguity isn't real.
+2. **Margin-gating is a *pre*-action heuristic — it does not verify anything about what actually happened.** It measures "how much better is my top-scored candidate than my second," never "did retrying the action on my top-scored candidate actually produce the outcome the original action was supposed to produce." A matcher confidently wrong about *both* of two candidates (an unusual page state, a scoring blind spot neither near-dup's registry nor this phase's tuning loop happened to exercise) would still show a healthy margin and clear every gate Phase 5 can build. Post-condition verification is the only mechanism proposed anywhere in this project that checks the *result* of a heal rather than the *inputs* to the decision — margin and post-condition verification are complementary, not substitutes for each other.
+
+Separately, **RISK-009 (`sibling-reorder`, measured 100% miss rate this phase, materializing exactly as predicted)** is a related but distinct gap NOTE-001 does not by itself close: a position-anchored selector's click succeeding against the *wrong* row never throws, so Eir's own triage funnel — margin-gating included — never runs at all. Phase 6 should treat NOTE-001's verification step and RISK-009's "resolved but plausibly wrong" detection gap as one design conversation, not two: both are instances of "the action reported success, but was it actually success against the right element?", one on a *healed* path (NOTE-001, the login/signup case) and one on a completely ordinary, never-healed path (RISK-009, sibling-reorder). A single post-condition/outcome-verification mechanism in Phase 6 that checks the resolved element's identity (not just that *some* click succeeded) plausibly closes both at once.
+
+**Resolution:** Adopted for Phase 6, decided 2026-07-08 with the evidence above. Implementation is Phase 6's work, not this phase's — scoped there as: (a) capture a lightweight post-condition per imperative action during record mode (extends `Fingerprint`'s capture path, not its schema — no Phase 3 schema change needed, since the post-condition can live in the same fire-and-forget capture flow as a sibling field written alongside, not inside, the stored `Fingerprint`), and (b) verify it after heal-and-continue's retry, *and* consider extending the same resolved-element identity check to ordinary (non-healed) imperative successes to close RISK-009 in the same pass.
 
 ---
 
@@ -84,6 +93,25 @@ This is a fundamentally different failure shape than "one element changed shape"
 Phase 4 builds the taxonomy; Ward's demo app (Phase 1) needs to already contain qualifying near-duplicate pairs (the two-similar-tables page is one instance — check it also covers a nav/button pair and a form-field pair before treating this class as fully seeded).
 
 **Resolution:** Formally adopted 2026-07-07 during Phase 4 as the 7th mutation class (`near-duplicate-sibling-swap`), alongside Blueprint §7.8's six plus `compound-release`. Implemented in `packages/benchmark/src/targets.ts`/`groundTruth.ts`: 8 pairs built against the three confirmed shapes — 1 table-row pair (Active vs Archived "Front Desk Tablet", mutating the *container* testid rather than the shared row-action testid, since Edit/Remove testids are identical across both tables and mutating them would break the distractor too), 5 button-adjacent pairs (Edit/Remove ×3 rows, Save/Cancel ×2 rows, Account modal Cancel/Confirm-Delete), and 1 form-field pair (wizard Title/Requested-By labels). Each pair's ground truth carries a `distractorId` pointing at the live, valid sibling a future matcher could wrongly prefer — the one structural difference from the other six classes' ground truth, which need no such field. A seeded PRNG picks exactly one direction per pair per run (never both — mutating both would destroy the distractor), so total live entries per run is always 8, matching the other classes' `>=8` bar. Phase 4 only records the distractor; nothing scores or matches against it yet — that's Phase 5.
+
+---
+
+### NOTE-003 — Fingerprint schema never captures an element's own class tokens
+**Status:** PARKED
+**Raised:** 2026-07-08, during Phase 5's tuning loop (iteration 4), while investigating `class-shuffle`'s stuck-at-25% heal rate
+**Target phase:** Unassigned — earliest candidate is a future fingerprint-schema revision (touches Phase 3's shipped schema, not a same-phase fix)
+**Blueprint touchpoint:** §7.2 (fingerprint captured features), docs/fingerprint-schema.md's `attrs` allow-list and "deliberately not captured" section
+
+**The idea:**
+`docs/fingerprint-schema.md` deliberately excludes `class` from an element's own captured `attrs`, on the stated theory that class identity is "handled separately, see ancestors" — i.e., a class token matters for scoring via an *ancestor's* class list, not the element's own. This holds for elements identified by something else (`data-testid`, role+text) where class is incidental. It does not hold for `class-shuffle`'s six page/card-container targets (`.devices-page`, `.table-card`, `.dashboard-layout`, etc.) — plain `<div>`/`<section>` wrappers whose *only* identifying feature, ever, was their own class name. For these, `attrOverlap` isn't degraded by the mutation, it never had anything to score in the first place; no combination of the six existing scorers' weights can recover a signal that was never captured for the element itself.
+
+**Why it matters:**
+Measured, not theoretical: `packages/benchmark`'s `class-shuffle` class plateaus at 25% heal rate (2/8) through 5 tuning iterations that moved every other class — see `docs/tuning-log.md` iteration 4. The 2 that do heal are row clicks with a real `data-testid`; the 6 that don't are exactly the class-only-identified containers. This is a real, measured recall ceiling on 1 of the 8 mutation classes, not a tuning problem.
+
+**Why not now:**
+Fixing this means either (a) adding the element's own filtered class tokens as a captured `Fingerprint`/`CandidateFeatures` field (a 7th scorer dimension, `ownClassOverlap` or similar) or (b) extending `attrOverlap` to also consider the element's own class list — either way, a schema change to `Fingerprint` (Phase 3, already shipped/published) requiring every existing baseline to be recaptured, and a new/changed scorer requiring its own Understanding-Gate treatment and table-driven tests, same as the original six. Out of scope for a same-phase tuning-loop fix; a real capability addition, not a weight adjustment.
+
+**Resolution:** *(pending)*
 
 ---
 

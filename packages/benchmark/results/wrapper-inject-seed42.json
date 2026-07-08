@@ -1,7 +1,7 @@
 {
   "mutationClass": "wrapper-inject",
   "seed": 42,
-  "generatedAt": "2026-07-07T11:34:49.534Z",
+  "generatedAt": "2026-07-08T14:10:55.995Z",
   "outcomes": [
     {
       "targetId": "wrapper-inject.wizard.titleInput",
@@ -13,7 +13,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8808750000000001
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'wizard-title-input\\']/parent::section').locator('#wizard-title-input')\u001b[22m\n"
       }
@@ -28,7 +29,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.756992199676819
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'wizard-requested-by-input\\']/parent::section').locator('#wizard-requested-by-input')\u001b[22m\n"
       }
@@ -43,7 +45,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.896875
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'provisioning-requester-name-input\\']/parent::form').locator('#provisioning-requester-name-input')\u001b[22m\n"
       }
@@ -58,7 +61,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8218749999999999
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'provisioning-effective-date-input\\']/parent::form').locator('#provisioning-effective-date-input')\u001b[22m\n"
       }
@@ -73,7 +77,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.7174999999999999
         },
         "error": "TimeoutError: locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@id=\\'provisioning-notes-input\\']/parent::form').locator('#provisioning-notes-input')\u001b[22m\n"
       }
@@ -88,7 +93,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.9117647058823528
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@data-testid=\\'open-delete-account\\']/parent::div[@class=\\'account-page\\']').getByTestId('open-delete-account')\u001b[22m\n"
       }
@@ -103,7 +109,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.9420392156862745
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@data-testid=\\'delete-account-cancel\\']/parent::div[@role=\\'dialog\\']').getByTestId('delete-account-cancel')\u001b[22m\n"
       }
@@ -118,7 +125,8 @@
       "probeOutcome": {
         "status": "mutation-effective",
         "outcome": {
-          "kind": "missed"
+          "kind": "healed-correct",
+          "confidence": 0.8664313725490197
         },
         "error": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('//*[@data-testid=\\'delete-account-confirm\\']/parent::div[@role=\\'dialog\\']').getByTestId('delete-account-confirm')\u001b[22m\n"
       }
