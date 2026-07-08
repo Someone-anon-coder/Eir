@@ -56,9 +56,13 @@ function shapeCandidate(raw: RawCandidate, selector: string): CapturedCandidate 
   return { features, domIndex: raw.domIndex, selector };
 }
 
-export async function captureCandidates(page: Page, tag: string): Promise<CapturedCandidate[]> {
+export async function captureCandidates(
+  page: Page,
+  tag: string,
+  type: string | undefined,
+): Promise<CapturedCandidate[]> {
   try {
-    const selector = candidateSelector(tag);
+    const selector = candidateSelector(tag, type);
     const raw: unknown = await page.evaluate(extractCandidates, selector);
     if (!Array.isArray(raw)) return [];
 

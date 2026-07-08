@@ -44,7 +44,7 @@ export async function attemptMatch(input: MatcherInput): Promise<MatchAttempt> {
       const { fingerprint } = decision;
       const weights = input.weights ?? INITIAL_WEIGHTS;
 
-      const captured = await captureCandidates(input.page, fingerprint.tag);
+      const captured = await captureCandidates(input.page, fingerprint.tag, fingerprint.attrs["type"]);
       if (captured.length === 0) {
         return { kind: "no-candidates", fingerprint };
       }

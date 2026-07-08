@@ -16,10 +16,10 @@ import {
 } from "./types.js";
 
 /**
- * v0 — expected wrong; see docs/tuning-log.md. Hand-set only to get the
- * full pipeline running end-to-end before any real benchmark data exists
- * to tune against (Blueprint §7.5: "initial hand-set weights are expected
- * to be wrong").
+ * Started as a v0 hand-set guess (Blueprint §7.5: "initial hand-set
+ * weights are expected to be wrong"); tuned iteratively against real
+ * benchmark runs since — see docs/tuning-log.md for the full history of
+ * what changed, why, and what it measurably did.
  */
 export const INITIAL_WEIGHTS: Weights = {
   attrOverlap: 0.3,
@@ -29,6 +29,25 @@ export const INITIAL_WEIGHTS: Weights = {
   siblingPosition: 0.12,
   bboxProximity: 0.08,
 };
+
+/**
+ * `textSimilarity` and `labelMatch` are structurally mutually exclusive
+ * per element — a plain `<input>` never has rendered text, a `<button>`
+ * never has a `for=`/wrapping label. Iterations 1–2 (docs/tuning-log.md)
+ * tried shifting weight between the two and found the *same* ceiling
+ * problem just moved from one element type to the other: whichever
+ * scorer has nothing to measure still "spends" its full weight share as
+ * a hard 0, capping confidence on an otherwise-perfect match. Real
+ * inapplicability (nothing to compare) isn't the same evidence as a real
+ * mismatch (compared and differed) — this function is what tells them
+ * apart, so the weight budget renormalizes over only the scorers that
+ * actually had something to measure for this fingerprint.
+ */
+function isApplicable(name: keyof ScoreBreakdown, fp: Readonly<Fingerprint>): boolean {
+  if (name === "textSimilarity") return fp.text !== null;
+  if (name === "labelMatch") return fp.label !== null;
+  return true;
+}
 
 function computeBreakdown(
   fp: Readonly<Fingerprint>,
@@ -50,10 +69,14 @@ export function scoreCandidate(
   weights: Weights,
 ): { readonly breakdown: ScoreBreakdown; readonly total: number } {
   const breakdown = computeBreakdown(fp, cand);
-  let total = 0;
+  let weightedSum = 0;
+  let applicableWeight = 0;
   for (const name of FEATURE_NAMES) {
-    total += breakdown[name] * weights[name];
+    if (!isApplicable(name, fp)) continue;
+    weightedSum += breakdown[name] * weights[name];
+    applicableWeight += weights[name];
   }
+  const total = applicableWeight === 0 ? 0 : weightedSum / applicableWeight;
   return { breakdown, total };
 }
 
