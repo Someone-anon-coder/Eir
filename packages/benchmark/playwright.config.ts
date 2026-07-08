@@ -7,6 +7,14 @@ import { defineConfig } from "@playwright/test";
 // process per config load, not a mid-run restart with a different env.
 export default defineConfig({
   testDir: "./probes",
+  // Required for Phase 5's matcher to have anything to work against:
+  // without this, fingerprints captured during the control run sit in
+  // `.eir/.shards/` forever, never merged into `.eir/routes/*.json` — Gate
+  // 1 ("fingerprint exists?") then rejects every heal attempt as
+  // record-mode onboarding, indistinguishable from Phase 4's honest
+  // 100%-missed baseline. Discovered via the first real end-to-end Phase 5
+  // benchmark run.
+  globalTeardown: "playwright-eir/globalTeardown",
   fullyParallel: false,
   forbidOnly: !!process.env["CI"],
   retries: 0,

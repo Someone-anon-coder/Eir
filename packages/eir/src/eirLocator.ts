@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { captureFingerprint } from "./capture/captureFingerprint.js";
-import { logCaptured, logFingerprinted, logOutcome } from "./debugLog.js";
+import { logCaptured, logFingerprinted, logHealError, logMatchResult, logOutcome } from "./debugLog.js";
 import type { Fingerprint } from "./fingerprint.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
 import type { MatchingContext } from "./matching/context.js";
@@ -157,9 +157,11 @@ export class EirLocator implements Locator {
         page,
       });
 
+      logMatchResult(selectorKey, result.kind);
       this.#matching.log.record({ method, route, selectorKey, result });
-    } catch {
+    } catch (healError) {
       // Matching must never affect the test's own outcome — see the docstring above.
+      logHealError(this.#identity.rawSelector, healError);
     }
   }
 

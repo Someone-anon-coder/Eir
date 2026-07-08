@@ -28,3 +28,15 @@ export function logFingerprinted(selectorKey: string, route: string): void {
   if (!isDebugEnabled()) return;
   console.log(`[eir] fingerprinted: ${selectorKey} on ${route}`);
 }
+
+export function logMatchResult(selectorKey: string, resultKind: string): void {
+  if (!isDebugEnabled()) return;
+  console.log(`[eir] match: ${selectorKey} -> ${resultKind}`);
+}
+
+/** The heal path's own observability-must-never-fail-the-test catch (see EirLocator#attemptHeal) still gets a visible trace under EIR_DEBUG. */
+export function logHealError(selectorKey: string, error: unknown): void {
+  if (!isDebugEnabled()) return;
+  const message = error instanceof Error ? error.message : String(error);
+  console.log(`[eir] heal attempt errored: ${selectorKey}: ${message}`);
+}

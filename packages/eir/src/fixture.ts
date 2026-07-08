@@ -24,6 +24,20 @@ import { writeShard } from "./store/shardWriter.js";
  * each worker only ever writes its own file — the final merge across all
  * workers' shards happens separately, in `globalTeardown`.
  *
+ * That worker-level drain alone isn't enough, though — discovered live
+ * while chasing a Phase 5 benchmark result that was missing a fingerprint
+ * it should have had. `page` is *test*-scoped: Playwright tears down the
+ * real underlying page/browser context the instant this fixture's own
+ * `use()` call returns, which happens as soon as the test body finishes —
+ * before `eirStore`'s worker-level teardown ever runs. A test whose last
+ * action's capture is still in flight, with no later action in the same
+ * test to buy it time, loses that capture deterministically: the page is
+ * already gone by the time the worker-level `waitForPending()` gets to
+ * it. Awaiting `eirStore.waitForPending()` here too — in *this* fixture's
+ * own teardown, while the real page is still alive — closes that gap.
+ * Redundant with the worker-level await for every capture that already
+ * finished (an already-resolved promise awaits instantly), never harmful.
+ *
  * `eirFingerprintReader` is worker-scoped too — loaded once from the
  * committed baseline, read-only for the life of the worker (Phase 5's
  * matcher reasons against the baseline as of run start, never against
@@ -68,6 +82,9 @@ export const test = base.extend<
   },
   page: async ({ page, eirStore, eirFingerprintReader, eirMatchLog }, use) => {
     await use(new EirPage(page, eirStore, { reader: eirFingerprintReader, log: eirMatchLog }));
+    // See the docstring above: the real page is still alive here, but
+    // won't be by the time eirStore's own (worker-scoped) teardown runs.
+    await eirStore.waitForPending();
   },
 });
 
