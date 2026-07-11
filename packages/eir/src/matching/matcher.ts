@@ -14,6 +14,12 @@ import type { ScoreBreakdown, CandidateFeatures, Weights } from "./types.js";
  * that's Phase 6's policy layer): the caller decides what to do with a
  * `MatchAttempt`, this function only ever produces one.
  */
+/** Just enough to re-resolve the winning candidate live for a retry (Phase 6) — `page.locator(selector).nth(domIndex)`, the same addressing `CapturedCandidate` already uses. */
+export interface WinnerLocatorRef {
+  readonly selector: string;
+  readonly domIndex: number;
+}
+
 export type MatchAttempt =
   | { readonly kind: "rejected"; readonly reason: TriageRejectionReason; readonly detail: string }
   | { readonly kind: "no-candidates"; readonly fingerprint: Fingerprint }
@@ -26,6 +32,8 @@ export type MatchAttempt =
       readonly confidence: number;
       readonly margin: number;
       readonly suggestion: SuggestedSelector | null;
+      /** Phase 6: how heal-and-continue re-resolves this exact candidate to retry the action against it. */
+      readonly winnerLocator: WinnerLocatorRef;
     };
 
 export interface MatcherInput extends TriageInput {
@@ -77,6 +85,7 @@ export async function attemptMatch(input: MatcherInput): Promise<MatchAttempt> {
         confidence: decided.winner.total,
         margin: decided.margin,
         suggestion,
+        winnerLocator: { selector: winnerCapture.selector, domIndex: winnerCapture.domIndex },
       };
     }
 
