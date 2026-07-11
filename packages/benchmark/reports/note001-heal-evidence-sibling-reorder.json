@@ -1,0 +1,87 @@
+{
+  "mutationClass": "sibling-reorder",
+  "seed": 42,
+  "generatedAt": "2026-07-11T15:26:43.245Z",
+  "results": [
+    {
+      "targetId": "sibling-reorder.devices.active.rowOrder.row1",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected owner \"A. Ramirez\" at row 1, found \"K. Nguyen\"",
+      "policyEvents": [
+        {
+          "kind": "drift-suspected",
+          "method": "innerText",
+          "route": "/dashboard/devices",
+          "selectorKey": "locator(\"[data-testid=\\\"table-active-devices\\\"] tbody tr:nth-child(1) td:nth-child(2)\")",
+          "score": 0.6470588235294117
+        }
+      ]
+    },
+    {
+      "targetId": "sibling-reorder.devices.active.rowOrder.row2",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected owner \"K. Nguyen\" at row 2, found \"A. Ramirez\"",
+      "policyEvents": [
+        {
+          "kind": "drift-suspected",
+          "method": "innerText",
+          "route": "/dashboard/devices",
+          "selectorKey": "locator(\"[data-testid=\\\"table-active-devices\\\"] tbody tr:nth-child(2) td:nth-child(2)\")",
+          "score": 0.6470588235294117
+        }
+      ]
+    },
+    {
+      "targetId": "sibling-reorder.devices.archived.rowOrder.row1",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected owner \"A. Ramirez\" at row 1, found \"K. Nguyen\"",
+      "policyEvents": [
+        {
+          "kind": "drift-suspected",
+          "method": "innerText",
+          "route": "/dashboard/devices",
+          "selectorKey": "locator(\"[data-testid=\\\"table-archived-devices\\\"] tbody tr:nth-child(1) td:nth-child(2)\")",
+          "score": 0.6470588235294117
+        }
+      ]
+    },
+    {
+      "targetId": "sibling-reorder.devices.archived.rowOrder.row2",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected owner \"K. Nguyen\" at row 2, found \"A. Ramirez\"",
+      "policyEvents": [
+        {
+          "kind": "drift-suspected",
+          "method": "innerText",
+          "route": "/dashboard/devices",
+          "selectorKey": "locator(\"[data-testid=\\\"table-archived-devices\\\"] tbody tr:nth-child(2) td:nth-child(2)\")",
+          "score": 0.6470588235294117
+        }
+      ]
+    },
+    {
+      "targetId": "sibling-reorder.wizard.resourceSelect",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected first <option> value \"Device Inventory\", found \"Billing Reports\"",
+      "policyEvents": []
+    },
+    {
+      "targetId": "sibling-reorder.wizard.durationSelect",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected first <option> value \"7 days\", found \"30 days\"",
+      "policyEvents": []
+    },
+    {
+      "targetId": "sibling-reorder.devices.row.dev-2.actionsOrder",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected first action \"Edit\", found \"Remove\"",
+      "policyEvents": []
+    },
+    {
+      "targetId": "sibling-reorder.devices.row.dev-4.actionsOrder",
+      "passed": false,
+      "errorMessage": "Error: sibling-reorder probe: expected first action \"Edit\", found \"Remove\"",
+      "policyEvents": []
+    }
+  ]
+}
