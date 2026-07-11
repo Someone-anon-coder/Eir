@@ -1,0 +1,7 @@
+{
+  "locator(\"#delayed-button\")": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  }
+}

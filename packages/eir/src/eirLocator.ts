@@ -1,10 +1,24 @@
 import type { Locator, Page } from "@playwright/test";
 import { captureFingerprint } from "./capture/captureFingerprint.js";
-import { logCaptured, logFingerprinted, logHealError, logMatchResult, logOutcome } from "./debugLog.js";
+import { capturePulse } from "./capture/capturePulse.js";
+import {
+  logCaptured,
+  logDriftSuspected,
+  logHealError,
+  logHealOutcome,
+  logMatchResult,
+  logOutcome,
+} from "./debugLog.js";
 import type { Fingerprint } from "./fingerprint.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
+import { INITIAL_WEIGHTS } from "./matching/aggregate.js";
 import type { MatchingContext } from "./matching/context.js";
 import { attemptMatch } from "./matching/matcher.js";
+import { checkSelfSimilarity } from "./policy/driftCheck.js";
+import type { PolicyAction } from "./policy/stateMachine.js";
+import { decidePolicyAction } from "./policy/stateMachine.js";
+import { DEFAULT_DRIFT_SELF_SIMILARITY_THRESHOLD } from "./policy/thresholds.js";
+import { derivePostCondition, postConditionMatches, type NormalizedPulse } from "./postCondition.js";
 import { normalizeRoute } from "./routeNormalize.js";
 import {
   type ChainHop,
@@ -14,6 +28,7 @@ import {
 } from "./selectorIdentity.js";
 import { normalizeSelector } from "./selectorNormalize.js";
 import type { FingerprintRecorder } from "./store/fingerprintStore.js";
+import type { PostConditionRecorder } from "./store/postConditionStore.js";
 
 /**
  * Playwright's `expect()` duck-types these two members at runtime
@@ -54,16 +69,31 @@ async function isPageSane(page: Page): Promise<boolean> {
   }
 }
 
+/** What Phase 6's policy decided, plus everything a retry or a report needs — computed once per failure, acted on by `#runImperative`. */
+interface HealDecision {
+  readonly matchAttempt: Awaited<ReturnType<typeof attemptMatch>> | null;
+  readonly action: PolicyAction;
+  readonly candidateLocator: Locator | null;
+  readonly screenshot: Buffer | null;
+}
+
+type RetryExecution<R> =
+  | { readonly kind: "healed"; readonly result: R }
+  | { readonly kind: "heal-rejected-post-condition-mismatch" }
+  | { readonly kind: "heal-attempted-retry-failed" };
+
 export class EirLocator implements Locator {
   readonly #real: Locator;
   readonly #identity: SelectorIdentity;
   readonly #recorder: FingerprintRecorder;
+  readonly #postConditionRecorder: PostConditionRecorder;
   readonly #matching: MatchingContext;
 
   constructor(
     real: Locator,
     chainPath: readonly ChainHop[],
     recorder: FingerprintRecorder,
+    postConditionRecorder: PostConditionRecorder,
     matching: MatchingContext,
   ) {
     this.#real = real;
@@ -73,6 +103,7 @@ export class EirLocator implements Locator {
       routeAtCreation: routeFromUrl(real.page().url()),
     };
     this.#recorder = recorder;
+    this.#postConditionRecorder = postConditionRecorder;
     this.#matching = matching;
   }
 
@@ -81,42 +112,64 @@ export class EirLocator implements Locator {
     return this.#identity;
   }
 
+  #routeAndKey(): { readonly route: string; readonly selectorKey: string } {
+    return {
+      route: normalizeRoute(this.#identity.routeAtCreation),
+      selectorKey: normalizeSelector(this.#identity.chainPath).key,
+    };
+  }
+
   /**
    * `captureFingerprint` is started *concurrently with the action itself*
-   * (see each imperative method below), not strictly after it resolves —
-   * a deliberate, documented reinterpretation of Blueprint §7.2's "after a
+   * (see `#runImperative`), not strictly after it resolves — a
+   * deliberate, documented reinterpretation of Blueprint §7.2's "after a
    * successful action" as "conditioned on success," not "temporally
    * after." A live experiment against the demo app showed why: an action
    * that navigates away (a login submit, a nav link) destroys its own
-   * element before a *post*-success `evaluate()` call can reach it, so
-   * every navigational selector silently never got fingerprinted. Starting
-   * the browser round-trip while the element is still guaranteed to exist
-   * — and only ever *recording* the result here, after success is
-   * confirmed — closes that gap. Confirmed via 3 repeated full-suite runs:
-   * deterministic capture, no change to any action's own pass/fail
-   * behavior or timing.
+   * element before a *post*-success `evaluate()` could reach it, so every
+   * navigational selector silently never got fingerprinted. Starting the
+   * browser round-trip while the element is still guaranteed to exist —
+   * and only ever *recording* the result here, after success is
+   * confirmed — closes that gap.
    *
-   * Fire-and-forget (Blueprint P1) either way: never awaited by a caller,
-   * so the outcome shells return the instant the real action resolves.
-   * The trailing `.catch()` guards this method's own code
-   * (normalizeRoute/normalizeSelector/recorder.record) — `captureFingerprint`
-   * itself is built to never reject, but an unhandled rejection from
-   * *this* callback would still crash the worker process.
+   * Phase 6 (NOTE-001/RISK-009, Mechanism B): before overwriting the
+   * baseline, scores the fresh capture against whatever was already
+   * stored, reusing Phase 5's own weighted scorer unmodified. A
+   * suspiciously low score gets logged as `drift-suspected` — never
+   * blocks the refresh (record mode must keep drifting with legitimate
+   * app evolution), purely additive report information.
    *
-   * Registered with `trackPending` so worker teardown can await it —
-   * "fire-and-forget" means the test never waits, not that nothing ever
-   * does; something has to, or the last action's capture can be silently
-   * dropped when the worker shuts down before the browser round-trip
-   * finishes.
+   * Fire-and-forget (Blueprint P1) either way: never awaited by a caller.
+   * Registered with `trackPending` so worker teardown can await it.
    */
-  #recordCapture(capture: Promise<Fingerprint | null>): void {
+  #recordCapture(method: string, capture: Promise<Fingerprint | null>): void {
     const pending = capture
       .then((fingerprint) => {
         if (fingerprint === null) return;
-        const route = normalizeRoute(this.#identity.routeAtCreation);
-        const { key } = normalizeSelector(this.#identity.chainPath);
-        logFingerprinted(key, route);
-        this.#recorder.record(route, key, fingerprint);
+        const { route, selectorKey } = this.#routeAndKey();
+        logCaptured(this.#identity.rawSelector, route);
+
+        const stored = this.#matching.reader.lookup(route, selectorKey);
+        if (stored !== undefined) {
+          const { suspected, score } = checkSelfSimilarity(
+            stored,
+            fingerprint,
+            INITIAL_WEIGHTS,
+            DEFAULT_DRIFT_SELF_SIMILARITY_THRESHOLD,
+          );
+          if (suspected) {
+            logDriftSuspected(selectorKey, score);
+            this.#matching.policyLog.record({
+              kind: "drift-suspected",
+              method,
+              route,
+              selectorKey,
+              score,
+            });
+          }
+        }
+
+        this.#recorder.record(route, selectorKey, fingerprint);
       })
       .catch(() => {
         // Observability must never affect the test — see the docstring above.
@@ -125,27 +178,50 @@ export class EirLocator implements Locator {
   }
 
   /**
-   * Blueprint §7.5's full funnel, run on every heal-eligible imperative
-   * failure. Phase 5 scope: the result is *recorded* via `MatchingContext`
-   * — never retried, never changes what the caller sees (the original
-   * error still rethrows unconditionally right after this resolves).
-   * Awaited rather than fire-and-forget, unlike fingerprint capture:
-   * there's no later "success" event to hang this off of, and Phase 6's
-   * retry (not yet built) will need this same result synchronously
-   * available before the catch block decides anything.
-   *
-   * Never throws — matching must never affect the test's own outcome, the
-   * same invariant `#recordCapture` documents above.
+   * NOTE-001 retrofit, capture half: the page-level "before" pulse is
+   * kicked off concurrently with the action (see `#runImperative`), same
+   * timing reasoning as fingerprint capture; the "after" pulse is taken
+   * here, once success is confirmed. Fire-and-forget, never blocks the
+   * test — this is *record mode's* capture, distinct from heal-and-
+   * continue's retry verification (`#retryHealed`), which does await.
    */
-  async #attemptHeal(method: string, error: unknown): Promise<void> {
+  #recordPostCondition(pulseBefore: Promise<NormalizedPulse | null>): void {
+    const pending = (async () => {
+      const before = await pulseBefore;
+      if (before === null) return;
+      const after = await capturePulse(this.#real.page());
+      if (after === null) return;
+      const { route, selectorKey } = this.#routeAndKey();
+      this.#postConditionRecorder.record(route, selectorKey, derivePostCondition(before, after));
+    })().catch(() => {
+      // Observability must never affect the test — see #recordCapture's docstring.
+    });
+    this.#postConditionRecorder.trackPending(pending);
+  }
+
+  /**
+   * Blueprint §7.5's full funnel plus Phase 6's policy decision, run on
+   * every heal-eligible imperative failure. Never throws — matching must
+   * never affect the test's own outcome, the same invariant
+   * `#recordCapture` documents above; any internal error degrades to a
+   * silent "nothing found" decision, exactly as Phase 5 did before this
+   * phase added policy on top.
+   */
+  async #attemptHeal(method: string, error: unknown): Promise<HealDecision> {
+    const noOp: HealDecision = {
+      matchAttempt: null,
+      action: { kind: "fail-normally" },
+      candidateLocator: null,
+      screenshot: null,
+    };
+
     try {
       const page = this.#real.page();
-      const route = normalizeRoute(this.#identity.routeAtCreation);
-      const { key: selectorKey } = normalizeSelector(this.#identity.chainPath);
+      const { route, selectorKey } = this.#routeAndKey();
       const currentRoute = normalizeRoute(routeFromUrl(page.url()));
       const documentReady = await isPageSane(page);
 
-      const result = await attemptMatch({
+      const matchAttempt = await attemptMatch({
         route,
         selectorKey,
         reader: this.#matching.reader,
@@ -157,11 +233,149 @@ export class EirLocator implements Locator {
         page,
       });
 
-      logMatchResult(selectorKey, result.kind);
-      this.#matching.log.record({ method, route, selectorKey, result });
+      logMatchResult(selectorKey, matchAttempt.kind);
+      this.#matching.log.record({ method, route, selectorKey, result: matchAttempt });
+
+      const action = decidePolicyAction(matchAttempt, this.#matching.mode);
+
+      let candidateLocator: Locator | null = null;
+      let screenshot: Buffer | null = null;
+      if (matchAttempt.kind === "matched") {
+        candidateLocator = page
+          .locator(matchAttempt.winnerLocator.selector)
+          .nth(matchAttempt.winnerLocator.domIndex);
+        screenshot = await candidateLocator.screenshot().catch(() => null);
+      }
+
+      return {
+        matchAttempt,
+        action,
+        candidateLocator: action.kind === "heal-and-continue" ? candidateLocator : null,
+        screenshot,
+      };
     } catch (healError) {
-      // Matching must never affect the test's own outcome — see the docstring above.
       logHealError(this.#identity.rawSelector, healError);
+      return noOp;
+    }
+  }
+
+  /**
+   * Executes heal-and-continue's one retry, then verifies NOTE-001's
+   * post-condition around it (never the record-mode capture path — this
+   * one genuinely `await`s, because the test's own outcome depends on the
+   * result). A stored post-condition of `"none"` (or a pulse Eir
+   * couldn't observe) always passes — the documented partial-coverage
+   * case; nothing to verify isn't the same as verification failing.
+   */
+  async #retryHealed<R>(
+    action: (locator: Locator) => Promise<R>,
+    candidateLocator: Locator,
+    route: string,
+    selectorKey: string,
+  ): Promise<RetryExecution<R>> {
+    try {
+      const page = this.#real.page();
+      const before = await capturePulse(page);
+      const result = await action(candidateLocator);
+      const after = await capturePulse(page);
+
+      const stored = this.#matching.postConditionReader.lookup(route, selectorKey);
+      if (stored !== undefined && before !== null && after !== null) {
+        const observed = derivePostCondition(before, after);
+        if (!postConditionMatches(stored, observed)) {
+          return { kind: "heal-rejected-post-condition-mismatch" };
+        }
+      }
+
+      return { kind: "healed", result };
+    } catch {
+      return { kind: "heal-attempted-retry-failed" };
+    }
+  }
+
+  /**
+   * The shared shell every imperative method (Blueprint §7.1) delegates
+   * to — capture, try/catch, and (new this phase) policy + retry-once
+   * all live here exactly once, instead of copy-pasted across 11
+   * methods. `action` performs the real Playwright call against whichever
+   * `Locator` it's handed: `this.#real` on the first attempt, the healed
+   * candidate on retry.
+   */
+  async #runImperative<R>(method: string, action: (locator: Locator) => Promise<R>): Promise<R> {
+    const capture = captureFingerprint(this.#real);
+    const pulseBefore = capturePulse(this.#real.page());
+
+    try {
+      const result = await action(this.#real);
+      logOutcome(method, "OK");
+      this.#recordCapture(method, capture);
+      this.#recordPostCondition(pulseBefore);
+      return result;
+    } catch (error) {
+      logOutcome(method, "FAILED", messageOf(error));
+      const decision = await this.#attemptHeal(method, error);
+
+      if (decision.matchAttempt === null) {
+        throw error;
+      }
+
+      const { route, selectorKey } = this.#routeAndKey();
+
+      if (decision.action.kind === "heal-and-continue" && decision.candidateLocator !== null) {
+        const retryOutcome = await this.#retryHealed(
+          action,
+          decision.candidateLocator,
+          route,
+          selectorKey,
+        );
+
+        this.#matching.policyLog.record({
+          kind: "heal-attempt",
+          method,
+          route,
+          selectorKey,
+          matchAttempt: decision.matchAttempt,
+          action: decision.action,
+          retryOutcome:
+            retryOutcome.kind === "healed" ? { kind: "healed" } : { kind: retryOutcome.kind },
+          screenshot: decision.screenshot,
+        });
+
+        if (retryOutcome.kind === "healed") {
+          logHealOutcome(selectorKey, "healed");
+          this.#matching.annotate("eir-healed", `${method} healed via ${selectorKey}`);
+          return retryOutcome.result;
+        }
+
+        logHealOutcome(selectorKey, retryOutcome.kind);
+        this.#matching.annotate(
+          retryOutcome.kind === "heal-rejected-post-condition-mismatch"
+            ? "eir-heal-rejected"
+            : "eir-heal-attempt-failed",
+          `${method} heal attempt on ${selectorKey} did not verify — original failure stands`,
+        );
+        throw error;
+      }
+
+      this.#matching.policyLog.record({
+        kind: "heal-attempt",
+        method,
+        route,
+        selectorKey,
+        matchAttempt: decision.matchAttempt,
+        action: decision.action,
+        retryOutcome: { kind: "not-attempted" },
+        screenshot: decision.screenshot,
+      });
+
+      if (decision.action.kind === "fail-with-suggestion") {
+        this.#matching.annotate(
+          "eir-suggested",
+          `${method} on ${selectorKey}: a suggestion is available`,
+        );
+      }
+
+      throw error;
     }
   }
 
@@ -171,202 +385,92 @@ export class EirLocator implements Locator {
     const real = this.#real.locator(...args);
     const chainPath = extendChain(this.#identity.chainPath, "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByRole(...args: Parameters<Locator["getByRole"]>): Locator {
     const real = this.#real.getByRole(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByRole", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByLabel(...args: Parameters<Locator["getByLabel"]>): Locator {
     const real = this.#real.getByLabel(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByLabel", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByText(...args: Parameters<Locator["getByText"]>): Locator {
     const real = this.#real.getByText(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByText", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByTestId(...args: Parameters<Locator["getByTestId"]>): Locator {
     const real = this.#real.getByTestId(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByTestId", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByPlaceholder(...args: Parameters<Locator["getByPlaceholder"]>): Locator {
     const real = this.#real.getByPlaceholder(...args);
     const chainPath = extendChain(this.#identity.chainPath, "getByPlaceholder", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
-  // ---- imperative outcomes (Blueprint §7.1): try/catch shell, log, rethrow — no reaction yet ----
+  // ---- imperative outcomes (Blueprint §7.1): shared shell, policy-aware since Phase 6 ----
 
-  async click(...args: Parameters<Locator["click"]>): ReturnType<Locator["click"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.click(...args);
-      logOutcome("click", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("click", "FAILED", messageOf(error));
-      await this.#attemptHeal("click", error);
-      throw error;
-    }
+  click(...args: Parameters<Locator["click"]>): ReturnType<Locator["click"]> {
+    return this.#runImperative("click", (l) => l.click(...args));
   }
 
-  async fill(...args: Parameters<Locator["fill"]>): ReturnType<Locator["fill"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.fill(...args);
-      logOutcome("fill", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("fill", "FAILED", messageOf(error));
-      await this.#attemptHeal("fill", error);
-      throw error;
-    }
+  fill(...args: Parameters<Locator["fill"]>): ReturnType<Locator["fill"]> {
+    return this.#runImperative("fill", (l) => l.fill(...args));
   }
 
-  async type(...args: Parameters<Locator["type"]>): ReturnType<Locator["type"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.type(...args);
-      logOutcome("type", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("type", "FAILED", messageOf(error));
-      await this.#attemptHeal("type", error);
-      throw error;
-    }
+  type(...args: Parameters<Locator["type"]>): ReturnType<Locator["type"]> {
+    return this.#runImperative("type", (l) => l.type(...args));
   }
 
-  async press(...args: Parameters<Locator["press"]>): ReturnType<Locator["press"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.press(...args);
-      logOutcome("press", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("press", "FAILED", messageOf(error));
-      await this.#attemptHeal("press", error);
-      throw error;
-    }
+  press(...args: Parameters<Locator["press"]>): ReturnType<Locator["press"]> {
+    return this.#runImperative("press", (l) => l.press(...args));
   }
 
-  async check(...args: Parameters<Locator["check"]>): ReturnType<Locator["check"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.check(...args);
-      logOutcome("check", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("check", "FAILED", messageOf(error));
-      await this.#attemptHeal("check", error);
-      throw error;
-    }
+  check(...args: Parameters<Locator["check"]>): ReturnType<Locator["check"]> {
+    return this.#runImperative("check", (l) => l.check(...args));
   }
 
-  async uncheck(...args: Parameters<Locator["uncheck"]>): ReturnType<Locator["uncheck"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.uncheck(...args);
-      logOutcome("uncheck", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("uncheck", "FAILED", messageOf(error));
-      await this.#attemptHeal("uncheck", error);
-      throw error;
-    }
+  uncheck(...args: Parameters<Locator["uncheck"]>): ReturnType<Locator["uncheck"]> {
+    return this.#runImperative("uncheck", (l) => l.uncheck(...args));
   }
 
-  async selectOption(
+  selectOption(
     ...args: Parameters<Locator["selectOption"]>
   ): ReturnType<Locator["selectOption"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.selectOption(...args);
-      logOutcome("selectOption", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("selectOption", "FAILED", messageOf(error));
-      await this.#attemptHeal("selectOption", error);
-      throw error;
-    }
+    return this.#runImperative("selectOption", (l) => l.selectOption(...args));
   }
 
-  async hover(...args: Parameters<Locator["hover"]>): ReturnType<Locator["hover"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.hover(...args);
-      logOutcome("hover", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("hover", "FAILED", messageOf(error));
-      await this.#attemptHeal("hover", error);
-      throw error;
-    }
+  hover(...args: Parameters<Locator["hover"]>): ReturnType<Locator["hover"]> {
+    return this.#runImperative("hover", (l) => l.hover(...args));
   }
 
-  async waitFor(...args: Parameters<Locator["waitFor"]>): ReturnType<Locator["waitFor"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.waitFor(...args);
-      logOutcome("waitFor", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("waitFor", "FAILED", messageOf(error));
-      await this.#attemptHeal("waitFor", error);
-      throw error;
-    }
+  waitFor(...args: Parameters<Locator["waitFor"]>): ReturnType<Locator["waitFor"]> {
+    return this.#runImperative("waitFor", (l) => l.waitFor(...args));
   }
 
-  async innerText(...args: Parameters<Locator["innerText"]>): ReturnType<Locator["innerText"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.innerText(...args);
-      logOutcome("innerText", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("innerText", "FAILED", messageOf(error));
-      await this.#attemptHeal("innerText", error);
-      throw error;
-    }
+  innerText(...args: Parameters<Locator["innerText"]>): ReturnType<Locator["innerText"]> {
+    return this.#runImperative("innerText", (l) => l.innerText(...args));
   }
 
-  async textContent(
+  textContent(
     ...args: Parameters<Locator["textContent"]>
   ): ReturnType<Locator["textContent"]> {
-    const capture = captureFingerprint(this.#real);
-    try {
-      const result = await this.#real.textContent(...args);
-      logOutcome("textContent", "OK");
-      this.#recordCapture(capture);
-      return result;
-    } catch (error) {
-      logOutcome("textContent", "FAILED", messageOf(error));
-      await this.#attemptHeal("textContent", error);
-      throw error;
-    }
+    return this.#runImperative("textContent", (l) => l.textContent(...args));
   }
 
   // ---- interrogative outcomes (Blueprint §7.4/§6): plain pass-through, structurally never heal-eligible ----

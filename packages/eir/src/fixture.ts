@@ -1,9 +1,15 @@
 import { test as base } from "@playwright/test";
+import { DEFAULT_EIR_CONFIG, type EirConfig } from "./config.js";
 import { EirPage } from "./eirPage.js";
 import { MatchLog } from "./matching/matchLog.js";
 import { appendMatchLogFile } from "./matching/matchLogFile.js";
+import { PolicyLog } from "./policy/policyLog.js";
+import { appendPolicyLogFile, serializeEvent } from "./policy/policyLogFile.js";
 import { loadFingerprintReader, type FingerprintReader } from "./store/fingerprintReader.js";
 import { FingerprintStore } from "./store/fingerprintStore.js";
+import { loadPostConditionReader, type PostConditionReader } from "./store/postConditionReader.js";
+import { PostConditionStore } from "./store/postConditionStore.js";
+import { writePostConditionShard } from "./store/postConditionShardWriter.js";
 import { writeShard } from "./store/shardWriter.js";
 
 /**
@@ -13,46 +19,46 @@ import { writeShard } from "./store/shardWriter.js";
  * anywhere a `Page` is expected (POM constructors typed `Page`, `expect()`,
  * etc.) — no cast needed at this call site.
  *
- * `eirStore` is worker-scoped: one `FingerprintStore` per Playwright
- * worker, shared by every test that worker runs. Its teardown (after
- * `use()`) fires once the worker has finished all of its tests. "Fire-
- * and-forget" only means the *test* never waits on a capture — something
- * still has to, or the last test's last action's capture (still in flight
- * to the browser and back) would be silently dropped the instant the
- * worker shuts down. `waitForPending()` drains those before the shard is
- * written. No coordination between workers is needed beyond that, since
- * each worker only ever writes its own file — the final merge across all
- * workers' shards happens separately, in `globalTeardown`.
+ * `eirStore`/`eirPostConditionStore` are worker-scoped: one instance per
+ * Playwright worker, shared by every test that worker runs, mirroring
+ * each other exactly (see `store/postConditionStore.ts`'s docstring for
+ * why). "Fire-and-forget" only means the *test* never waits on a capture
+ * — something still has to, or the last test's last action's capture
+ * (still in flight to the browser and back) would be silently dropped the
+ * instant the worker shuts down. `waitForPending()` drains those before
+ * each store's shard is written.
  *
- * That worker-level drain alone isn't enough, though — discovered live
- * while chasing a Phase 5 benchmark result that was missing a fingerprint
- * it should have had. `page` is *test*-scoped: Playwright tears down the
- * real underlying page/browser context the instant this fixture's own
- * `use()` call returns, which happens as soon as the test body finishes —
- * before `eirStore`'s worker-level teardown ever runs. A test whose last
- * action's capture is still in flight, with no later action in the same
- * test to buy it time, loses that capture deterministically: the page is
- * already gone by the time the worker-level `waitForPending()` gets to
- * it. Awaiting `eirStore.waitForPending()` here too — in *this* fixture's
- * own teardown, while the real page is still alive — closes that gap.
- * Redundant with the worker-level await for every capture that already
- * finished (an already-resolved promise awaits instantly), never harmful.
+ * `page` is *test*-scoped: Playwright tears down the real underlying
+ * page/browser context the instant this fixture's own `use()` call
+ * returns, which happens as soon as the test body finishes — before
+ * either worker-level store teardown runs. Awaiting both stores'
+ * `waitForPending()` here too, while the real page is still alive, closes
+ * that gap (redundant with the worker-level await for anything that
+ * already finished, never harmful).
  *
- * `eirFingerprintReader` is worker-scoped too — loaded once from the
- * committed baseline, read-only for the life of the worker (Phase 5's
- * matcher reasons against the baseline as of run start, never against
- * fingerprints this same run may have just refreshed).
+ * `eirConfig` is Playwright's sanctioned *option* pattern (`{ option:
+ * true }`) — settable per-test via `test.use({ eirConfig: {...} })` or
+ * project-wide via `playwright.config.ts`'s `use` block, exactly like
+ * `viewport` or `baseURL`. Defaults to `suggest-only` (Q6): nothing is
+ * ever retried until a team opts in. See `config.ts` for the full
+ * `eir.config.ts` authoring convention this backs.
  *
- * `eirMatchLog` is test-scoped (Playwright's default): a fresh `MatchLog`
- * per test, so a heal attempt can always be tagged with the exact test
- * that produced it. Its teardown writes to `EIR_MATCH_LOG_FILE` only if
- * that env var is set (only `packages/benchmark` ever sets it) — a no-op,
- * zero-footprint write for every real user.
+ * `eirPolicyLog` is test-scoped, mirroring `eirMatchLog`: a fresh
+ * `PolicyLog` per test, written to `EIR_POLICY_LOG_FILE` only if that env
+ * var is set (only `packages/benchmark`'s dual-mode harness sets it) —
+ * zero-footprint for every real user.
  */
 export const test = base.extend<
-  { page: EirPage; eirMatchLog: MatchLog },
-  { eirStore: FingerprintStore; eirFingerprintReader: FingerprintReader }
+  { page: EirPage; eirMatchLog: MatchLog; eirPolicyLog: PolicyLog; eirConfig: EirConfig },
+  {
+    eirStore: FingerprintStore;
+    eirPostConditionStore: PostConditionStore;
+    eirFingerprintReader: FingerprintReader;
+    eirPostConditionReader: PostConditionReader;
+  }
 >({
+  eirConfig: [DEFAULT_EIR_CONFIG, { option: true }],
+
   eirStore: [
     // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
     async ({}, use, workerInfo) => {
@@ -63,6 +69,18 @@ export const test = base.extend<
     },
     { scope: "worker" },
   ],
+
+  eirPostConditionStore: [
+    // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
+    async ({}, use, workerInfo) => {
+      const store = new PostConditionStore();
+      await use(store);
+      await store.waitForPending();
+      await writePostConditionShard(store, workerInfo.workerIndex);
+    },
+    { scope: "worker" },
+  ],
+
   eirFingerprintReader: [
     // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
     async ({}, use) => {
@@ -70,6 +88,15 @@ export const test = base.extend<
     },
     { scope: "worker" },
   ],
+
+  eirPostConditionReader: [
+    // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
+    async ({}, use) => {
+      await use(await loadPostConditionReader());
+    },
+    { scope: "worker" },
+  ],
+
   eirMatchLog: async (
     // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
     {},
@@ -80,11 +107,70 @@ export const test = base.extend<
     await use(log);
     await appendMatchLogFile(testInfo.title, log.entries);
   },
-  page: async ({ page, eirStore, eirFingerprintReader, eirMatchLog }, use) => {
-    await use(new EirPage(page, eirStore, { reader: eirFingerprintReader, log: eirMatchLog }));
+
+  /**
+   * Every event also becomes a `testInfo` attachment — the standard
+   * Playwright-reporter-visible channel (`TestResult.attachments`), not
+   * just the benchmark-only JSONL file above. A JSON attachment per event
+   * plus a paired PNG attachment for any heal-attempt's screenshot; the
+   * reporter (`reporter/eirReporter.ts`) reads exactly these, so it works
+   * with *any* Playwright run, not only ones that set
+   * `EIR_POLICY_LOG_FILE`.
+   */
+  eirPolicyLog: async (
+    // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
+    {},
+    use,
+    testInfo,
+  ) => {
+    const log = new PolicyLog();
+    await use(log);
+
+    log.events.forEach((event, index) => {
+      testInfo.attachments.push({
+        name: `eir-policy-event:${index}`,
+        contentType: "application/json",
+        body: Buffer.from(JSON.stringify(serializeEvent(event))),
+      });
+      if (event.kind === "heal-attempt" && event.screenshot !== null) {
+        testInfo.attachments.push({
+          name: `eir-heal-screenshot:${index}`,
+          contentType: "image/png",
+          body: event.screenshot,
+        });
+      }
+    });
+
+    await appendPolicyLogFile(testInfo.title, log.events);
+  },
+
+  page: async (
+    {
+      page,
+      eirStore,
+      eirPostConditionStore,
+      eirFingerprintReader,
+      eirPostConditionReader,
+      eirMatchLog,
+      eirPolicyLog,
+      eirConfig,
+    },
+    use,
+    testInfo,
+  ) => {
+    await use(
+      new EirPage(page, eirStore, eirPostConditionStore, {
+        reader: eirFingerprintReader,
+        log: eirMatchLog,
+        postConditionReader: eirPostConditionReader,
+        mode: eirConfig.mode,
+        policyLog: eirPolicyLog,
+        annotate: (type, description) => testInfo.annotations.push({ type, description }),
+      }),
+    );
     // See the docstring above: the real page is still alive here, but
-    // won't be by the time eirStore's own (worker-scoped) teardown runs.
-    await eirStore.waitForPending();
+    // won't be by the time the worker-scoped stores' own teardown runs.
+    await Promise.all([eirStore.waitForPending(), eirPostConditionStore.waitForPending()]);
   },
 });
 

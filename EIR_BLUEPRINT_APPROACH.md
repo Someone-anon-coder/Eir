@@ -222,6 +222,8 @@ Run it. `page.evaluate()` returns data from a *different JavaScript world* (the 
 ### OUT
 Any reading of fingerprints for matching. Failure-time DOM capture. Confidence anything. The mutation engine.
 
+*(Retrospective note, added Phase 6): the concurrent-capture pattern this phase built for fingerprints — start the browser round-trip while the element is still guaranteed to exist, record only on confirmed success — is exactly what Phase 6's NOTE-001 retrofit reused for post-condition capture. No Phase 3 schema or format change resulted; post-conditions live as sibling route files, not inside `Fingerprint`. See BLUEPRINT.md §7.2/§7.6 and NOTES.md's Changelog to Governing Documents.)*
+
 ### Definition of Done
 - [ ] Green reference run produces `.eir/routes/*.json`; one file per route; all specs' selectors present
 - [ ] Second identical run produces **zero diff** (determinism check)
@@ -347,6 +349,8 @@ Find this in the triage switch. Add a hypothetical new gate kind to the union in
 
 **Why now:** Policy without measured confidence would have been guesswork; now thresholds are set from Phase 5's measured distributions (justified in writing — Blueprint §9.3).
 
+**Scope expansion (decided at Phase 5 close, executed here):** NOTE-001's post-condition capture-and-verify retrofit — evidence-backed by Phase 5's near-dup margin case and RISK-009's sibling-reorder gap — is real Phase 6 scope, not a later phase. It touches this phase's own retry-once mechanism directly (a heal-and-continue retry's success is now conditioned on post-condition verification, not confidence/margin alone) and is why work item 7 exists below. See BLUEPRINT.md §7.2/§7.6 and NOTES.md's Changelog to Governing Documents for the full record.
+
 ### Pre-Phase TS Tip (intermediate) — *Making invalid configs unrepresentable*
 ```ts
 type EirMode =
@@ -362,14 +366,16 @@ A `suggest-only` config *cannot carry* thresholds it would ignore; a `heal` conf
 4. **Config surface:** `eir.config.ts` — mode, thresholds, route-normalization overrides, debug. Documented with examples.
 5. Harness upgrade: benchmark now runs in both modes; results table gains an "action" dimension.
 6. Unit tests: state machine truth table (every confidence band × mode → expected action), config validation.
+7. **NOTE-001 retrofit** (scope expansion, see above): post-condition schema + capture (sibling to `Fingerprint`, no Phase 3 format change) wired into record mode; verification wired into heal-and-continue's retry (a post-condition mismatch downgrades an otherwise-qualifying retry to fail-with-suggestion); the same resolved-element identity check extended to *ordinary* (non-healed) imperative successes to close RISK-009 in the same pass (Mechanism B). Benchmark harness exercises heal mode specifically on `sibling-reorder`/`near-duplicate-sibling-swap` for real evidence of what the retrofit actually catches.
 
 ### Understanding Gate
 - The threshold-justification write-up (Aayush approves the defaults knowing the distributions behind them).
 - Retry-once semantics and its failure story.
 - Why the screenshot is disproportionately valuable (trust artifact, §7.7).
+- **NOTE-001's post-condition schema and verification mechanism** — run first, before the rest of this phase's work items (design decision, not a lookup).
 
 ### OUT
-CI/PR-comment delivery (Phase 7). Gemini. README polish.
+CI/PR-comment delivery (Phase 7). Gemini. README polish. A general-purpose assertion framework (NOTE-001 stays scoped to exactly two auto-derived signals — route change, element-count delta — never user-authored expectations).
 
 ### Definition of Done
 - [ ] `suggest-only` provably never retries (unit + integration assertion — Blueprint §9.2)
@@ -377,6 +383,7 @@ CI/PR-comment delivery (Phase 7). Gemini. README polish.
 - [ ] State-machine truth table fully unit-tested
 - [ ] Reporter artifacts generated on every run; screenshots attached; markdown renders cleanly
 - [ ] `docs/thresholds.md` justifies defaults from measured data
+- [ ] NOTE-001 retrofit: schema + capture + verification implemented, real heal-mode benchmark evidence on `sibling-reorder`/`near-duplicate-sibling-swap` reported honestly (including partial coverage)
 - [ ] Tag `phase-6-done`
 
 ### Post-Phase TS Tip (intermediate) — *Module boundaries: what `exports` hides*

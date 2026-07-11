@@ -1,4 +1,4 @@
-import { test } from "playwright-eir";
+import { test, type EirConfig } from "playwright-eir";
 import { isMutationClass } from "../src/mutationClasses.js";
 import { buildMutationRun } from "../src/groundTruth.js";
 import { targetById } from "../src/targets.js";
@@ -32,6 +32,24 @@ if (seedEnv === undefined || !Number.isFinite(Number(seedEnv))) {
 
 const seed = Number(seedEnv);
 const run = buildMutationRun(mutationClassEnv, seed);
+
+/**
+ * NOTE-001 retrofit's evidence mode (`healModeEvidence.ts`). Unset (every
+ * other benchmark class/run) leaves `eirConfig` at its published default
+ * (`suggest-only`) — Phase 4/5's original committed baselines stay
+ * reproducible byte-for-byte. `0.7`/`0.3` mirror
+ * `packages/eir/src/policy/thresholds.ts`'s `DEFAULT_HEAL_THRESHOLD`/
+ * `DEFAULT_SUGGEST_THRESHOLD` — duplicated rather than imported, same
+ * reasoning as `targets.ts`'s `OverridePayload` (Eir's `exports` map
+ * doesn't publish internal constants).
+ */
+const modeEnv = process.env["EIR_BENCH_MODE"];
+if (modeEnv === "heal") {
+  const healConfig: EirConfig = {
+    mode: { mode: "heal", healThreshold: 0.7, suggestThreshold: 0.3 },
+  };
+  test.use({ eirConfig: healConfig });
+}
 
 for (const entry of run.groundTruth) {
   test(entry.targetId, async ({ page }) => {

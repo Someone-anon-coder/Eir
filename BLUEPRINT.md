@@ -158,6 +158,7 @@ The finished system consists of eight components. Their generic mechanisms were 
 - **Captured features, in descending identity-strength:** tag name; stable attributes (`id`, `name`, `type`, `data-testid`, `aria-*`, `role`); own text content (trimmed, truncated); associated label text (via `for=` association or wrapping `<label>`); short ancestor chain (2–3 hops of tag + salient class tokens + landmark ids); sibling context (index among same-tag siblings, sibling count); coarse geometry (bounding box quantized to a grid so small shifts don't register).
 - **Deliberately not captured:** volatile values (input contents, timestamps), full utility-CSS class lists (Tailwind noise — a filtered token set is kept instead), and anything resembling user data — keeping fingerprints small and privacy-clean.
 - Refresh policy: last-known-good overwrite on every success.
+- **Post-condition capture (NOTE-001 retrofit, adopted Phase 6):** alongside the identity fingerprint above — as a sibling artifact, not a change to the fingerprint schema itself — every successful imperative action also captures a lightweight, automatically-derived record of its observable *effect*: whether the route changed, and whether the page's own element count grew or shrank. This exists because feature-scoring a fingerprint answers "does this candidate look like the element I remember," never "did acting on it produce the effect the original action was supposed to produce" — the two are complementary, not substitutes (see §7.6).
 
 ### 7.3 Fingerprint Store
 
@@ -198,6 +199,8 @@ A small state machine over two configurable thresholds (defaults to be tuned via
 | < low threshold | Fail normally; log scored candidates for debugging. |
 
 Global mode switch: **`suggest-only`** — nothing is ever retried; every match becomes a suggestion. This is the intended default posture for a team's first weeks (trust-building before trust-assuming). In every mode, user source is never modified.
+
+**Post-condition verification (NOTE-001 retrofit, adopted Phase 6):** decision margin alone is a *pre*-action heuristic — it measures how much better the top candidate scored than its runner-up, never whether retrying the action against that candidate actually produced the outcome the original action was supposed to produce. Before a heal-and-continue retry is accepted as genuine, its observed effect (route/element-count delta, per §7.2) is checked against what the same selector's last successful run recorded. A mismatch downgrades that specific retry to fail-with-suggestion even though pre-action confidence and margin were both high; no stored post-condition (many actions have no observable side effect) means nothing to check, and the heal is accepted on margin alone — an honest, documented partial-coverage case, not a silent gap. This is a distinct mechanism from, and does not replace, decision margin — the two catch different failure shapes (an ambiguous *input*, versus a confidently-wrong *outcome*).
 
 ### 7.7 Reporting
 

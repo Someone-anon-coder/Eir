@@ -12,7 +12,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 4 : undefined,
-  reporter: "list",
+  // "list" for human console output; playwright-eir's own reporter (Phase
+  // 6) alongside it, writing eir-report.json/.md + screenshots — real
+  // dogfooding, not just unit-tested in isolation.
+  reporter: [["list"], ["playwright-eir/reporter"]],
   use: {
     baseURL: "http://localhost:5173",
     trace: "on-first-retry",

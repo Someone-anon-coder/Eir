@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "bench": "tsx src/cli.ts"
+    "bench": "tsx src/cli.ts",
+    "bench:heal-evidence": "tsx src/healEvidenceCli.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

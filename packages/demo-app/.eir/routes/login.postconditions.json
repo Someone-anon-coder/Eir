@@ -1,0 +1,28 @@
+{
+  "getByRole(\"button\", {\"name\":\"Sign In\"})": {
+    "kind": "route-change",
+    "toRoute": "/dashboard/devices",
+    "v": 1
+  },
+  "getByTestId(\"login-password\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByTestId(\"login-submit\")": {
+    "kind": "route-change",
+    "toRoute": "/dashboard/devices",
+    "v": 1
+  },
+  "getByTestId(\"login-username\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "locator(\"#login-password-input\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "locator(\"#login-username-input\")": {
+    "kind": "none",
+    "v": 1
+  }
+}

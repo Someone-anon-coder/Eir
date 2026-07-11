@@ -48,7 +48,7 @@ Ideas, design additions, or scope expansions surfaced during work on an earlier 
 ---
 
 ### NOTE-001 — Post-condition verification for heal-and-continue
-**Status:** DUE (formally decided this phase; implementation remains Phase 6's job)
+**Status:** RESOLVED (implemented Phase 6, 2026-07-11 — see full implementation detail below)
 **Raised:** 2026-07-04, during pre-Phase-0 design discussion (the login/signup button scenario)
 **Target phase:** Phase 6 (verify) — Phase 3's capture dependency resolved without needing a schema change (see decision below); formal decision made 2026-07-08 during Phase 5's tuning loop, once real benchmark data existed
 **Blueprint touchpoint:** §7.2 (fingerprint schema — add optional post-condition field), §7.6 (policy — add verification step before accepting a heal)
@@ -74,6 +74,20 @@ Two real, measured data points from this phase's live tuning loop and the near-d
 Separately, **RISK-009 (`sibling-reorder`, measured 100% miss rate this phase, materializing exactly as predicted)** is a related but distinct gap NOTE-001 does not by itself close: a position-anchored selector's click succeeding against the *wrong* row never throws, so Eir's own triage funnel — margin-gating included — never runs at all. Phase 6 should treat NOTE-001's verification step and RISK-009's "resolved but plausibly wrong" detection gap as one design conversation, not two: both are instances of "the action reported success, but was it actually success against the right element?", one on a *healed* path (NOTE-001, the login/signup case) and one on a completely ordinary, never-healed path (RISK-009, sibling-reorder). A single post-condition/outcome-verification mechanism in Phase 6 that checks the resolved element's identity (not just that *some* click succeeded) plausibly closes both at once.
 
 **Resolution:** Adopted for Phase 6, decided 2026-07-08 with the evidence above. Implementation is Phase 6's work, not this phase's — scoped there as: (a) capture a lightweight post-condition per imperative action during record mode (extends `Fingerprint`'s capture path, not its schema — no Phase 3 schema change needed, since the post-condition can live in the same fire-and-forget capture flow as a sibling field written alongside, not inside, the stored `Fingerprint`), and (b) verify it after heal-and-continue's retry, *and* consider extending the same resolved-element identity check to ordinary (non-healed) imperative successes to close RISK-009 in the same pass.
+
+**Phase 6 implementation (2026-07-11):**
+
+- **Schema (`packages/eir/src/postCondition.ts`):** `PostCondition` is a 3-way discriminated union — `route-change` (to a normalized route), `dom-count-change` (sign only: `increased`/`decreased`), `none`. Deliberately just two auto-derived facts, never a user-authored expectation — the hard scope boundary this retrofit was given ("no general-purpose assertion framework").
+- **Capture:** two page-level pulses (`{ route, elementCount }`, via `capture/pagePulse.ts`'s self-contained in-page function) taken concurrently with the action's start and right after success is confirmed — the exact same timing discipline RISK-007 established for fingerprint capture, applied a second time. Diffed via the pure `derivePostCondition`.
+- **Storage:** a true sibling file per route, in the *same* `.eir/routes/` directory as the fingerprint (`login.json` / `login.postconditions.json`), not a schema change to `Fingerprint` and not even a new directory. Safe co-location is enforced by validator, not path — a `PostCondition` object structurally cannot pass `isFingerprint` or vice versa (unit-tested). The whole route-file store/shard/merge/reader machinery (`store/genericRouteStore.ts`) was genericized over its leaf type so `PostCondition` rides the same proven infrastructure `Fingerprint` already used, rather than duplicating four modules.
+- **Verification (heal-and-continue's retry only):** `EirLocator#retryHealed` captures before/after pulses around the retry itself (genuinely `await`ed — this is a policy decision, not passive observability) and compares the derived `PostCondition` against what was stored for that selector via `postConditionMatches`. A stored `"none"` (or an unobservable pulse) always passes — nothing to verify isn't the same as verification failing. A mismatch downgrades the heal to fail-with-suggestion; the *original* error is what the test fails with, annotated `eir-heal-rejected` — never the retry's own error.
+- **Mechanism B (RISK-009 closure, same pass):** on every *ordinary* (non-throwing) imperative success, `EirLocator#recordCapture` reuses Phase 5's own weighted scorer (`checkSelfSimilarity`, `policy/driftCheck.ts`) to compare the fresh capture against the stored baseline *before* refreshing it. The refresh always happens regardless (record mode must keep drifting with legitimate app evolution) — a low score only adds a `drift-suspected` entry to the report, never blocks anything.
+- **Real measured evidence** (`packages/benchmark/reports/note001-heal-evidence-*.md`, seed 42, `bench:heal-evidence`):
+  - **`sibling-reorder`:** Mechanism B fired correctly on all 4 targets whose action Eir actually wraps (the row-order probes, via a tracked `innerText()` call) — self-similarity **0.6471**, below the 0.7 bar, flagged `drift-suspected` on exactly RISK-009's shape (a successful action, wrong element, nothing throws). The other 4 targets (2 via `getAttribute` — a plain pass-through Eir never wraps at all; 2 via a selector chain with no pre-existing baseline) produced no policy event — a real, honestly-reported partial-coverage gap, not hidden.
+  - **`near-duplicate-sibling-swap`:** 6/8 targets stayed correctly margin-gated to suggestion (0.0000–0.0268 margin); 2/8 cleared both bars and healed. Zero false heals. Neither heal's retry had a pre-existing stored post-condition for that exact selector, so Mechanism A's verification path itself was not exercised this run (accepted via the documented "none → accept" path) — reported honestly rather than claimed as a demonstrated catch.
+  - **Honest bottom line:** RISK-009 is *partially* closed (Mechanism B genuinely works where Eir's action-wrapping surface reaches; it cannot reach a plain-pass-through call or an uncalibrated selector). NOTE-001's post-condition mismatch path exists, is implemented, and is unit-tested (including a mismatch-triggers-rejection case with a mocked matcher), but has not yet been exercised by a real, naturally-occurring false-heal-turned-mismatch in this benchmark's seed 42 runs — margin-gating alone happened to be sufficient for every case this run produced.
+
+**Governing-document edits:** BLUEPRINT.md §7.2 (post-condition capture as a sibling artifact) and §7.6 (verification as a distinct, complementary gate to decision margin); EIR_BLUEPRINT_APPROACH.md's Phase 3 OUT section (retrospective cross-reference) and Phase 6 (new work item 7, DoD line, OUT-list guard against scope creep into a general assertion framework). See the Changelog to Governing Documents below.
 
 ---
 
@@ -115,6 +129,25 @@ Fixing this means either (a) adding the element's own filtered class tokens as a
 
 ---
 
+### NOTE-004 — Post-condition verification silently no-ops when no baseline exists, same as a genuine "none"
+**Status:** PARKED
+**Raised:** 2026-07-11, during Phase 6's NOTE-001 retrofit, while reviewing the real heal-mode evidence run
+**Target phase:** Unassigned — earliest candidate is whenever the reporter/report shape gets revisited (Phase 7 touches the reporter's consumer, the PR-comment action, so it's worth checking then)
+**Blueprint touchpoint:** §7.6 (policy — post-condition verification)
+
+**The idea:**
+`EirLocator#retryHealed` treats two genuinely different situations identically: (a) a selector whose last successful run had no observable side effect (`PostCondition.kind === "none"` — a real, deliberate signal), and (b) a selector that has *never* had a post-condition captured at all (`postConditionReader.lookup(...)` returns `undefined` — no baseline exists, e.g. because it was never exercised during calibration, or because it's a brand-new selector this same run). Both currently skip verification and accept the heal on margin alone. This is measured, not theoretical: this phase's own `near-duplicate-sibling-swap` heal-mode evidence run (`packages/benchmark/reports/note001-heal-evidence-near-duplicate-sibling-swap.md`) shows both real heals landing in case (b) — no prior baseline existed for either selector — which is indistinguishable in the current report from case (a).
+
+**Why it matters:**
+A team reading "this heal was accepted, nothing to verify" can't currently tell whether that means "verified nothing changed, by design" or "we've simply never seen this selector succeed with a post-condition before, so we have no idea." The second case is a weaker trust signal and arguably deserves its own annotation/report column — closer to a genuinely uncalibrated heal than a genuinely low-risk one.
+
+**Why not now:**
+Purely a reporting-fidelity question, not a correctness one (nothing here produces a wrong heal-and-continue decision) — doesn't block Phase 6's DoD. Deferred rather than expanding `PostCondition`'s type or the reporter's row shape mid-phase.
+
+**Resolution:** *(pending)*
+
+---
+
 ## 2. Open Questions Awaiting a Decision
 
 Things that must be decided before a specific point, but aren't proposals to build — thresholds, naming, config shape, etc. Lighter-weight than a Parked Item.
@@ -129,7 +162,12 @@ Things that must be decided before a specific point, but aren't proposals to bui
 **Answer:** [filled in when resolved, with reasoning]
 ```
 
-*(none yet — populate as they arise)*
+### Q-001 — What should `suggestThreshold` (the floor below which not even a suggestion is shown) default to?
+**Status:** ANSWERED (provisionally — labeled an estimate, not a measurement)
+**Raised:** 2026-07-11, during Phase 6's threshold-justification Understanding Gate
+**Needed by:** Phase 6 (enacting real policy defaults)
+**Options considered:** (a) leave unset/0 — always show a suggestion, no matter how weak; (b) pick a conservative first-principles number with no data behind it, label it clearly as an estimate; (c) block Phase 6 on generating synthetic low-confidence benchmark data just to measure this one number.
+**Answer:** (b) — `DEFAULT_SUGGEST_THRESHOLD = 0.3` (`packages/eir/src/policy/thresholds.ts`), justified in `docs/thresholds.md`. Phase 5's benchmark never produced a genuinely low-confidence `"matched"` result (every match it ever saw was worth showing as a suggestion), so there is no measured distribution to anchor a number to — blocking on (c) would have meant manufacturing an artificial scenario just to generate a number, which is worse than an honestly-labeled estimate. Revisit once real low-confidence match data exists (a future mutation class stress-testing recall, or real-world adoption data).
 
 ---
 
@@ -203,12 +241,21 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** Methods like `.and(other)`, `.or(other)`, `dragTo(target)`, or `locator(sel, { has: other })` expect a real Playwright `Locator` and may reach into private internal state beyond `_apiName`/`_expect` (the only two members `EirLocator` forwards). Passing an `EirLocator` in one of these argument positions is untested and could fail in ways the current invisibility proof wouldn't catch, since the reference suite doesn't exercise them.
 **Mitigation:** Not currently exercised — no spec in the reference suite uses these APIs. Flagged so it isn't discovered by surprise if a future spec (or a real adopting suite) does.
 
-### RISK-009 — `sibling-reorder`-class breakage is invisible to Eir's own failure-triage layer
+### RISK-010 — `dom-count-change`'s page-wide element count is occasionally non-deterministic
 **Status:** WATCHING
+**Raised:** 2026-07-11, during Phase 6's own DoD verification (running the reference suite twice in a row to check for a zero-diff baseline, the same proof Phase 3 required for fingerprints)
+**Phase affected:** Phase 6 (NOTE-001 retrofit)
+**Risk:** `PostCondition`'s `dom-count-change` signal (`capture/pagePulse.ts`) counts every element on the page (`document.querySelectorAll("*").length`) before and after an action. Two back-to-back, otherwise-identical reference-suite runs produced a different stored post-condition for the wizard's `getByTestId("wizard-next")` button — `"none"` on one run, `"dom-count-change": "decreased"` on the other — the one non-deterministic entry among six route files' worth of captures. The page-wide count is coarse enough to pick up incidental render noise (something transient — an animation frame, a focus-ring element, a timing-sensitive re-render) unrelated to the action's actual, meaningful effect. `route-change` (binary) and the single-element `Fingerprint` scorers are unaffected; this is specific to the page-wide counting approach.
+**Mitigation:** Not fixed this phase — the asymmetry this project cares about most (P4, false heals) isn't violated: a flaky stored post-condition can only make heal-and-continue's retry verification *more* conservative (an occasional spurious mismatch downgrades a genuinely-good heal to a suggestion), never less safe. Recorded here rather than papered over. If it proves disruptive in practice, candidate fixes include scoping the count to a smaller DOM subtree (e.g. the acted-on element's container) or debouncing the "after" pulse with a short settle wait — neither implemented, both would need their own Understanding Gate.
+
+### RISK-009 — `sibling-reorder`-class breakage is invisible to Eir's own failure-triage layer
+**Status:** MITIGATED (partial — see Phase 6 update below; not fully closed)
 **Raised:** 2026-07-07, during Phase 4 mutation-taxonomy design
 **Phase affected:** Phase 4 (discovered), Phase 5 (matching engine — the actual place this would need addressing)
 **Risk:** Blueprint §7.4's failure triage only ever considers *zero-match* and *detached* as heal-eligible failure species — both require the action to actually throw. A position-anchored selector (`locator("tbody tr:nth-child(1)")`) mutated by `sibling-reorder` doesn't throw at all after the DOM reorders: the CSS selector still resolves to *some* `<tr>`, the click/fill still succeeds, and Eir's own outcome log records a plain `OK`. The drift is only visible to something that separately asserts on the resolved element's *content* — which the benchmark's probe does (that's how `sibling-reorder`'s targets classify correctly as `missed` at the benchmark level in `packages/benchmark/src/targets.ts`), but Eir's own engine has no equivalent check and would sail straight through a real occurrence of this today, with no signal that anything changed.
 **Mitigation:** Not a Phase 4 problem to fix — Phase 4's job was only to prove the mutation exists and classify it, which it does, honestly, via the benchmark's own assertions rather than Eir's triage layer. Flagged here so Phase 5's failure-species list (currently just zero-match/detached) is designed with this gap in view — a "resolved but plausibly wrong element" species may need its own detection heuristic (e.g., comparing the resolved element's captured feature set against its last-known fingerprint even on a nominally successful action) rather than assuming a thrown error is the only signal worth triaging.
+
+**Phase 6 update (2026-07-11):** Mechanism B (NOTE-001's retrofit) implements exactly the detection heuristic proposed above — `checkSelfSimilarity` compares an ordinary success's fresh capture against its stored baseline, flagging `drift-suspected` on a low score. Real measured evidence (`packages/benchmark/reports/note001-heal-evidence-sibling-reorder.md`, seed 42): fires correctly on all 4 targets whose action Eir actually wraps (self-similarity 0.6471, below the 0.7 bar) — a genuine, measured close of this risk's core scenario. **Not fully closed**, honestly: the other 4 targets in this same class either drive a plain-pass-through Playwright call (`getAttribute`, never wrapped by Eir at all — see RISK-004) or a selector chain with no pre-existing captured baseline to compare against, and produce no signal either way. Downgraded from WATCHING to MITIGATED (partial), not RESOLVED — the remaining gap is real and belongs to RISK-004's territory (capture-point/wrapped-surface coverage), not a new mechanism.
 
 ---
 
@@ -297,6 +344,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 ### 2026-07-07 — CLAUDE.md — never delete a branch without asking first
 **Triggered by:** direct decision (Aayush, closing a Phase 3 process gap)
 **Change:** §8 Git & Commits gains a rule, immediately after the no-direct-push-to-main rule: Claude never deletes a branch — including via `--delete-branch` on `gh pr merge` or any other flag/command that deletes as a side effect — without asking Aayush first, in every future session. Raised because Phase 3's PR #9 merge used `gh pr merge --delete-branch` without asking first; no work was lost (the commit was recovered from its SHA and the branch was recreated), but this repo's branches double as a portfolio/history record, so branch deletion now gets the same explicit go-ahead standard already required for merging and publishing.
+
+### 2026-07-11 — BLUEPRINT.md, EIR_BLUEPRINT_APPROACH.md — NOTE-001 retrofit (post-condition capture + verification)
+**Triggered by:** NOTE-001 (formally adopted 2026-07-08 during Phase 5's close; implemented this session as part of Phase 6)
+**Change:** BLUEPRINT.md §7.2 gains a bullet describing post-condition capture as a sibling artifact alongside the fingerprint (no schema change). BLUEPRINT.md §7.6 gains a paragraph describing post-condition verification as a distinct, complementary gate to decision margin on heal-and-continue's retry. EIR_BLUEPRINT_APPROACH.md's Phase 3 section gains a retrospective cross-reference note (the concurrent-capture pattern built there was reused here). EIR_BLUEPRINT_APPROACH.md's Phase 6 section gains: a "Scope expansion" paragraph under Objective/Why now, work item 7 (the retrofit itself), an added Understanding Gate bullet, an OUT-list guard against a general-purpose assertion framework, and a DoD line requiring real heal-mode benchmark evidence.
 
 ---
 

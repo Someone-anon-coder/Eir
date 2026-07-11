@@ -1,0 +1,45 @@
+{
+  "getByLabel(\"Billing Cycle\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByLabel(\"Requester Name\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Account\"})": {
+    "kind": "route-change",
+    "toRoute": "/dashboard/account",
+    "v": 1
+  },
+  "getByTestId(\"provisioning-effective-date\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByTestId(\"provisioning-notes\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByTestId(\"provisioning-requester-name\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByTestId(\"provisioning-submit\")": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  },
+  "locator(\"form button[type='submit']\")": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  },
+  "locator(\"input[type='date']\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "locator(\"textarea\")": {
+    "kind": "none",
+    "v": 1
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "playwright-eir",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Self-healing locator engine for Playwright. Under active development.",
   "keywords": [
     "playwright",
@@ -28,6 +28,11 @@
       "types": "./dist/store/globalTeardown.d.ts",
       "import": "./dist/store/globalTeardown.js",
       "default": "./dist/store/globalTeardown.js"
+    },
+    "./reporter": {
+      "types": "./dist/reporter/eirReporter.d.ts",
+      "import": "./dist/reporter/eirReporter.js",
+      "default": "./dist/reporter/eirReporter.js"
     }
   },
   "files": [

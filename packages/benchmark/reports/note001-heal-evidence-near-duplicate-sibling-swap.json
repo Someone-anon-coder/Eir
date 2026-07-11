@@ -1,0 +1,952 @@
+{
+  "mutationClass": "near-duplicate-sibling-swap",
+  "seed": 42,
+  "generatedAt": "2026-07-11T15:28:31.001Z",
+  "results": [
+    {
+      "targetId": "near-dup.table-row.archived",
+      "passed": false,
+      "errorMessage": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-archived-devices').locator('tr').filter({ hasText: 'Front Desk Tablet' }).getByTestId('device-row-remove')\u001b[22m\n",
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/devices",
+        "selectorKey": "getByTestId(\"table-archived-devices\") > locator(\"tr\", {\"hasText\":\"Front Desk Tablet\"}) > getByTestId(\"device-row-remove\")",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "td"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tr"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tbody"
+              }
+            ],
+            "attrs": {
+              "data-testid": "device-row-remove",
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 64,
+              "x": 1056,
+              "y": 576
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 1,
+            "tag": "button",
+            "text": "Remove",
+            "v": 1
+          },
+          "candidateCount": 27,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button",
+              "data-testid": "device-row-remove"
+            },
+            "text": "Remove",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "td",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tr",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tbody",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 1,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 1056,
+              "y": 608,
+              "w": 64,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 1,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 0.9466666666666667
+          },
+          "confidence": 0.9949803921568627,
+          "margin": 0.010039215686274416,
+          "suggestion": {
+            "kind": "structural",
+            "description": "locator(\"button, a, input[type=submit], input[type=button]\").nth(20)"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 20
+          }
+        }
+      },
+      "distractorBBox": {
+        "x": 1034.765625,
+        "y": 209.8125,
+        "w": 65.640625,
+        "h": 21
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/devices",
+          "selectorKey": "getByTestId(\"table-archived-devices\") > locator(\"tr\", {\"hasText\":\"Front Desk Tablet\"}) > getByTestId(\"device-row-remove\")",
+          "actionKind": "fail-with-suggestion",
+          "retryOutcomeKind": "not-attempted",
+          "confidence": 0.9949803921568627,
+          "margin": 0.010039215686274416
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.editRemove.dev-2.edit",
+      "passed": false,
+      "errorMessage": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'K. Nguyen' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n",
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/devices",
+        "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"K. Nguyen\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Edit\"})",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "td"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tr"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tbody"
+              }
+            ],
+            "attrs": {
+              "data-testid": "device-row-edit",
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 32,
+              "x": 1024,
+              "y": 256
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 0,
+            "tag": "button",
+            "text": "Edit",
+            "v": 1
+          },
+          "candidateCount": 27,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button",
+              "data-testid": "device-row-edit"
+            },
+            "text": "Edit",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "td",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tr",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tbody",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 0,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 992,
+              "y": 224,
+              "w": 32,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 1,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 0.924575276673435
+          },
+          "confidence": 0.992901202510441,
+          "margin": 0,
+          "suggestion": {
+            "kind": "structural",
+            "description": "locator(\"button, a, input[type=submit], input[type=button]\").nth(6)"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 6
+          }
+        }
+      },
+      "distractorBBox": {
+        "x": 1051.0625,
+        "y": 249.8125,
+        "w": 65.640625,
+        "h": 21
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/devices",
+          "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"K. Nguyen\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Edit\"})",
+          "actionKind": "fail-with-suggestion",
+          "retryOutcomeKind": "not-attempted",
+          "confidence": 0.992901202510441,
+          "margin": 0
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.saveCancel.dev-3.cancel",
+      "passed": false,
+      "errorMessage": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'S. Patel' }).getByRole('button', { name: 'Cancel', exact: true })\u001b[22m\n",
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/devices",
+        "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"S. Patel\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Cancel\"})",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "td"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tr"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tbody"
+              }
+            ],
+            "attrs": {
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 64,
+              "x": 1056,
+              "y": 288
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 1,
+            "tag": "button",
+            "text": "Cancel",
+            "v": 1
+          },
+          "candidateCount": 27,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button"
+            },
+            "text": "Discard",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "td",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tr",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tbody",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 1,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 1024,
+              "y": 288,
+              "w": 64,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 0.07142857142857145,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 0.9466666666666667
+          },
+          "confidence": 0.7764929971988795,
+          "margin": 0.01680672268907568,
+          "suggestion": {
+            "kind": "role",
+            "description": "getByRole(\"button\", { name: \"Discard\", exact: true })"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 11
+          }
+        }
+      },
+      "distractorBBox": {
+        "x": 992.578125,
+        "y": 289.8125,
+        "w": 46.390625,
+        "h": 21
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/devices",
+          "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"S. Patel\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Cancel\"})",
+          "actionKind": "fail-with-suggestion",
+          "retryOutcomeKind": "not-attempted",
+          "confidence": 0.7764929971988795,
+          "margin": 0.01680672268907568
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.accountModal.confirm",
+      "passed": true,
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/account",
+        "selectorKey": "getByRole(\"button\", {\"exact\":true,\"name\":\"Confirm Delete\"})",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [
+                  "modal-dialog"
+                ],
+                "id": null,
+                "tag": "div"
+              },
+              {
+                "classes": [
+                  "modal-overlay"
+                ],
+                "id": null,
+                "tag": "div"
+              },
+              {
+                "classes": [
+                  "account-page"
+                ],
+                "id": null,
+                "tag": "div"
+              }
+            ],
+            "attrs": {
+              "data-testid": "delete-account-confirm",
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 96,
+              "x": 544,
+              "y": 416
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 1,
+            "tag": "button",
+            "text": "Confirm Delete",
+            "v": 1
+          },
+          "candidateCount": 8,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button",
+              "data-testid": "delete-account-confirm"
+            },
+            "text": "Yes, Delete",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "div",
+                "id": null,
+                "classes": [
+                  "modal-dialog"
+                ]
+              },
+              {
+                "tag": "div",
+                "id": null,
+                "classes": [
+                  "modal-overlay"
+                ]
+              },
+              {
+                "tag": "div",
+                "id": null,
+                "classes": [
+                  "account-page"
+                ]
+              }
+            ],
+            "siblingIndex": 1,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 544,
+              "y": 416,
+              "w": 96,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 0.41666666666666663,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 1
+          },
+          "confidence": 0.8627450980392156,
+          "margin": 0.41101400560224083,
+          "suggestion": {
+            "kind": "data-testid",
+            "description": "getByTestId(\"delete-account-confirm\")"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 7
+          }
+        }
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/account",
+          "selectorKey": "getByRole(\"button\", {\"exact\":true,\"name\":\"Confirm Delete\"})",
+          "actionKind": "heal-and-continue",
+          "retryOutcomeKind": "healed",
+          "confidence": 0.8627450980392156,
+          "margin": 0.41101400560224083
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.editRemove.dev-4.edit",
+      "passed": false,
+      "errorMessage": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'M. Alvarez' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n",
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/devices",
+        "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"M. Alvarez\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Edit\"})",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "td"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tr"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tbody"
+              }
+            ],
+            "attrs": {
+              "data-testid": "device-row-edit",
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 32,
+              "x": 1024,
+              "y": 320
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 0,
+            "tag": "button",
+            "text": "Edit",
+            "v": 1
+          },
+          "candidateCount": 27,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button",
+              "data-testid": "device-row-edit"
+            },
+            "text": "Edit",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "td",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tr",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tbody",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 0,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 992,
+              "y": 288,
+              "w": 32,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 1,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 0.924575276673435
+          },
+          "confidence": 0.992901202510441,
+          "margin": 0.004125386868087055,
+          "suggestion": {
+            "kind": "structural",
+            "description": "locator(\"button, a, input[type=submit], input[type=button]\").nth(10)"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 10
+          }
+        }
+      },
+      "distractorBBox": {
+        "x": 1051.0625,
+        "y": 329.8125,
+        "w": 65.640625,
+        "h": 21
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/devices",
+          "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"M. Alvarez\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Edit\"})",
+          "actionKind": "fail-with-suggestion",
+          "retryOutcomeKind": "not-attempted",
+          "confidence": 0.992901202510441,
+          "margin": 0.004125386868087055
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.saveCancel.dev-5.cancel",
+      "passed": false,
+      "errorMessage": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('table-active-devices').locator('tr').filter({ hasText: 'T. Chen' }).getByRole('button', { name: 'Cancel', exact: true })\u001b[22m\n",
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/devices",
+        "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"T. Chen\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Cancel\"})",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "td"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tr"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tbody"
+              }
+            ],
+            "attrs": {
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 64,
+              "x": 1056,
+              "y": 384
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 1,
+            "tag": "button",
+            "text": "Cancel",
+            "v": 1
+          },
+          "candidateCount": 27,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button"
+            },
+            "text": "Discard",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "td",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tr",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tbody",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 1,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 1056,
+              "y": 384,
+              "w": 64,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 0.07142857142857145,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 1
+          },
+          "confidence": 0.7815126050420168,
+          "margin": 0.02684593837535021,
+          "suggestion": {
+            "kind": "role",
+            "description": "getByRole(\"button\", { name: \"Discard\", exact: true })"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 15
+          }
+        }
+      },
+      "distractorBBox": {
+        "x": 995.796875,
+        "y": 369.8125,
+        "w": 46.390625,
+        "h": 21
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/devices",
+          "selectorKey": "getByTestId(\"table-active-devices\") > locator(\"tr\", {\"hasText\":\"T. Chen\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Cancel\"})",
+          "actionKind": "fail-with-suggestion",
+          "retryOutcomeKind": "not-attempted",
+          "confidence": 0.7815126050420168,
+          "margin": 0.02684593837535021
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.wizardFields.title",
+      "passed": true,
+      "matchAttempt": {
+        "method": "fill",
+        "route": "/dashboard/requests/new",
+        "selectorKey": "getByLabel(\"Request Title\")",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "section"
+              },
+              {
+                "classes": [
+                  "wizard-page"
+                ],
+                "id": null,
+                "tag": "div"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "main"
+              }
+            ],
+            "attrs": {
+              "data-testid": "wizard-title",
+              "id": "wizard-title-input"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 192,
+              "x": 128,
+              "y": 160
+            },
+            "label": "Request Title",
+            "siblingCount": 2,
+            "siblingIndex": 0,
+            "tag": "input",
+            "text": null,
+            "v": 1
+          },
+          "candidateCount": 2,
+          "winner": {
+            "tag": "input",
+            "attrs": {
+              "id": "wizard-title-input",
+              "data-testid": "wizard-title"
+            },
+            "text": null,
+            "label": "Title",
+            "ancestors": [
+              {
+                "tag": "section",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "div",
+                "id": null,
+                "classes": [
+                  "wizard-page"
+                ]
+              },
+              {
+                "tag": "main",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 0,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 64,
+              "y": 160,
+              "w": 192,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 0,
+            "labelMatch": 0.4423076923076923,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 0.8933333333333333
+          },
+          "confidence": 0.8847660256410257,
+          "margin": 0.5091185897435898,
+          "suggestion": {
+            "kind": "data-testid",
+            "description": "getByTestId(\"wizard-title\")"
+          },
+          "winnerLocator": {
+            "selector": "input",
+            "domIndex": 0
+          }
+        }
+      },
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "fill",
+          "route": "/dashboard/requests/new",
+          "selectorKey": "getByLabel(\"Request Title\")",
+          "actionKind": "heal-and-continue",
+          "retryOutcomeKind": "healed",
+          "confidence": 0.8847660256410257,
+          "margin": 0.5091185897435898
+        }
+      ]
+    },
+    {
+      "targetId": "near-dup.editRemove.dev-9.remove",
+      "passed": false,
+      "errorMessage": "\u001b[31mTest timeout of 8000ms exceeded.\u001b[39m",
+      "matchAttempt": {
+        "method": "click",
+        "route": "/dashboard/devices",
+        "selectorKey": "getByTestId(\"table-archived-devices\") > locator(\"tr\", {\"hasText\":\"Front Desk Tablet\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Remove\"})",
+        "result": {
+          "kind": "matched",
+          "fingerprint": {
+            "ancestors": [
+              {
+                "classes": [],
+                "id": null,
+                "tag": "td"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tr"
+              },
+              {
+                "classes": [],
+                "id": null,
+                "tag": "tbody"
+              }
+            ],
+            "attrs": {
+              "data-testid": "device-row-remove",
+              "type": "button"
+            },
+            "bbox": {
+              "h": 32,
+              "w": 64,
+              "x": 1056,
+              "y": 576
+            },
+            "label": null,
+            "siblingCount": 2,
+            "siblingIndex": 1,
+            "tag": "button",
+            "text": "Remove",
+            "v": 1
+          },
+          "candidateCount": 27,
+          "winner": {
+            "tag": "button",
+            "attrs": {
+              "type": "button",
+              "data-testid": "device-row-remove"
+            },
+            "text": "Remove",
+            "label": null,
+            "ancestors": [
+              {
+                "tag": "td",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tr",
+                "id": null,
+                "classes": []
+              },
+              {
+                "tag": "tbody",
+                "id": null,
+                "classes": []
+              }
+            ],
+            "siblingIndex": 1,
+            "siblingCount": 2,
+            "bbox": {
+              "x": 1056,
+              "y": 608,
+              "w": 64,
+              "h": 32
+            }
+          },
+          "breakdown": {
+            "attrOverlap": 1,
+            "textSimilarity": 1,
+            "labelMatch": 0,
+            "ancestorChain": 1,
+            "siblingPosition": 1,
+            "bboxProximity": 0.9466666666666667
+          },
+          "confidence": 0.9949803921568627,
+          "margin": 0.010039215686274416,
+          "suggestion": {
+            "kind": "structural",
+            "description": "locator(\"button, a, input[type=submit], input[type=button]\").nth(20)"
+          },
+          "winnerLocator": {
+            "selector": "button, a, input[type=submit], input[type=button]",
+            "domIndex": 20
+          }
+        }
+      },
+      "distractorBBox": null,
+      "policyEvents": [
+        {
+          "kind": "heal-attempt",
+          "method": "click",
+          "route": "/dashboard/devices",
+          "selectorKey": "getByTestId(\"table-archived-devices\") > locator(\"tr\", {\"hasText\":\"Front Desk Tablet\"}) > getByRole(\"button\", {\"exact\":true,\"name\":\"Remove\"})",
+          "actionKind": "fail-with-suggestion",
+          "retryOutcomeKind": "not-attempted",
+          "confidence": 0.9949803921568627,
+          "margin": 0.010039215686274416
+        }
+      ]
+    }
+  ]
+}

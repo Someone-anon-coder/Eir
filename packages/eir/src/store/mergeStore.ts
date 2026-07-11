@@ -1,17 +1,20 @@
 import { isFingerprint, type Fingerprint } from "../fingerprint.js";
+import {
+  isSerializedRouteFileOf,
+  isSerializedShardOf,
+  mergeGenericRouteFiles,
+  type SerializedRouteFileOf,
+  type SerializedShardOf,
+} from "./genericRouteStore.js";
 
 /** One route file's content: normalized selector key → fingerprint. */
-export type SerializedRouteFile = Readonly<Record<string, Fingerprint>>;
+export type SerializedRouteFile = SerializedRouteFileOf<Fingerprint>;
 
-export function isSerializedRouteFile(x: unknown): x is SerializedRouteFile {
-  if (typeof x !== "object" || x === null || Array.isArray(x)) return false;
-  return Object.values(x as Record<string, unknown>).every(isFingerprint);
-}
+export const isSerializedRouteFile: (x: unknown) => x is SerializedRouteFile =
+  isSerializedRouteFileOf(isFingerprint);
 
-export function isSerializedShard(x: unknown): x is Readonly<Record<string, SerializedRouteFile>> {
-  if (typeof x !== "object" || x === null || Array.isArray(x)) return false;
-  return Object.values(x as Record<string, unknown>).every(isSerializedRouteFile);
-}
+export const isSerializedShard: (x: unknown) => x is SerializedShardOf<Fingerprint> =
+  isSerializedShardOf(isSerializedRouteFile);
 
 /**
  * Pure: baseline (this run's starting `.eir/routes/*.json`, keyed by
@@ -20,23 +23,13 @@ export function isSerializedShard(x: unknown): x is Readonly<Record<string, Seri
  * us) combine with last-write-wins per exact filename+selectorKey. Routes/
  * selectors untouched this run keep their baseline value unchanged
  * (Blueprint §5.1 — the baseline drifts with legitimate app evolution, it
- * doesn't get wiped on every run).
+ * doesn't get wiped on every run). Delegates to the generic version
+ * (Phase 6) — `PostCondition`'s route-file store is the same shape with a
+ * different leaf type; see `genericRouteStore.ts`.
  */
 export function mergeRouteFiles(
   baseline: Readonly<Record<string, SerializedRouteFile>>,
   shardsInOrder: readonly Readonly<Record<string, SerializedRouteFile>>[],
 ): Record<string, SerializedRouteFile> {
-  const merged: Record<string, Record<string, Fingerprint>> = {};
-
-  for (const [filename, selectors] of Object.entries(baseline)) {
-    merged[filename] = { ...selectors };
-  }
-
-  for (const shard of shardsInOrder) {
-    for (const [filename, selectors] of Object.entries(shard)) {
-      merged[filename] = { ...merged[filename], ...selectors };
-    }
-  }
-
-  return merged;
+  return mergeGenericRouteFiles(baseline, shardsInOrder);
 }

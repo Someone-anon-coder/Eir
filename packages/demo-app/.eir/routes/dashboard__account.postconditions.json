@@ -1,0 +1,27 @@
+{
+  "getByRole(\"button\", {\"name\":\"Confirm Delete\"})": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "getByRole(\"button\", {\"name\":\"Delete Account\"})": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Access Requests\"})": {
+    "kind": "route-change",
+    "toRoute": "/dashboard/requests/new",
+    "v": 1
+  },
+  "getByTestId(\"delete-account-cancel\")": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "getByTestId(\"open-delete-account\")": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  }
+}
