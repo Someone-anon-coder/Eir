@@ -5,6 +5,7 @@ import { forwardOverloaded } from "./forwardOverloaded.js";
 import type { MatchingContext } from "./matching/context.js";
 import { extendChain, routeFromUrl } from "./selectorIdentity.js";
 import type { FingerprintRecorder } from "./store/fingerprintStore.js";
+import type { PostConditionRecorder } from "./store/postConditionStore.js";
 
 /**
  * `expect(page).toHaveURL()` / `.toHaveTitle()` duck-type `_apiName` on the
@@ -25,11 +26,18 @@ function internalsOf(real: Page): PagePrivateInternals {
 export class EirPage implements Page {
   readonly #real: Page;
   readonly #recorder: FingerprintRecorder;
+  readonly #postConditionRecorder: PostConditionRecorder;
   readonly #matching: MatchingContext;
 
-  constructor(real: Page, recorder: FingerprintRecorder, matching: MatchingContext) {
+  constructor(
+    real: Page,
+    recorder: FingerprintRecorder,
+    postConditionRecorder: PostConditionRecorder,
+    matching: MatchingContext,
+  ) {
     this.#real = real;
     this.#recorder = recorder;
+    this.#postConditionRecorder = postConditionRecorder;
     this.#matching = matching;
   }
 
@@ -39,35 +47,35 @@ export class EirPage implements Page {
     const real = this.#real.locator(...args);
     const chainPath = extendChain([], "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByRole(...args: Parameters<Page["getByRole"]>): ReturnType<Page["getByRole"]> {
     const real = this.#real.getByRole(...args);
     const chainPath = extendChain([], "getByRole", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByLabel(...args: Parameters<Page["getByLabel"]>): ReturnType<Page["getByLabel"]> {
     const real = this.#real.getByLabel(...args);
     const chainPath = extendChain([], "getByLabel", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByText(...args: Parameters<Page["getByText"]>): ReturnType<Page["getByText"]> {
     const real = this.#real.getByText(...args);
     const chainPath = extendChain([], "getByText", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByTestId(...args: Parameters<Page["getByTestId"]>): ReturnType<Page["getByTestId"]> {
     const real = this.#real.getByTestId(...args);
     const chainPath = extendChain([], "getByTestId", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   getByPlaceholder(
@@ -76,7 +84,7 @@ export class EirPage implements Page {
     const real = this.#real.getByPlaceholder(...args);
     const chainPath = extendChain([], "getByPlaceholder", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
-    return new EirLocator(real, chainPath, this.#recorder, this.#matching);
+    return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
   }
 
   // ---- everything else on Page: plain pass-through, untouched (Blueprint §7.1 scopes ----

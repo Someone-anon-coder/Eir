@@ -40,3 +40,15 @@ export function logHealError(selectorKey: string, error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   console.log(`[eir] heal attempt errored: ${selectorKey}: ${message}`);
 }
+
+/** Phase 6: retry-once's final disposition — "healed", "heal-rejected-post-condition-mismatch", or "heal-attempted-retry-failed". */
+export function logHealOutcome(selectorKey: string, outcome: string): void {
+  if (!isDebugEnabled()) return;
+  console.log(`[eir] heal outcome: ${selectorKey} -> ${outcome}`);
+}
+
+/** Mechanism B (NOTE-001/RISK-009): an ordinary success whose fresh capture scored suspiciously unlike its own last-known-good baseline. */
+export function logDriftSuspected(selectorKey: string, score: number): void {
+  if (!isDebugEnabled()) return;
+  console.log(`[eir] drift suspected: ${selectorKey} (self-similarity ${score.toFixed(4)})`);
+}
