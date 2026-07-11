@@ -1,0 +1,35 @@
+{
+  "getByRole(\"button\", {\"name\":\"Log Out\"})": {
+    "kind": "route-change",
+    "toRoute": "/login",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Provisioning\"})": {
+    "kind": "route-change",
+    "toRoute": "/dashboard/provisioning",
+    "v": 1
+  },
+  "getByTestId(\"table-active-devices\") > getByTestId(\"device-sort-name\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByText(\"Legacy Barcode Scanner\") > locator(\"xpath=ancestor::tr\") > getByRole(\"button\", {\"name\":\"Remove\"})": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "locator(\"xpath=//h2[text()='{TEXT}']/ancestor::section[contains(@class,'table-card')]\") > locator(\".data-table tbody tr\", {\"hasText\":\"S. Patel\"}) > getByRole(\"button\", {\"name\":\"Edit\"})": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  },
+  "locator(\"xpath=//h2[text()='{TEXT}']/ancestor::section[contains(@class,'table-card')]\") > locator(\".data-table tbody tr\", {\"hasText\":\"S. Patel\"}) > getByRole(\"button\", {\"name\":\"Save\"})": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "locator(\"xpath=//h2[text()='{TEXT}']/ancestor::section[contains(@class,'table-card')]\") > locator(\".data-table tbody tr\", {\"hasText\":\"S. Patel\"}) > locator(\"input\")": {
+    "kind": "none",
+    "v": 1
+  }
+}

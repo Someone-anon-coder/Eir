@@ -1,0 +1,52 @@
+{
+  "getByLabel(\"Duration\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByLabel(\"Request Title\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByLabel(\"Requested By\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByLabel(\"Resource\")": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  },
+  "getByRole(\"button\", {\"name\":\"Back\"})": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "getByRole(\"button\", {\"name\":\"Next\"})": {
+    "kind": "dom-count-change",
+    "sign": "increased",
+    "v": 1
+  },
+  "getByRole(\"link\", {\"name\":\"Devices\"})": {
+    "kind": "route-change",
+    "toRoute": "/dashboard/devices",
+    "v": 1
+  },
+  "getByTestId(\"wizard-next\")": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "getByTestId(\"wizard-requested-by\")": {
+    "kind": "none",
+    "v": 1
+  },
+  "getByTestId(\"wizard-submit\")": {
+    "kind": "dom-count-change",
+    "sign": "decreased",
+    "v": 1
+  },
+  "getByTestId(\"wizard-title\")": {
+    "kind": "none",
+    "v": 1
+  }
+}
