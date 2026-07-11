@@ -1,6 +1,6 @@
 {
   "name": "playwright-eir",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Self-healing locator engine for Playwright. Under active development.",
   "keywords": [
     "playwright",
