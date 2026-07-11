@@ -28,6 +28,11 @@
       "types": "./dist/store/globalTeardown.d.ts",
       "import": "./dist/store/globalTeardown.js",
       "default": "./dist/store/globalTeardown.js"
+    },
+    "./reporter": {
+      "types": "./dist/reporter/eirReporter.d.ts",
+      "import": "./dist/reporter/eirReporter.js",
+      "default": "./dist/reporter/eirReporter.js"
     }
   },
   "files": [

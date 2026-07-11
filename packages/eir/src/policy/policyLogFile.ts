@@ -19,7 +19,7 @@ export type SerializedPolicyEvent =
     })
   | Extract<PolicyEvent, { kind: "drift-suspected" }>;
 
-function serializeEvent(event: PolicyEvent): SerializedPolicyEvent {
+export function serializeEvent(event: PolicyEvent): SerializedPolicyEvent {
   if (event.kind === "drift-suspected") return event;
   const { screenshot, ...rest } = event;
   return { ...rest, screenshotBase64: screenshot === null ? null : screenshot.toString("base64") };

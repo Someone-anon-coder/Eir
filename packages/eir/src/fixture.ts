@@ -4,7 +4,7 @@ import { EirPage } from "./eirPage.js";
 import { MatchLog } from "./matching/matchLog.js";
 import { appendMatchLogFile } from "./matching/matchLogFile.js";
 import { PolicyLog } from "./policy/policyLog.js";
-import { appendPolicyLogFile } from "./policy/policyLogFile.js";
+import { appendPolicyLogFile, serializeEvent } from "./policy/policyLogFile.js";
 import { loadFingerprintReader, type FingerprintReader } from "./store/fingerprintReader.js";
 import { FingerprintStore } from "./store/fingerprintStore.js";
 import { loadPostConditionReader, type PostConditionReader } from "./store/postConditionReader.js";
@@ -108,6 +108,15 @@ export const test = base.extend<
     await appendMatchLogFile(testInfo.title, log.entries);
   },
 
+  /**
+   * Every event also becomes a `testInfo` attachment — the standard
+   * Playwright-reporter-visible channel (`TestResult.attachments`), not
+   * just the benchmark-only JSONL file above. A JSON attachment per event
+   * plus a paired PNG attachment for any heal-attempt's screenshot; the
+   * reporter (`reporter/eirReporter.ts`) reads exactly these, so it works
+   * with *any* Playwright run, not only ones that set
+   * `EIR_POLICY_LOG_FILE`.
+   */
   eirPolicyLog: async (
     // eslint-disable-next-line no-empty-pattern -- Playwright's fixture API requires this destructured shape even with no fixture dependencies.
     {},
@@ -116,6 +125,22 @@ export const test = base.extend<
   ) => {
     const log = new PolicyLog();
     await use(log);
+
+    log.events.forEach((event, index) => {
+      testInfo.attachments.push({
+        name: `eir-policy-event:${index}`,
+        contentType: "application/json",
+        body: Buffer.from(JSON.stringify(serializeEvent(event))),
+      });
+      if (event.kind === "heal-attempt" && event.screenshot !== null) {
+        testInfo.attachments.push({
+          name: `eir-heal-screenshot:${index}`,
+          contentType: "image/png",
+          body: event.screenshot,
+        });
+      }
+    });
+
     await appendPolicyLogFile(testInfo.title, log.events);
   },
 
