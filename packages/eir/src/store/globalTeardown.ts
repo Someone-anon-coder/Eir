@@ -1,51 +1,34 @@
-import { readFile, readdir, rm } from "node:fs/promises";
 import path from "node:path";
-import { isSerializedShard, mergeRouteFiles, type SerializedRouteFile } from "./mergeStore.js";
+import { readGenericShards } from "./genericRouteStore.js";
+import { isSerializedShard, mergeRouteFiles } from "./mergeStore.js";
 import { loadRouteFiles } from "./loadRouteFiles.js";
-import { routesDir, shardsDir } from "./paths.js";
+import { loadPostConditionFiles } from "./loadPostConditionFiles.js";
+import {
+  isSerializedPostConditionShard,
+  mergePostConditionRouteFiles,
+} from "./postConditionMergeStore.js";
+import { postConditionShardsDir, routesDir, shardsDir } from "./paths.js";
 import { stableStringify } from "./stableStringify.js";
 import { writeFileAtomic } from "./atomicWrite.js";
-
-async function listJsonFiles(dir: string): Promise<string[]> {
-  try {
-    const entries = await readdir(dir);
-    return entries.filter((name) => name.endsWith(".json"));
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
-    throw error;
-  }
-}
-
-/** Numeric, not lexicographic — "worker-2" must sort before "worker-10". */
-function sortShardFilenames(filenames: readonly string[]): string[] {
-  const indexOf = (name: string): number => Number(/worker-(\d+)\.json/.exec(name)?.[1] ?? 0);
-  return [...filenames].sort((a, b) => indexOf(a) - indexOf(b));
-}
-
-async function readShards(dir: string): Promise<Readonly<Record<string, SerializedRouteFile>>[]> {
-  const filenames = sortShardFilenames(await listJsonFiles(dir));
-  const shards: Readonly<Record<string, SerializedRouteFile>>[] = [];
-  for (const filename of filenames) {
-    const raw: unknown = JSON.parse(await readFile(path.join(dir, filename), "utf8"));
-    if (isSerializedShard(raw)) {
-      shards.push(raw);
-    }
-  }
-  return shards;
-}
+import { rm } from "node:fs/promises";
 
 /**
  * The actual merge logic, independent of how it's invoked. `baseDir`
  * defaults to `process.cwd()`; tests pass an explicit temp directory
  * instead (never `process.chdir()` — that throws inside worker threads,
  * which is exactly where Vitest runs).
+ *
+ * Merges both stores in one teardown pass (Fingerprint, unchanged since
+ * Phase 3, and PostCondition, added this phase for the NOTE-001 retrofit)
+ * — Playwright only exposes one `globalTeardown` hook, so both leaf types
+ * ride it together, each through its own generic-store instantiation.
  */
 export async function runGlobalTeardown(baseDir: string = process.cwd()): Promise<void> {
   const routes = routesDir(baseDir);
   const shards = shardsDir(baseDir);
 
   const baseline = await loadRouteFiles(routes);
-  const shardsInOrder = await readShards(shards);
+  const shardsInOrder = await readGenericShards(shards, isSerializedShard);
   const merged = mergeRouteFiles(baseline, shardsInOrder);
 
   await Promise.all(
@@ -55,6 +38,25 @@ export async function runGlobalTeardown(baseDir: string = process.cwd()): Promis
   );
 
   await rm(shards, { recursive: true, force: true });
+
+  const postConditionShards = postConditionShardsDir(baseDir);
+  const postConditionBaseline = await loadPostConditionFiles(routes);
+  const postConditionShardsInOrder = await readGenericShards(
+    postConditionShards,
+    isSerializedPostConditionShard,
+  );
+  const mergedPostConditions = mergePostConditionRouteFiles(
+    postConditionBaseline,
+    postConditionShardsInOrder,
+  );
+
+  await Promise.all(
+    Object.entries(mergedPostConditions).map(([filename, selectors]) =>
+      writeFileAtomic(path.join(routes, filename), stableStringify(selectors)),
+    ),
+  );
+
+  await rm(postConditionShards, { recursive: true, force: true });
 }
 
 /**
