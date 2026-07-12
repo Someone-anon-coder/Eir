@@ -8,6 +8,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Phase 7: the narrowest grant that lets ci-action read/post/update a
+    # single PR comment — nothing else. Deliberately declared here rather
+    # than inherited from repo-wide default permissions, since this
+    # workflow file is exactly what an adopter copies into their own repo
+    # (see the token/permission Understanding Gate, session 2026-07-12).
+    permissions:
+      pull-requests: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -22,11 +30,30 @@ jobs:
 
       - run: pnpm --filter playwright-eir build
 
+      - run: pnpm --filter ci-action build
+
       - run: pnpm lint
 
       - run: pnpm typecheck
 
       - run: pnpm test
+
+      # Phase 7 dogfood demo only: applies a real, seeded id-rename mutation
+      # (packages/benchmark's own `buildMutationRun`, the same machinery the
+      # benchmark's baseline table uses) to Ward, scoped to the exact demo
+      # branch by name so every other PR's calibration baseline and CI
+      # behavior stay untouched — Phase 4's invisibility guarantee for
+      # VITE_EIR_MUTATIONS holds for everyone except this one intentional
+      # branch. Login targets are excluded because renaming them cascades
+      # into blocking nearly every other spec (they all need to log in
+      # first), which would demonstrate a login outage, not selector drift.
+      - name: Apply dogfood mutation (demo branch only)
+        if: github.event_name == 'pull_request' && github.head_ref == 'phase-7-dogfood-demo-2026-07-12'
+        run: |
+          PAYLOAD=$(pnpm --filter benchmark mutation-payload --class id-rename --seed 42 --exclude-prefix login.)
+          echo "VITE_EIR_MUTATIONS<<EOF" >> "$GITHUB_ENV"
+          echo "$PAYLOAD" >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
 
       - run: pnpm --filter demo-app exec playwright install --with-deps chromium
 
@@ -36,3 +63,16 @@ jobs:
       # mutation harness itself — not the full 8-class baseline (that's a
       # deliberate, manually-run/committed artifact, not a CI gate).
       - run: pnpm bench --class id-rename --seed 42
+
+      # Phase 7: posts or updates the single Eir report comment on this PR.
+      # `if: always()` so it still runs when the dogfood mutation (or any
+      # other real selector drift) makes the e2e step above fail — the
+      # comment is informational, separate from the job's own pass/fail
+      # signal, and reviewers should see it either way.
+      - name: Post Eir report comment
+        if: always() && github.event_name == 'pull_request'
+        uses: ./packages/ci-action
+        with:
+          github-token: ${{ github.token }}
+          report-path: packages/demo-app/eir-report/eir-report.json
+          mode: suggest-only
