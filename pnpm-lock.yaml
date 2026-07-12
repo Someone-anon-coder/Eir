@@ -54,7 +54,17 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  packages/ci-action: {}
+  packages/ci-action:
+    devDependencies:
+      '@types/node':
+        specifier: ^26.1.0
+        version: 26.1.0
+      playwright-eir:
+        specifier: workspace:*
+        version: link:../eir
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/demo-app:
     dependencies:
