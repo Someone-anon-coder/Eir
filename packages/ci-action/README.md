@@ -44,3 +44,10 @@ workflow using this action must build it first (see `docs/ci.md`).
     existed to check against (NOTE-004). The comment never invents that
     distinction — a standing caveat explains the limitation instead of a
     per-row claim the data can't back.
+- **Screenshots are linked, not inlined.** A `data:` URI `<img>` tag looked
+  like the obvious way to embed a screenshot until a real PR comment proved
+  otherwise — GitHub's sanitizer strips the `src` attribute from `data:`
+  image sources, so the tag renders nothing. The comment links the workflow
+  run instead; the workflow uploads `eir-report` (screenshots included) as
+  a build artifact (Blueprint §6: "local files + CI artifacts only," no
+  hosted service to work around this).
