@@ -20,5 +20,5 @@ inputs:
     description: "Override the pull request number instead of reading it from the triggering event payload."
     required: false
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/main.js"
