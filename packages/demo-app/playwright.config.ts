@@ -19,6 +19,16 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:5173",
     trace: "on-first-retry",
+    // Phase 7 discovery: without this, a vanished locator never produces
+    // Playwright's own action-timeout error — it runs out the *test's*
+    // 30s timeout instead ("Test timeout of 30000ms exceeded.", lowercase
+    // "timeout"), which `classifyFailureSpecies` doesn't recognize as
+    // zero-match (it looks for capital-T "Timeout", the shape a bounded
+    // action timeout actually produces — see NOTES.md RISK-011). Matches
+    // `packages/benchmark`'s own config, which already set this and is
+    // exactly why its probes correctly exercised Eir's triage while this
+    // suite silently didn't.
+    actionTimeout: 5_000,
   },
   projects: [
     {

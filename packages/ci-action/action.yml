@@ -1,0 +1,24 @@
+name: "Eir report comment"
+description: "Posts or updates a single PR comment summarizing playwright-eir's heal/suggestion report for this run."
+inputs:
+  github-token:
+    description: "Token with pull-requests: write used to read/post/update the comment. Usually the workflow's own github.token (see docs/ci.md) — avoid literal template syntax here, GitHub's action.yml loader evaluates it at load time."
+    required: true
+  report-path:
+    description: "Path to eir-report.json, relative to the working directory."
+    required: false
+    default: "eir-report/eir-report.json"
+  mode:
+    description: "The Eir policy mode this run used — suggest-only, heal, or unknown. Stated explicitly because the report artifact alone can't always prove it (an all-suggested run is consistent with either mode)."
+    required: false
+    default: "unknown"
+  docs-url:
+    description: 'Link used in the comment footer for "how Eir scores a suggestion".'
+    required: false
+    default: "https://github.com/Someone-anon-coder/Eir/blob/main/docs/ci.md"
+  pr-number:
+    description: "Override the pull request number instead of reading it from the triggering event payload."
+    required: false
+runs:
+  using: "node24"
+  main: "dist/main.js"

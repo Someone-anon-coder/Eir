@@ -148,6 +148,44 @@ Purely a reporting-fidelity question, not a correctness one (nothing here produc
 
 ---
 
+### NOTE-005 — Mechanism A (post-condition verification) has never caught a real wrong heal end-to-end
+**Status:** PARKED
+**Raised:** 2026-07-11, during Phase 7 session-open housekeeping (carried forward from the Phase 6 close conversation)
+**Target phase:** Phase 9 (hardening / acceptance sweep)
+**Blueprint touchpoint:** §7.6 (post-condition verification), §9.2 (behavioral acceptance criteria)
+
+**The idea:**
+Phase 6 shipped Mechanism A (post-condition verification on heal-and-continue's retry) and it is unit-tested against a mocked matcher, including a mismatch-triggers-rejection case. But it has never been exercised against a *real* wrong heal produced end-to-end by the actual matching engine — every benchmark heal that has fired so far either had no pre-existing stored post-condition to verify against (accepted via the documented "none → accept" path) or wasn't wrong in the first place. So the mismatch-and-reject branch is proven correct in isolation, never proven to actually fire in a live run.
+
+**Why it matters:**
+This is the exact asymmetry P4 cares about (false heals are worse than failures) — the mechanism built specifically to catch that worst case is unverified in the one way that would matter most: catching a real one. An honest acceptance sweep shouldn't just re-confirm unit tests; it should construct or find a live scenario where the matcher genuinely heals to the wrong element with a pre-existing stored post-condition, and confirm Mechanism A downgrades it to fail-with-suggestion as designed.
+
+**Why not now:**
+Phase 7 consumes the reporter artifact for CI delivery; it doesn't extend or re-exercise the matching/policy engine. Constructing a real false-heal case deliberately (rather than accepting a lucky benchmark result) is acceptance-sweep work, matching Blueprint §9.2's behavioral criteria — squarely Phase 9's job.
+
+**Resolution:** *(pending)*
+
+---
+
+### NOTE-006 — GitHub Marketplace publication of `ci-action`
+**Status:** PARKED
+**Raised:** 2026-07-12, during Phase 7 (explicitly named as OUT-of-scope by EIR_BLUEPRINT_APPROACH.md's Phase 7 section, with instruction to record it here)
+**Target phase:** Post-project polish, after Phase 9
+**Blueprint touchpoint:** none — packaging/distribution, not a design decision
+
+**The idea:**
+Publish `packages/ci-action` to the GitHub Marketplace so it can be referenced as `uses: someone-anon-coder/eir-ci-action@v1` from any repo, instead of the current `uses: ./packages/ci-action` local-path reference that only resolves inside this monorepo's own checkout.
+
+**Why it matters:**
+Marketplace publication is what makes the action actually reusable outside this repo without a manual copy — real adoption-readiness, not just a working demo.
+
+**Why not now:**
+Explicitly named OUT for Phase 7 by the approach doc ("Gemini. Marketplace publication of the action (post-project polish, NOTES.md)"). Publishing implies a versioning/release story `packages/eir`'s own npm releases already established a precedent for, worth doing deliberately post-Phase-9, not as a Phase 7 afterthought.
+
+**Resolution:** *(pending)*
+
+---
+
 ## 2. Open Questions Awaiting a Decision
 
 Things that must be decided before a specific point, but aren't proposals to build — thresholds, naming, config shape, etc. Lighter-weight than a Parked Item.
@@ -248,6 +286,13 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** `PostCondition`'s `dom-count-change` signal (`capture/pagePulse.ts`) counts every element on the page (`document.querySelectorAll("*").length`) before and after an action. Two back-to-back, otherwise-identical reference-suite runs produced a different stored post-condition for the wizard's `getByTestId("wizard-next")` button — `"none"` on one run, `"dom-count-change": "decreased"` on the other — the one non-deterministic entry among six route files' worth of captures. The page-wide count is coarse enough to pick up incidental render noise (something transient — an animation frame, a focus-ring element, a timing-sensitive re-render) unrelated to the action's actual, meaningful effect. `route-change` (binary) and the single-element `Fingerprint` scorers are unaffected; this is specific to the page-wide counting approach.
 **Mitigation:** Not fixed this phase — the asymmetry this project cares about most (P4, false heals) isn't violated: a flaky stored post-condition can only make heal-and-continue's retry verification *more* conservative (an occasional spurious mismatch downgrades a genuinely-good heal to a suggestion), never less safe. Recorded here rather than papered over. If it proves disruptive in practice, candidate fixes include scoping the count to a smaller DOM subtree (e.g. the acted-on element's container) or debouncing the "after" pulse with a short settle wait — neither implemented, both would need their own Understanding Gate.
 
+### RISK-011 — `classifyFailureSpecies` misses zero-match when no `actionTimeout` is configured
+**Status:** MITIGATED (for this repo's own reference suite; the general engine gap remains)
+**Raised:** 2026-07-12, during Phase 7, while generating real `eir-report.json` data for the PR-comment mockup
+**Phase affected:** Phase 5 (introduced, `triage/failureSpecies.ts`), Phase 7 (discovered — blocked the dogfood workflow's core mechanism until fixed)
+**Risk:** `classifyFailureSpecies` (`packages/eir/src/triage/failureSpecies.ts`) classifies zero-match by checking the caught error's message for the literal substring `"Timeout"` (capital T) — the shape Playwright produces for a *bounded action timeout* (`use.actionTimeout`). If a suite has no `actionTimeout` configured, a vanished locator's `fill()`/`click()`/etc. retries unboundedly until Playwright's own *test-level* timeout kills it instead, producing `"Test timeout of 30000ms exceeded."` (lowercase "timeout") — a message `classifyFailureSpecies` classifies as `"unknown"`, which Gate 3 then rejects as not heal-eligible. Net effect: on a suite without `actionTimeout` set, Eir's entire triage/match/report pipeline silently never engages on a real, ordinary broken selector — confirmed live against `packages/demo-app`'s reference suite (an `id-rename` mutation against a real fingerprinted selector produced zero `eir-report.json` rows and a bare Playwright test-timeout failure, with no Eir signal anywhere). `packages/benchmark`'s own probe config already sets `actionTimeout: 5_000`, which is exactly why its results never exposed this gap before.
+**Mitigation:** `packages/demo-app/playwright.config.ts` now sets `actionTimeout: 5_000`, matching the benchmark's config — the reference suite (and Phase 7's dogfood workflow, which depends on it) now correctly exercises triage on a real broken selector. This is a demo-app config fix, not an engine change. **Not fixed at the engine level**: `classifyFailureSpecies`'s message-shape detection is still coupled to a specific Playwright config assumption (`actionTimeout` being set) that isn't documented anywhere as a prerequisite for Eir to function on real failures. A real adopting suite without `actionTimeout` configured — plausibly the common case, since Playwright doesn't set one by default — would hit this exact silent gap. Widening `classifyFailureSpecies` to also recognize the test-level timeout message shape (or documenting `actionTimeout` as a stated Eir prerequisite in the README/install docs) is real follow-up work, out of scope for Phase 7 (no engine changes this phase) — candidate for Phase 9 hardening or a README caveat.
+
 ### RISK-009 — `sibling-reorder`-class breakage is invisible to Eir's own failure-triage layer
 **Status:** MITIGATED (partial — see Phase 6 update below; not fully closed)
 **Raised:** 2026-07-07, during Phase 4 mutation-taxonomy design
@@ -319,6 +364,16 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Blocked/open: NOTE-001 remains DUE at its existing target phase (Phase 5), untouched. New RISK-009 logged (below) — a design-level gap discovered while building `sibling-reorder`, not a bug fixed this phase.
 - CI: green, PR pending.
 - Next: Phase 5 — Matching Engine & Failure Triage. Starts with its Pre-Phase TS Tip (pure functions + `readonly`).
+
+### 2026-07-12 — Phase 7, all work items (1–4)
+- Did: `packages/ci-action` (zero runtime deps — plain `fetch`, no `@actions/github`) reads `eir-report.json` and upserts a single PR comment by an invisible `<!-- eir-report:v1 -->` marker (route-led summary, per-selector diffs, confidence; screenshots linked via a workflow artifact, never inlined). Wired into `.github/workflows/ci.yml` on every `pull_request`, `permissions: pull-requests: write` declared explicitly. `docs/ci.md` is the adopter-facing writeup, including the two honesty constraints (RISK-009 coverage limits, NOTE-004 verification ambiguity) plus a third discovered live this session (screenshot linking). Dogfood mechanism: one `ci.yml` step, scoped to an exact branch name, applies a real seeded `id-rename` mutation via a new small CLI (`packages/benchmark/src/printMutationPayload.ts`, reusing `buildMutationRun`) — every other branch's `VITE_EIR_MUTATIONS` stays unset.
+- Two real bugs surfaced and fixed live, not just imagined edge cases: (1) `demo-app/playwright.config.ts` had no `actionTimeout`, so a broken selector ran out the *test's* 30s timeout instead of Playwright's bounded action timeout, and `classifyFailureSpecies` never recognized that message shape as zero-match — Eir's own triage was silently dead on the reference suite until this session (RISK-011); (2) screenshots were first designed as inlined `data:` URI `<img>` tags (matching the signed-off mockup); a real posted PR comment's rendered HTML proved GitHub's sanitizer strips `data:` image sources entirely — fixed by uploading the report as a workflow artifact and linking the run instead, which also turned out to match the approach doc's own original "screenshot links" wording more closely than the first attempt did.
+- Both Understanding Gates run and confirmed (upsert-not-append; token/permission model). Comment mockup shown as a published Artifact, built from real `eir-report.json` data (not invented numbers), signed off with one wording change (route count leads the summary).
+- All DoD proofs run for real, not simulated: dogfood PR #15 shows 6 real suggestion diffs (3 broken selectors × CI's parallel-worker retry) with confidence scores and a working artifact link (verified via the GitHub API's `body_html`, not just raw markdown); a second and third push to the same PR updated the same comment ID (4951798347) rather than duplicating it; the feature PR #14's own CI run proved the no-heals path (`skipped-no-findings`, zero comments posted) live rather than only unit-tested. `docs/ci.md`'s snippet is a literal copy of `ci.yml`, verified via four green/expected-red CI runs across both PRs — not separately tested from an external fork (judged disproportionate given the live-repo evidence; noted honestly, not silently skipped).
+- NOTES.md: RISK-011 (actionTimeout gap), NOTE-005 (Phase 9 carry-forward for Mechanism A's unexercised real-catch path, added at session open), NOTE-006 (Marketplace publication, explicitly parked by the approach doc's own OUT list).
+- Blocked/open: the "existing comment updates to clean state" branch of the no-heals design is unit-tested but wasn't separately exercised live this session (no PR here ever had findings *then* lost them) — worth knowing, not blocking.
+- CI: green on PR #14 (real code); PR #15 (dogfood demo) intentionally red — 3 real tests fail because the mutation is real, `suggest-only` never retries, and that's the honest, correct behavior being demonstrated.
+- Next: Phase 8 — Gemini Fallback + Comparison Benchmark. Starts with its Pre-Phase TS Tip (typed async boundaries and schema validation).
 
 ---
 
