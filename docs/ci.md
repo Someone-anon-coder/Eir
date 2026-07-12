@@ -119,8 +119,5 @@ name (`phase-7-dogfood-demo-2026-07-12`) that applies a real, seeded
 the benchmark's baseline table reports, just applied against the
 reference suite instead of the harness's probes. Every other branch and
 PR is unaffected; `VITE_EIR_MUTATIONS` stays unset for everyone else,
-exactly as Phase 4 established. This is what produces the comment on the
-dogfood PR itself (`phase-7-dogfood-demo-2026-07-12` against this
-branch) — PR link filled in below once opened.
-
-Dogfood PR: _(opening now — see the next commit on this branch)_
+exactly as Phase 4 established. This is what produced the comment on
+[the dogfood PR](https://github.com/Someone-anon-coder/Eir/pull/15).
