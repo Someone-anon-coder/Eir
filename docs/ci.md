@@ -65,13 +65,13 @@ oversight.
 
 ## Inputs
 
-| Input | Default | Notes |
-|---|---|---|
-| `github-token` | *(required)* | Needs `pull-requests: write`. `${{ github.token }}` is almost always the right value — see "Why this token, this scope" below. |
-| `report-path` | `eir-report/eir-report.json` | Wherever your `playwright.config.ts`'s reporter `outputDir` points. |
-| `mode` | `unknown` | `suggest-only`, `heal`, or `unknown`. The report artifact alone can't prove which mode produced a run — see "What this comment can't honestly claim" below. |
-| `docs-url` | this file | Footer link text. |
-| `pr-number` | *(from the triggering event)* | Override only if you're calling this action outside a normal `pull_request` trigger. |
+| Input          | Default                       | Notes                                                                                                                                                       |
+| -------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-token` | _(required)_                  | Needs `pull-requests: write`. `${{ github.token }}` is almost always the right value — see "Why this token, this scope" below.                              |
+| `report-path`  | `eir-report/eir-report.json`  | Wherever your `playwright.config.ts`'s reporter `outputDir` points.                                                                                         |
+| `mode`         | `unknown`                     | `suggest-only`, `heal`, or `unknown`. The report artifact alone can't prove which mode produced a run — see "What this comment can't honestly claim" below. |
+| `docs-url`     | this file                     | Footer link text.                                                                                                                                           |
+| `pr-number`    | _(from the triggering event)_ | Override only if you're calling this action outside a normal `pull_request` trigger.                                                                        |
 
 ## Why upsert, not append
 
