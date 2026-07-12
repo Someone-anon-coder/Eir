@@ -2,7 +2,7 @@ name: "Eir report comment"
 description: "Posts or updates a single PR comment summarizing playwright-eir's heal/suggestion report for this run."
 inputs:
   github-token:
-    description: "Token with `pull-requests: write` used to read/post/update the comment. Usually `${{ github.token }}`."
+    description: "Token with pull-requests: write used to read/post/update the comment. Usually the workflow's own github.token (see docs/ci.md) — avoid literal template syntax here, GitHub's action.yml loader evaluates it at load time."
     required: true
   report-path:
     description: "Path to eir-report.json, relative to the working directory."
