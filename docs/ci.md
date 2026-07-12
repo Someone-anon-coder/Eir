@@ -7,10 +7,13 @@ auto-updated PR comment — the demo-reel moment Blueprint §7.7 describes.
 
 `packages/ci-action` reads `eir-report.json` after your Playwright run and
 posts or updates one PR comment listing every selector Eir suggested a fix
-for, with a before/after diff, a confidence score, and a screenshot of the
-matched element. On the next push to the same PR, it edits that same
-comment in place — it never posts a second one (see "Why upsert, not
-append" below).
+for, with a before/after diff and a confidence score. Screenshots of each
+matched element aren't inlined into the comment — GitHub strips `data:`
+URI image sources from comment bodies, and Blueprint §6 rules out hosting
+them anywhere else — so the comment links to the workflow run instead,
+where the uploaded `eir-report` artifact holds them. On the next push to
+the same PR, the comment edits in place — it never posts a second one
+(see "Why upsert, not append" below).
 
 ## Prerequisites
 
@@ -42,6 +45,14 @@ steps:
   - run: pnpm --filter ci-action build # produces dist/main.js — see note below
 
   - run: pnpm --filter demo-app e2e # or whatever runs your suite
+
+  - name: Upload Eir report artifact
+    if: always() # holds the screenshots the comment links to but never inlines
+    uses: actions/upload-artifact@v4
+    with:
+      name: eir-report
+      path: packages/demo-app/eir-report
+      if-no-files-found: ignore
 
   - name: Post Eir report comment
     if: always() # still comment even if the run above failed
@@ -109,6 +120,11 @@ Two limits are baked into the wording rather than hidden:
   accepted because no baseline existed to check against (NOTES.md
   NOTE-004). Rather than invent that distinction, the comment carries a
   standing caveat instead of a per-row claim the data can't back.
+- **Screenshots are linked, not shown.** An earlier version of this
+  action inlined them as `data:` URI `<img>` tags; a real PR comment
+  confirmed GitHub's sanitizer silently strips the `src` attribute,
+  rendering nothing. The comment now says "N screenshots in this run's
+  artifact" and links the workflow run, not a broken image.
 
 ## The dogfood demo
 

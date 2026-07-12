@@ -99,3 +99,18 @@ export function resolveActionInputs(env: NodeJS.ProcessEnv): ActionInputs {
       "https://github.com/Someone-anon-coder/Eir/blob/main/docs/ci.md",
   };
 }
+
+/**
+ * A link to this workflow *run* (not a specific artifact download URL —
+ * this action doesn't know the artifact's id, only that the workflow is
+ * expected to have uploaded one). `null` outside Actions, where none of
+ * these standard env vars exist. Used only as a "here's where to look"
+ * pointer in the comment, never as a claim that an artifact exists.
+ */
+export function resolveRunUrl(env: NodeJS.ProcessEnv): string | null {
+  const serverUrl = env["GITHUB_SERVER_URL"];
+  const repository = env["GITHUB_REPOSITORY"];
+  const runId = env["GITHUB_RUN_ID"];
+  if (serverUrl === undefined || repository === undefined || runId === undefined) return null;
+  return `${serverUrl}/${repository}/actions/runs/${runId}`;
+}

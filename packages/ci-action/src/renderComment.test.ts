@@ -18,15 +18,11 @@ function row(
   };
 }
 
+const BASE = { screenshotArtifactUrl: null, mode: "suggest-only" as const, docsUrl: DOCS_URL };
+
 describe("renderComment", () => {
   it("renders the no-findings body when there are no rows", () => {
-    const body = renderComment({
-      rows: [],
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows: [], ...BASE });
     expect(body).toContain("No heal-eligible activity this run");
     expect(body).toContain(REPORT_MARKER);
     expect(body).not.toContain("|"); // no table
@@ -49,13 +45,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("b-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE });
     expect(body).toContain("**2 routes flagged** · 2 suggested, 0 healed this run.");
   });
 
@@ -69,13 +59,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("a-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE });
     expect(body).toContain("**1 route flagged**");
   });
 
@@ -89,13 +73,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("open-delete-account-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE });
     expect(body).toContain(
       '`- getByTestId("open-delete-account")`<br>`+ getByTestId("open-delete-account-mut")`',
     );
@@ -103,7 +81,66 @@ describe("renderComment", () => {
     expect(body).toContain("SUGGESTED");
   });
 
-  it("embeds a resolved screenshot data URI in its row", () => {
+  it("never inlines an <img> tag — GitHub strips data: URI image sources from comments", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.8,
+        suggestion: 'getByTestId("a-mut")',
+        screenshotFile: "screenshots/a-0.png",
+      }),
+    ];
+    const body = renderComment({
+      rows,
+      ...BASE,
+      screenshotArtifactUrl: "https://example.invalid/run/1",
+    });
+    expect(body).not.toContain("<img");
+    expect(body).not.toContain("data:image");
+  });
+
+  it("links the screenshot artifact when one exists and a row captured a screenshot", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.8,
+        suggestion: 'getByTestId("a-mut")',
+        screenshotFile: "screenshots/a-0.png",
+      }),
+    ];
+    const body = renderComment({
+      rows,
+      ...BASE,
+      screenshotArtifactUrl: "https://example.invalid/run/1",
+    });
+    expect(body).toContain("[this run's `eir-report` artifact](https://example.invalid/run/1)");
+    expect(body).toContain("1 screenshot");
+  });
+
+  it("mentions the artifact by name, unlinked, when no artifact URL is available", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.8,
+        suggestion: 'getByTestId("a-mut")',
+        screenshotFile: "screenshots/a-0.png",
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE, screenshotArtifactUrl: null });
+    expect(body).toContain("this run's `eir-report` artifact");
+    // Unlinked specifically means the artifact mention itself isn't a
+    // markdown link — the footer's own docs-url link is unrelated and may
+    // still be present.
+    expect(body).not.toContain("[this run's `eir-report` artifact](");
+  });
+
+  it("says nothing about screenshots when no row captured one", () => {
     const rows: ReportRow[] = [
       row({
         route: "/x",
@@ -115,14 +152,10 @@ describe("renderComment", () => {
     ];
     const body = renderComment({
       rows,
-      dataUriByRowIndex: new Map([[0, "data:image/png;base64,AAAA"]]),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
+      ...BASE,
+      screenshotArtifactUrl: "https://example.invalid/run/1",
     });
-    expect(body).toContain(
-      '<img src="data:image/png;base64,AAAA" width="140" alt="matched element" />',
-    );
+    expect(body).not.toContain("screenshot");
   });
 
   it("never claims verification on a healed row (NOTE-004) and shows the heal-mode caveat", () => {
@@ -135,13 +168,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("a-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "heal",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE, mode: "heal" });
     expect(body).toContain("HEALED");
     // The caveat itself may explain the word "verified" as a concept, but
     // must never assert this specific row *was* verified — the artifact
@@ -161,13 +188,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("a-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "unknown",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE, mode: "unknown" });
     expect(body).not.toContain("Mode:");
   });
 
@@ -195,35 +216,9 @@ describe("renderComment", () => {
         suggestion: null,
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE });
     expect(body).toContain("2 other outcomes");
     expect(body).not.toContain('getByTestId("b")');
-  });
-
-  it("mentions omitted screenshots when the budget was exceeded", () => {
-    const rows: ReportRow[] = [
-      row({
-        route: "/x",
-        selectorKey: 'getByTestId("a")',
-        action: "suggested",
-        confidence: 0.8,
-        suggestion: 'getByTestId("a-mut")',
-      }),
-    ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 4,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
-    expect(body).toContain("4 screenshots omitted");
   });
 
   it("always ends with the upsert marker on the final line", () => {
@@ -236,13 +231,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("a-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE });
     expect(body.trimEnd().endsWith(REPORT_MARKER)).toBe(true);
   });
 
@@ -256,13 +245,7 @@ describe("renderComment", () => {
         suggestion: 'getByTestId("a-mut")',
       }),
     ];
-    const body = renderComment({
-      rows,
-      dataUriByRowIndex: new Map(),
-      omittedScreenshotCount: 0,
-      mode: "suggest-only",
-      docsUrl: DOCS_URL,
-    });
+    const body = renderComment({ rows, ...BASE });
     expect(body).toContain("not a full audit of every selector on this PR");
   });
 });

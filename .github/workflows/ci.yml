@@ -64,11 +64,25 @@ jobs:
       # deliberate, manually-run/committed artifact, not a CI gate).
       - run: pnpm bench --class id-rename --seed 42
 
-      # Phase 7: posts or updates the single Eir report comment on this PR.
-      # `if: always()` so it still runs when the dogfood mutation (or any
-      # other real selector drift) makes the e2e step above fail — the
-      # comment is informational, separate from the job's own pass/fail
-      # signal, and reviewers should see it either way.
+      # Phase 7: screenshots are never inlined into the PR comment — GitHub
+      # strips `data:` URI image sources from comment bodies (confirmed
+      # live against a real comment's rendered HTML), and Blueprint §6
+      # rules out hosting them anywhere else ("local files + CI artifacts
+      # only"). Uploading the report directory as a workflow artifact is
+      # that "CI artifact" — the comment links to this run, not to an image.
+      - name: Upload Eir report artifact
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eir-report
+          path: packages/demo-app/eir-report
+          if-no-files-found: ignore
+
+      # Posts or updates the single Eir report comment on this PR. `if:
+      # always()` so it still runs when the dogfood mutation (or any other
+      # real selector drift) makes the e2e step above fail — the comment is
+      # informational, separate from the job's own pass/fail signal, and
+      # reviewers should see it either way.
       - name: Post Eir report comment
         if: always() && github.event_name == 'pull_request'
         uses: ./packages/ci-action

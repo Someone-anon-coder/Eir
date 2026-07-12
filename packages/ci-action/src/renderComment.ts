@@ -16,8 +16,18 @@ export type ReportedMode = "suggest-only" | "heal" | "unknown";
 
 export interface RenderCommentInput {
   readonly rows: readonly ReportRow[];
-  readonly dataUriByRowIndex: ReadonlyMap<number, string>;
-  readonly omittedScreenshotCount: number;
+  /**
+   * A link to this run's uploaded `eir-report` artifact (screenshots
+   * included), or `null` when there's nothing to link (not running in
+   * Actions, or no row captured a screenshot). Screenshots are never
+   * inlined as `data:` URIs — confirmed live against a real GitHub PR
+   * comment (`body_html`) that GitHub's comment sanitizer strips `img
+   * src` for `data:` URIs entirely, silently rendering a blank image.
+   * Blueprint §6 rules out a hosted service to work around that
+   * ("local files + CI artifacts only"), so a workflow artifact link is
+   * the honest answer, not a fallback.
+   */
+  readonly screenshotArtifactUrl: string | null;
   readonly mode: ReportedMode;
   /** Link target for the footer's "how Eir scores a suggestion" line. */
   readonly docsUrl: string;
@@ -44,12 +54,6 @@ function diffCell(row: ReportRow): string {
 
 function confidenceCell(row: ReportRow): string {
   return row.confidence === null ? "—" : row.confidence.toFixed(4);
-}
-
-function screenshotCell(rowIndex: number, dataUriByRowIndex: ReadonlyMap<number, string>): string {
-  const dataUri = dataUriByRowIndex.get(rowIndex);
-  if (dataUri === undefined) return "";
-  return `<img src="${dataUri}" width="140" alt="matched element" />`;
 }
 
 function pluralize(count: number, noun: string): string {
@@ -85,15 +89,13 @@ export function renderComment(input: RenderCommentInput): string {
     return renderEmptyBody().replace("{{DOCS_URL}}", input.docsUrl);
   }
 
-  const diffRows = input.rows
-    .map((row, rowIndex) => ({ row, rowIndex }))
-    .filter(({ row }) => hasDiff(row));
-
+  const diffRows = input.rows.filter(hasDiff);
   const asideRows = input.rows.filter((row) => !hasDiff(row));
+  const screenshotCount = input.rows.filter((row) => row.screenshotFile !== null).length;
 
-  const routeCount = new Set(diffRows.map(({ row }) => row.route)).size;
-  const suggestedCount = diffRows.filter(({ row }) => row.action === "suggested").length;
-  const healedCount = diffRows.filter(({ row }) => row.action === "healed").length;
+  const routeCount = new Set(diffRows.map((row) => row.route)).size;
+  const suggestedCount = diffRows.filter((row) => row.action === "suggested").length;
+  const healedCount = diffRows.filter((row) => row.action === "healed").length;
   const rejectedOrFailedCount = diffRows.length - suggestedCount - healedCount;
 
   const summaryParts = [
@@ -113,11 +115,11 @@ export function renderComment(input: RenderCommentInput): string {
 
   if (diffRows.length > 0) {
     lines.push(
-      "| Status | Route | Suggested diff | Confidence | Screenshot |",
-      "|---|---|---|---|---|",
+      "| Status | Route | Suggested diff | Confidence |",
+      "|---|---|---|---|",
       ...diffRows.map(
-        ({ row, rowIndex }) =>
-          `| ${BADGE_BY_ACTION[row.action]} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row)} | ${screenshotCell(rowIndex, input.dataUriByRowIndex)} |`,
+        (row) =>
+          `| ${BADGE_BY_ACTION[row.action]} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row)} |`,
       ),
       "",
     );
@@ -137,9 +139,13 @@ export function renderComment(input: RenderCommentInput): string {
     );
   }
 
-  if (input.omittedScreenshotCount > 0) {
+  if (screenshotCount > 0) {
+    const linkText =
+      input.screenshotArtifactUrl !== null
+        ? `[this run's \`eir-report\` artifact](${input.screenshotArtifactUrl})`
+        : "this run's `eir-report` artifact";
     lines.push(
-      `${pluralize(input.omittedScreenshotCount, "screenshot")} omitted to stay under GitHub's comment size limit — the full set is in this run's \`eir-report\` artifact.`,
+      `${pluralize(screenshotCount, "screenshot")} of the matched element${screenshotCount === 1 ? "" : "s"} above ${screenshotCount === 1 ? "is" : "are"} in ${linkText} — not inlined here (GitHub strips \`data:\` image sources from comments, and Blueprint §6 rules out hosting them anywhere else).`,
       "",
     );
   }

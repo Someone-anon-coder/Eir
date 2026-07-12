@@ -1,9 +1,7 @@
-import path from "node:path";
 import { createGithubClient } from "./githubClient.js";
-import { resolveActionInputs, resolveGithubContext } from "./githubContext.js";
+import { resolveActionInputs, resolveGithubContext, resolveRunUrl } from "./githubContext.js";
 import { renderComment } from "./renderComment.js";
 import { readEirReport } from "./report.js";
-import { resolveScreenshotDataUris } from "./resolveScreenshots.js";
 import { upsertEirComment } from "./upsertComment.js";
 
 async function run(): Promise<void> {
@@ -17,13 +15,9 @@ async function run(): Promise<void> {
     );
   });
 
-  const reportDir = path.dirname(path.resolve(inputs.reportPath));
-  const screenshotPlan = await resolveScreenshotDataUris(report.rows, reportDir);
-
   const body = renderComment({
     rows: report.rows,
-    dataUriByRowIndex: screenshotPlan.dataUriByRowIndex,
-    omittedScreenshotCount: screenshotPlan.omittedCount,
+    screenshotArtifactUrl: resolveRunUrl(process.env),
     mode: inputs.mode,
     docsUrl: inputs.docsUrl,
   });
