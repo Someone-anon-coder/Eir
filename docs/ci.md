@@ -136,5 +136,4 @@ the benchmark's baseline table reports, just applied against the
 reference suite instead of the harness's probes. Every other branch and
 PR is unaffected; `VITE_EIR_MUTATIONS` stays unset for everyone else,
 exactly as Phase 4 established. This is what produced the comment on
-[the dogfood PR](#) (linked once opened — see NOTES.md's daily log for
-the actual PR number).
+[the dogfood PR](https://github.com/Someone-anon-coder/Eir/pull/15).
