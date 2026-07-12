@@ -167,6 +167,25 @@ Phase 7 consumes the reporter artifact for CI delivery; it doesn't extend or re-
 
 ---
 
+### NOTE-006 — GitHub Marketplace publication of `ci-action`
+**Status:** PARKED
+**Raised:** 2026-07-12, during Phase 7 (explicitly named as OUT-of-scope by EIR_BLUEPRINT_APPROACH.md's Phase 7 section, with instruction to record it here)
+**Target phase:** Post-project polish, after Phase 9
+**Blueprint touchpoint:** none — packaging/distribution, not a design decision
+
+**The idea:**
+Publish `packages/ci-action` to the GitHub Marketplace so it can be referenced as `uses: someone-anon-coder/eir-ci-action@v1` from any repo, instead of the current `uses: ./packages/ci-action` local-path reference that only resolves inside this monorepo's own checkout.
+
+**Why it matters:**
+Marketplace publication is what makes the action actually reusable outside this repo without a manual copy — real adoption-readiness, not just a working demo.
+
+**Why not now:**
+Explicitly named OUT for Phase 7 by the approach doc ("Gemini. Marketplace publication of the action (post-project polish, NOTES.md)"). Publishing implies a versioning/release story `packages/eir`'s own npm releases already established a precedent for, worth doing deliberately post-Phase-9, not as a Phase 7 afterthought.
+
+**Resolution:** *(pending)*
+
+---
+
 ## 2. Open Questions Awaiting a Decision
 
 Things that must be decided before a specific point, but aren't proposals to build — thresholds, naming, config shape, etc. Lighter-weight than a Parked Item.
