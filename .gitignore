@@ -1,5 +1,10 @@
 node_modules/
 dist/
+
+# Secrets (Phase 8): GEMINI_API_KEY lives only in the developer's own
+# terminal environment. No .env file of any flavor is ever committed.
+.env
+.env.*
 coverage/
 *.log
 .DS_Store
