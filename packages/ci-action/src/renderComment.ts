@@ -56,6 +56,11 @@ function confidenceCell(row: ReportRow): string {
   return row.confidence === null ? "—" : row.confidence.toFixed(4);
 }
 
+/** Provenance marker (Phase 8): a row the LLM fallback weighed in on is visually distinct in the table itself, not only in the detail block below it. */
+function llmMarker(row: ReportRow): string {
+  return row.fallback === null ? "" : " · ⚠ LLM";
+}
+
 function pluralize(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
@@ -119,8 +124,23 @@ export function renderComment(input: RenderCommentInput): string {
       "|---|---|---|---|",
       ...diffRows.map(
         (row) =>
-          `| ${BADGE_BY_ACTION[row.action]} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row)} |`,
+          `| ${BADGE_BY_ACTION[row.action]}${llmMarker(row)} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row)} |`,
       ),
+      "",
+    );
+  }
+
+  const fallbackRows = input.rows.flatMap((row) =>
+    row.fallback === null ? [] : [{ row, fallback: row.fallback }],
+  );
+  if (fallbackRows.length > 0) {
+    lines.push(
+      "⚠ **LLM-assisted rows** — Eir's deterministic heuristics could not decide these (confidence or decision margin below the trust bars), so an LLM verdict was recorded *at suggestion strength only*: it can never retry an action, heal a test, or modify anything. An LLM opinion is less trustworthy than a heuristic score — verify these by hand before applying.",
+      "",
+      ...fallbackRows.map(({ row, fallback }) => {
+        const detail = fallback.detail !== null && fallback.verdict !== "no-verdict" ? ` — ${fallback.detail}` : "";
+        return `- \`${row.selectorKey}\` · ${fallback.provider}: **${fallback.verdict}**${detail}`;
+      }),
       "",
     );
   }
