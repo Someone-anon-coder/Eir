@@ -1,6 +1,7 @@
 import { test as base } from "@playwright/test";
 import { DEFAULT_EIR_CONFIG, type EirConfig } from "./config.js";
 import { EirPage } from "./eirPage.js";
+import { buildFallbackRunner } from "./fallback/runFallback.js";
 import { MatchLog } from "./matching/matchLog.js";
 import { appendMatchLogFile } from "./matching/matchLogFile.js";
 import { PolicyLog } from "./policy/policyLog.js";
@@ -166,6 +167,10 @@ export const test = base.extend<
         mode: eirConfig.mode,
         policyLog: eirPolicyLog,
         annotate: (type, description) => testInfo.annotations.push({ type, description }),
+        // Phase 8: `null` unless the user opted in AND the key env var is
+        // set — the shipped default constructs no provider and makes zero
+        // API calls (see buildFallbackRunner's docstring).
+        fallback: buildFallbackRunner(eirConfig.fallback),
       }),
     );
     // See the docstring above: the real page is still alive here, but

@@ -47,10 +47,12 @@ const HEALED_EVENT: SerializedPolicyEvent = {
     margin: 0.4,
     suggestion: { kind: "data-testid", description: 'getByTestId("device-row-remove-v2")' },
     winnerLocator: { selector: "button", domIndex: 0 },
+    shortlist: [],
   },
   action: { kind: "heal-and-continue" },
   retryOutcome: { kind: "healed" },
   screenshotBase64: null,
+  fallback: null,
 };
 
 const DRIFT_EVENT: SerializedPolicyEvent = {
@@ -108,6 +110,7 @@ describe("EirReporter", () => {
         confidence: 0.91,
         suggestion: 'getByTestId("device-row-remove-v2")',
         screenshotFile: null,
+        fallback: null,
       },
     ]);
   });

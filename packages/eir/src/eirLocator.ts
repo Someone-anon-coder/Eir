@@ -9,6 +9,8 @@ import {
   logMatchResult,
   logOutcome,
 } from "./debugLog.js";
+import { isFormallyUncertain } from "./fallback/trigger.js";
+import type { FallbackOutcome } from "./fallback/verdict.js";
 import type { Fingerprint } from "./fingerprint.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
 import { INITIAL_WEIGHTS } from "./matching/aggregate.js";
@@ -339,6 +341,9 @@ export class EirLocator implements Locator {
           retryOutcome:
             retryOutcome.kind === "healed" ? { kind: "healed" } : { kind: retryOutcome.kind },
           screenshot: decision.screenshot,
+          // Structurally never consulted on this branch (Blueprint P4): the
+          // fallback runs only after a non-heal decision, below.
+          fallback: null,
         });
 
         if (retryOutcome.kind === "healed") {
@@ -357,6 +362,22 @@ export class EirLocator implements Locator {
         throw error;
       }
 
+      // Phase 8: the LLM fallback, consulted only here — after
+      // `decidePolicyAction` has already returned a non-heal action — and
+      // only when the trigger predicate says the match is a formal
+      // admission of uncertainty. Its verdict lands on the policy event
+      // (suggestion strength); it cannot reach `#retryHealed`, whose branch
+      // completed above. Awaited deliberately: this test is already
+      // failing, and the verdict must exist before the event is recorded.
+      let fallback: FallbackOutcome | null = null;
+      if (this.#matching.fallback !== null && isFormallyUncertain(decision.matchAttempt)) {
+        const actionKind =
+          decision.action.kind === "fail-with-suggestion" ? "fail-with-suggestion" : "fail-normally";
+        fallback = await this.#matching.fallback
+          .run(decision.matchAttempt, actionKind)
+          .catch(() => null);
+      }
+
       this.#matching.policyLog.record({
         kind: "heal-attempt",
         method,
@@ -366,6 +387,7 @@ export class EirLocator implements Locator {
         action: decision.action,
         retryOutcome: { kind: "not-attempted" },
         screenshot: decision.screenshot,
+        fallback,
       });
 
       if (decision.action.kind === "fail-with-suggestion") {

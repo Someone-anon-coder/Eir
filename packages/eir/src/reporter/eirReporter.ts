@@ -1,7 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Reporter, TestCase, TestResult } from "@playwright/test/reporter";
+import type { FallbackRowVerdict } from "../fallback/verdict.js";
 import type { SerializedPolicyEvent } from "../policy/policyLogFile.js";
+
+/** Re-exported so `playwright-eir/reporter` consumers (the ci-action) can type the fallback verdict without a deep import the exports map forbids. */
+export type { FallbackRowVerdict } from "../fallback/verdict.js";
 
 /**
  * Blueprint §7.7's reporter: a run-end heal-summary table printed to the
@@ -30,6 +34,19 @@ export type HealAction =
   | "heal-attempt-failed"
   | "drift-suspected";
 
+/**
+ * Phase 8 (Gate 3 decision: extend, deliberately): an LLM-assisted row is
+ * structurally distinguishable from a purely heuristic one — provenance
+ * is trust-relevant data, not wording. `null` = the fallback never ran
+ * for this row (off, no key, or the trigger predicate didn't fire —
+ * including, by construction, every `healed` row).
+ */
+export interface ReportRowFallback {
+  readonly provider: string;
+  readonly verdict: FallbackRowVerdict;
+  readonly detail: string | null;
+}
+
 export interface ReportRow {
   readonly testTitle: string;
   readonly method: string;
@@ -40,6 +57,7 @@ export interface ReportRow {
   readonly suggestion: string | null;
   /** Path relative to the report's own output directory, or `null` if no screenshot was captured. */
   readonly screenshotFile: string | null;
+  readonly fallback: ReportRowFallback | null;
 }
 
 const POLICY_EVENT_NAME = /^eir-policy-event:(\d+)$/;
@@ -110,6 +128,7 @@ export class EirReporter implements Reporter {
           confidence: event.score,
           suggestion: null,
           screenshotFile,
+          fallback: null,
         });
         continue;
       }
@@ -129,6 +148,16 @@ export class EirReporter implements Reporter {
         confidence,
         suggestion,
         screenshotFile,
+        // Call meta (latency/tokens) stays in the policy JSONL for the
+        // benchmark; the report row carries only what a reader needs.
+        fallback:
+          event.fallback === null
+            ? null
+            : {
+                provider: event.fallback.provider,
+                verdict: event.fallback.verdict,
+                detail: event.fallback.detail,
+              },
       });
     }
   }
@@ -154,12 +183,13 @@ export class EirReporter implements Reporter {
   }
 
   #renderMarkdown(): string {
-    const header = "| Test | Route | Selector | Action | Confidence | Suggestion | Screenshot |\n|---|---|---|---|---|---|---|";
+    const header = "| Test | Route | Selector | Action | Confidence | Suggestion | LLM fallback | Screenshot |\n|---|---|---|---|---|---|---|---|";
     const lines = this.#rows.map((row) => {
       const confidence = row.confidence === null ? "" : row.confidence.toFixed(4);
       const suggestion = row.suggestion ?? "";
+      const fallback = row.fallback === null ? "" : `${row.fallback.provider}: ${row.fallback.verdict}`;
       const screenshot = row.screenshotFile !== null ? `![](${row.screenshotFile})` : "";
-      return `| ${row.testTitle} | ${row.route} | ${row.selectorKey} | ${row.action} | ${confidence} | ${suggestion} | ${screenshot} |`;
+      return `| ${row.testTitle} | ${row.route} | ${row.selectorKey} | ${row.action} | ${confidence} | ${suggestion} | ${fallback} | ${screenshot} |`;
     });
     if (lines.length === 0) {
       return "# Eir Heal Report\n\nNo heal-eligible activity this run.\n";
@@ -172,7 +202,8 @@ export class EirReporter implements Reporter {
     console.log("\n[eir] heal summary:");
     for (const row of this.#rows) {
       const confidence = row.confidence === null ? "" : ` (confidence ${row.confidence.toFixed(4)})`;
-      console.log(`  ${row.action.padEnd(20)} ${row.route} :: ${row.selectorKey}${confidence}`);
+      const fallback = row.fallback === null ? "" : ` [llm ${row.fallback.provider}: ${row.fallback.verdict}]`;
+      console.log(`  ${row.action.padEnd(20)} ${row.route} :: ${row.selectorKey}${confidence}${fallback}`);
     }
   }
 }

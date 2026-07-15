@@ -60,6 +60,7 @@ const MATCHED: Extract<MatchAttempt, { kind: "matched" }> = {
   margin: 0.3,
   suggestion: null,
   winnerLocator: { selector: '[data-testid="device-row-remove"]', domIndex: 0 },
+  shortlist: [],
 };
 
 const HEAL_MODE: EirMode = { mode: "heal", healThreshold: 0.7, suggestThreshold: 0.3 };
@@ -106,6 +107,7 @@ function fakeMatching(mode: EirMode, storedPostCondition?: PostCondition): Match
     mode,
     policyLog: { record: vi.fn() },
     annotate: vi.fn(),
+    fallback: null,
   };
 }
 

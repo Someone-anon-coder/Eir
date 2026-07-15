@@ -33,6 +33,7 @@ function fakeMatching(): MatchingContext {
     mode: { mode: "suggest-only" },
     policyLog: { record: vi.fn() },
     annotate: vi.fn(),
+    fallback: null,
   };
 }
 
