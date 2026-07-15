@@ -8,6 +8,7 @@
     "test": "vitest run",
     "bench": "tsx src/cli.ts",
     "bench:heal-evidence": "tsx src/healEvidenceCli.ts",
+    "bench:hybrid": "tsx src/hybridComparisonCli.ts",
     "mutation-payload": "tsx src/printMutationPayload.ts"
   },
   "devDependencies": {

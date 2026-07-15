@@ -1,0 +1,160 @@
+{
+  "seed": 42,
+  "generatedAt": "2026-07-15T14:08:18.926Z",
+  "results": [
+    {
+      "mutationClass": "id-rename",
+      "seed": 42,
+      "invocations": [
+        {
+          "targetId": "id-rename.login.usernameInputId",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "endorsed",
+            "detail": "<input id=\"login-username-input-mut\" data-testid=\"login-username-mut\"> — input >> nth=0: Candidate 0 is the most likely match because it shares the same tag, bounding box, ancestor chain, sibling position, and associated label as the original element. The minor differences in attributes are likely due to a renaming convention, while the core identifying features remain consistent.",
+            "latencyMs": 1854.2309690000002,
+            "inputTokens": 684,
+            "outputTokens": 73
+          }
+        }
+      ]
+    },
+    {
+      "mutationClass": "text-change",
+      "seed": 42,
+      "invocations": []
+    },
+    {
+      "mutationClass": "tag-swap",
+      "seed": 42,
+      "invocations": []
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "seed": 42,
+      "invocations": [
+        {
+          "targetId": "class-shuffle.devices.active.card",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 2037.205613,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        },
+        {
+          "targetId": "class-shuffle.devices.archived.card",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 2541.24582,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        },
+        {
+          "targetId": "class-shuffle.provisioning.pageClassName",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 1720.013282,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        },
+        {
+          "targetId": "class-shuffle.nav.layoutClassName",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "endorsed",
+            "detail": "<div> — div >> nth=1: Candidate 0 has identical text, ancestor chain, and sibling position to the original element. The bounding box is also very similar, with the difference likely due to content changes within the element.",
+            "latencyMs": 2092.4503489999997,
+            "inputTokens": 856,
+            "outputTokens": 58
+          }
+        }
+      ]
+    },
+    {
+      "mutationClass": "sibling-reorder",
+      "seed": 42,
+      "invocations": []
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "seed": 42,
+      "invocations": []
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "seed": 42,
+      "invocations": [
+        {
+          "targetId": "near-dup.editRemove.dev-2.edit",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 2054.008318,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        },
+        {
+          "targetId": "near-dup.saveCancel.dev-5.cancel",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "endorsed",
+            "detail": "<button type=\"button\"> — button, a, input[type=submit], input[type=button] >> nth=15: Candidate 0 is the best match because it shares the most identical features with the original element, including tag, attributes, ancestor chain, sibling position, and bounding box, with the only difference being the visible text which is a common reason for selector healing.",
+            "latencyMs": 1927.4517879999994,
+            "inputTokens": 1127,
+            "outputTokens": 71
+          }
+        },
+        {
+          "targetId": "near-dup.editRemove.dev-9.remove",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 1588.6016799999998,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        }
+      ]
+    },
+    {
+      "mutationClass": "compound-release",
+      "seed": 42,
+      "invocations": [
+        {
+          "targetId": "text-change.account.openDeleteButton",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 1557.128393,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        },
+        {
+          "targetId": "text-change.devices.archivedRowName",
+          "fallback": {
+            "provider": "gemini",
+            "verdict": "no-verdict",
+            "detail": "http-503",
+            "latencyMs": 1623.645899,
+            "inputTokens": null,
+            "outputTokens": null
+          }
+        }
+      ]
+    }
+  ]
+}

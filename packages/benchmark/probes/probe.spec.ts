@@ -44,11 +44,25 @@ const run = buildMutationRun(mutationClassEnv, seed);
  * doesn't publish internal constants).
  */
 const modeEnv = process.env["EIR_BENCH_MODE"];
+/**
+ * Phase 8's comparison benchmark evidence mode (`hybridComparison.ts`):
+ * the shipped default posture (`suggest-only`) with the fallback opted
+ * in, key read from `GEMINI_API_KEY` in this spawned process's own env
+ * (inherited from the harness CLI's env — never passed as a literal
+ * here). Orthogonal to `EIR_BENCH_MODE`; this comparison only ever runs
+ * it against `suggest-only`, mirroring the shipped default.
+ */
+const fallbackEnv = process.env["EIR_BENCH_FALLBACK"];
+const fallbackConfig: EirConfig["fallback"] = fallbackEnv === "1" ? { provider: "gemini", enabled: true } : undefined;
+
 if (modeEnv === "heal") {
   const healConfig: EirConfig = {
     mode: { mode: "heal", healThreshold: 0.7, suggestThreshold: 0.3 },
+    ...(fallbackConfig !== undefined ? { fallback: fallbackConfig } : {}),
   };
   test.use({ eirConfig: healConfig });
+} else if (fallbackConfig !== undefined) {
+  test.use({ eirConfig: { mode: { mode: "suggest-only" }, fallback: fallbackConfig } });
 }
 
 for (const entry of run.groundTruth) {

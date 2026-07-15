@@ -24,6 +24,7 @@ describe("renderHealModeEvidenceMarkdown", () => {
               retryOutcomeKind: "healed",
               confidence: 0.8848,
               margin: 0.5091,
+              fallback: null,
             },
           ],
         },
