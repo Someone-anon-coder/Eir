@@ -1,3 +1,4 @@
+import type { FallbackOutcome } from "../fallback/verdict.js";
 import type { MatchAttempt } from "../matching/matcher.js";
 import type { PolicyAction } from "./stateMachine.js";
 
@@ -23,6 +24,13 @@ export interface HealAttemptEvent {
   readonly retryOutcome: RetryOutcome;
   /** PNG bytes of the matched/healed element, captured at match time — `null` if capture failed or nothing was matched. */
   readonly screenshot: Buffer | null;
+  /**
+   * Phase 8: the LLM fallback's suggestion-capped verdict — always `null`
+   * on a `heal-and-continue` event, structurally: the fallback is only
+   * consulted after policy has already decided *not* to heal (see
+   * `fallback/runFallback.ts`'s `FallbackEligibleAction`).
+   */
+  readonly fallback: FallbackOutcome | null;
 }
 
 /** Mechanism B (RISK-009 closure) — an ordinary success whose fresh capture looked suspiciously unlike its own baseline. */

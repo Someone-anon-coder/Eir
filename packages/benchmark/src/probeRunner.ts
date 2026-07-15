@@ -84,6 +84,8 @@ export async function runProbeSuite(
   mutationClass: string,
   seed: number,
   mode: BenchMode = "suggest-only",
+  /** Phase 8: opts every generated test into the real Gemini fallback via `EIR_BENCH_FALLBACK` (see `probe.spec.ts`). The key itself is never set here — it flows through from this process's own env (`...process.env` below), exactly like every other inherited variable. */
+  fallback = false,
 ): Promise<readonly ProbeTestResult[]> {
   const outputFile = path.join(BENCHMARK_DIR, `.probe-report-${randomUUID()}.json`);
   const matchLogFile = path.join(BENCHMARK_DIR, `.probe-matchlog-${randomUUID()}.jsonl`);
@@ -98,6 +100,7 @@ export async function runProbeSuite(
         EIR_BENCH_CLASS: mutationClass,
         EIR_BENCH_SEED: String(seed),
         EIR_BENCH_MODE: mode,
+        EIR_BENCH_FALLBACK: fallback ? "1" : "",
         PLAYWRIGHT_JSON_OUTPUT_NAME: outputFile,
         EIR_MATCH_LOG_FILE: matchLogFile,
         EIR_GROUND_TRUTH_FILE: groundTruthFile,

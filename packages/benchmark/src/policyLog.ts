@@ -18,6 +18,22 @@ export type PolicyRetryOutcomeKind =
   | "heal-rejected-post-condition-mismatch"
   | "heal-attempted-retry-failed";
 
+/**
+ * Phase 8: mirrors `playwright-eir`'s `FallbackOutcome` — the LLM
+ * fallback's suggestion-capped verdict, plus the real measured call meta
+ * (latency/tokens) this comparison's cost/latency columns are built from.
+ * `null` on every entry the fallback never ran for, including — by
+ * construction — every `heal-and-continue` entry.
+ */
+export interface PolicyFallbackInfo {
+  readonly provider: string;
+  readonly verdict: "endorsed" | "contradicted" | "alternative" | "none-of-them" | "no-verdict";
+  readonly detail: string | null;
+  readonly latencyMs: number | null;
+  readonly inputTokens: number | null;
+  readonly outputTokens: number | null;
+}
+
 export interface PolicyHealAttemptEntry {
   readonly kind: "heal-attempt";
   readonly method: string;
@@ -27,6 +43,32 @@ export interface PolicyHealAttemptEntry {
   readonly retryOutcomeKind: PolicyRetryOutcomeKind;
   readonly confidence: number | null;
   readonly margin: number | null;
+  readonly fallback: PolicyFallbackInfo | null;
+}
+
+const FALLBACK_VERDICTS: ReadonlySet<string> = new Set([
+  "endorsed",
+  "contradicted",
+  "alternative",
+  "none-of-them",
+  "no-verdict",
+]);
+
+function toPolicyFallbackInfo(raw: unknown): PolicyFallbackInfo | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const c = raw as Record<string, unknown>;
+  if (typeof c["provider"] !== "string" || typeof c["verdict"] !== "string" || !FALLBACK_VERDICTS.has(c["verdict"])) {
+    return null;
+  }
+  const meta = c["meta"] as Record<string, unknown> | null | undefined;
+  return {
+    provider: c["provider"],
+    verdict: c["verdict"] as PolicyFallbackInfo["verdict"],
+    detail: typeof c["detail"] === "string" ? c["detail"] : null,
+    latencyMs: typeof meta?.["latencyMs"] === "number" ? meta["latencyMs"] : null,
+    inputTokens: typeof meta?.["inputTokens"] === "number" ? meta["inputTokens"] : null,
+    outputTokens: typeof meta?.["outputTokens"] === "number" ? meta["outputTokens"] : null,
+  };
 }
 
 export interface PolicyDriftSuspectedEntry {
@@ -95,6 +137,7 @@ function toPolicyLogEntry(raw: unknown): PolicyLogEntry | null {
         retryOutcomeKind: retryOutcome["kind"] as PolicyRetryOutcomeKind,
         confidence,
         margin,
+        fallback: toPolicyFallbackInfo(c["fallback"]),
       };
     }
   }

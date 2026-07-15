@@ -44,6 +44,32 @@ describe("readEirReport", () => {
     const report = await readEirReport(file);
     expect(report.rows).toHaveLength(1);
     expect(report.rows[0]?.action).toBe("suggested");
+    // Pre-Phase-8 report (no fallback key) → normalized to null, one shape downstream.
+    expect(report.rows[0]?.fallback).toBeNull();
+  });
+
+  it("parses a Phase 8 row with a fallback verdict intact", async () => {
+    const file = path.join(dir, "eir-report.json");
+    await writeFile(
+      file,
+      JSON.stringify({
+        rows: [
+          {
+            testTitle: "t",
+            method: "click",
+            route: "/dashboard/devices",
+            selectorKey: "k",
+            action: "suggested",
+            confidence: 0.5,
+            suggestion: "s",
+            screenshotFile: null,
+            fallback: { provider: "gemini", verdict: "endorsed", detail: "same testid" },
+          },
+        ],
+      }),
+    );
+    const report = await readEirReport(file);
+    expect(report.rows[0]?.fallback).toEqual({ provider: "gemini", verdict: "endorsed", detail: "same testid" });
   });
 
   const invalidShapes: readonly [string, unknown][] = [
@@ -79,6 +105,24 @@ describe("readEirReport", () => {
             confidence: null,
             suggestion: null,
             screenshotFile: null,
+          },
+        ],
+      },
+    ],
+    [
+      "row with an unknown fallback verdict",
+      {
+        rows: [
+          {
+            testTitle: "t",
+            method: "m",
+            route: "/",
+            selectorKey: "k",
+            action: "suggested",
+            confidence: 0.5,
+            suggestion: "s",
+            screenshotFile: null,
+            fallback: { provider: "gemini", verdict: "llm-healed", detail: null },
           },
         ],
       },

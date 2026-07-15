@@ -49,6 +49,7 @@ function matched(confidence: number, margin: number): MatchAttempt {
     margin,
     suggestion: null,
     winnerLocator: { selector: "tr", domIndex: 0 },
+    shortlist: [],
   };
 }
 

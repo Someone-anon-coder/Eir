@@ -26,9 +26,28 @@ import type { RouteOverride } from "./routeNormalize.js";
  * export default defineConfig({ use: { eirConfig } });
  * ```
  */
+/**
+ * Phase 8's flag-gated LLM assist (Q5 / Blueprint §7.8). Off unless a
+ * user writes `enabled: true` *and* the key env var is set — and the key
+ * itself never appears here: config names the *env var*, the environment
+ * holds the secret. `defineEirConfig({ fallback: { provider: "gemini",
+ * enabled: true } })` plus `GEMINI_API_KEY` in the shell is the whole
+ * opt-in story.
+ */
+export interface FallbackConfig {
+  readonly provider: "gemini";
+  readonly enabled: boolean;
+  /** Env var to read the API key from. Default: `GEMINI_API_KEY`. */
+  readonly apiKeyEnv?: string;
+  /** Gemini model id. Default: `DEFAULT_GEMINI_MODEL` (see `fallback/geminiProvider.ts`). */
+  readonly model?: string;
+}
+
 export interface EirConfig {
   readonly mode: EirMode;
   readonly routeOverrides?: readonly RouteOverride[];
+  /** Absent = fallback fully off (the shipped default): no provider is constructed, zero API calls. */
+  readonly fallback?: FallbackConfig;
 }
 
 /** Shipped default posture (Q6 / Blueprint §7.6): nothing is ever retried until a team opts in. */

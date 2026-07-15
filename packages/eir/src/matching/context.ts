@@ -1,3 +1,4 @@
+import type { FallbackRunner } from "../fallback/runFallback.js";
 import type { EirMode } from "../policy/eirMode.js";
 import type { PolicyRecorder } from "../policy/policyLog.js";
 import type { FingerprintReader } from "../store/fingerprintReader.js";
@@ -23,4 +24,6 @@ export interface MatchingContext {
   readonly mode: EirMode;
   readonly policyLog: PolicyRecorder;
   readonly annotate: Annotate;
+  /** Phase 8: `null` = fallback off (disabled, or no key) — the shipped default. Non-null only when a user explicitly opted in *and* the key env var is set. */
+  readonly fallback: FallbackRunner | null;
 }

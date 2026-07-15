@@ -14,6 +14,7 @@ function row(
     confidence: null,
     suggestion: null,
     screenshotFile: null,
+    fallback: null,
     ...overrides,
   };
 }
@@ -233,6 +234,65 @@ describe("renderComment", () => {
     ];
     const body = renderComment({ rows, ...BASE });
     expect(body.trimEnd().endsWith(REPORT_MARKER)).toBe(true);
+  });
+
+  it("marks LLM-assisted rows in the table and explains the suggestion-cap in a dedicated block", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.5,
+        suggestion: 'getByTestId("a-mut")',
+        fallback: { provider: "gemini", verdict: "contradicted", detail: "<button> — button >> nth=2: text matches better" },
+      }),
+      row({
+        route: "/y",
+        selectorKey: 'getByTestId("b")',
+        action: "suggested",
+        confidence: 0.9,
+        suggestion: 'getByTestId("b-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).toContain("SUGGESTED · ⚠ LLM |");
+    expect(body).toContain("**LLM-assisted rows**");
+    expect(body).toContain("at suggestion strength only");
+    expect(body).toContain("gemini: **contradicted** — <button> — button >> nth=2: text matches better");
+    // The purely heuristic row carries no marker.
+    const lineForB = body.split("\n").find((line) => line.includes('getByTestId("b")') && line.startsWith("|"));
+    expect(lineForB).toBeDefined();
+    expect(lineForB).not.toContain("LLM");
+  });
+
+  it("renders no LLM block at all when no row has fallback data (the default path)", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.8,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).not.toContain("LLM");
+  });
+
+  it("a no-verdict fallback row shows the verdict but suppresses the raw reason detail", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.5,
+        suggestion: 'getByTestId("a-mut")',
+        fallback: { provider: "gemini", verdict: "no-verdict", detail: "http-429" },
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).toContain("gemini: **no-verdict**");
+    expect(body).not.toContain("http-429");
   });
 
   it("carries the RISK-009 scope note honestly limiting coverage claims", () => {

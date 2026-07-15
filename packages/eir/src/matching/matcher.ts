@@ -20,6 +20,23 @@ export interface WinnerLocatorRef {
   readonly domIndex: number;
 }
 
+/**
+ * Phase 8: how many top-scored candidates a `matched` attempt carries for
+ * the LLM fallback's shortlist. Small on purpose — the fallback is a
+ * tiebreak between a handful of plausible answers, not a second pass over
+ * the whole page, and every entry is prompt tokens.
+ */
+export const MATCH_SHORTLIST_SIZE = 5;
+
+/** One shortlist entry: the candidate's features, the heuristic scorers' own reading of it, and its re-resolution ref. */
+export interface ShortlistEntry {
+  readonly features: CandidateFeatures;
+  readonly breakdown: ScoreBreakdown;
+  readonly total: number;
+  readonly selector: string;
+  readonly domIndex: number;
+}
+
 export type MatchAttempt =
   | { readonly kind: "rejected"; readonly reason: TriageRejectionReason; readonly detail: string }
   | { readonly kind: "no-candidates"; readonly fingerprint: Fingerprint }
@@ -34,6 +51,8 @@ export type MatchAttempt =
       readonly suggestion: SuggestedSelector | null;
       /** Phase 6: how heal-and-continue re-resolves this exact candidate to retry the action against it. */
       readonly winnerLocator: WinnerLocatorRef;
+      /** Phase 8: top-scored candidates (winner first), the only element data the LLM fallback is ever shown. */
+      readonly shortlist: readonly ShortlistEntry[];
     };
 
 export interface MatcherInput extends TriageInput {
@@ -76,6 +95,19 @@ export async function attemptMatch(input: MatcherInput): Promise<MatchAttempt> {
 
       const suggestion = await suggestSelector(input.page, winnerCapture);
 
+      const shortlist: ShortlistEntry[] = [];
+      for (const scoredCandidate of scored.slice(0, MATCH_SHORTLIST_SIZE)) {
+        const capture = captured[scoredCandidate.index];
+        if (capture === undefined) continue; // Unreachable, same reasoning as winnerCapture above.
+        shortlist.push({
+          features: scoredCandidate.features,
+          breakdown: scoredCandidate.breakdown,
+          total: scoredCandidate.total,
+          selector: capture.selector,
+          domIndex: capture.domIndex,
+        });
+      }
+
       return {
         kind: "matched",
         fingerprint,
@@ -86,6 +118,7 @@ export async function attemptMatch(input: MatcherInput): Promise<MatchAttempt> {
         margin: decided.margin,
         suggestion,
         winnerLocator: { selector: winnerCapture.selector, domIndex: winnerCapture.domIndex },
+        shortlist,
       };
     }
 
