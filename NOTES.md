@@ -132,7 +132,7 @@ Fixing this means either (a) adding the element's own filtered class tokens as a
 ### NOTE-004 — Post-condition verification silently no-ops when no baseline exists, same as a genuine "none"
 **Status:** PARKED
 **Raised:** 2026-07-11, during Phase 6's NOTE-001 retrofit, while reviewing the real heal-mode evidence run
-**Target phase:** Unassigned — earliest candidate is whenever the reporter/report shape gets revisited (Phase 7 touches the reporter's consumer, the PR-comment action, so it's worth checking then)
+**Target phase:** Phase 9 (retargeted 2026-07-15 — see below)
 **Blueprint touchpoint:** §7.6 (policy — post-condition verification)
 
 **The idea:**
@@ -143,6 +143,8 @@ A team reading "this heal was accepted, nothing to verify" can't currently tell 
 
 **Why not now:**
 Purely a reporting-fidelity question, not a correctness one (nothing here produces a wrong heal-and-continue decision) — doesn't block Phase 6's DoD. Deferred rather than expanding `PostCondition`'s type or the reporter's row shape mid-phase.
+
+**Phase 8 revisit (2026-07-15):** this note's own text named "whenever the report shape gets revisited" as its target — Phase 8 did exactly that, extending `ReportRow` with a `fallback` field (Understanding Gate 3, see `docs/hybrid-comparison.md`/session brief). Deliberately did **not** fold this note in at the same time: it's a verification-fidelity gap in Phase 6's post-condition machinery, unrelated to fallback provenance, and Phase 8's own scope (trigger contract, provider seam, comparison benchmark) doesn't touch the post-condition path at all. Retargeted to Phase 9's hardening/acceptance sweep, which already owns the reporter's remaining fidelity gaps (NOTE-005).
 
 **Resolution:** *(pending)*
 
@@ -183,6 +185,44 @@ Marketplace publication is what makes the action actually reusable outside this 
 Explicitly named OUT for Phase 7 by the approach doc ("Gemini. Marketplace publication of the action (post-project polish, NOTES.md)"). Publishing implies a versioning/release story `packages/eir`'s own npm releases already established a precedent for, worth doing deliberately post-Phase-9, not as a Phase 7 afterthought.
 
 **Resolution:** *(pending)*
+
+---
+
+### NOTE-007 — Gemini free-tier rate limits are a real, measured adoption cost for the fallback
+**Status:** PARKED
+**Raised:** 2026-07-15, during Phase 8's comparison benchmark
+**Target phase:** Phase 9 (README/adopter docs caveat)
+**Blueprint touchpoint:** none directly — an operational/adoption fact, not a design decision
+
+**The idea:**
+Across 5 real comparison-benchmark runs this session (74 total fallback invocation attempts, across two separate free-tier API keys), only 17 (23%) received a real model response — the other 57 degraded cleanly to `no-verdict` on a genuine `http-429` (rate limit) or `http-503` (server overload), exactly as the graceful-degradation contract is designed to handle. A short (75s) cooldown between runs did not help, suggesting a daily rather than per-minute cap for at least one of the two keys tried. This is not an engine defect — no Playwright test ever failed because of the fallback, and every no-verdict was correctly diagnosable — but it is a real reliability ceiling an adopter needs to know about before enabling the feature at any volume on a free-tier key.
+
+**Why it matters:**
+An adopter reading "the fallback is available" without this caveat could reasonably expect it to respond most of the time. The measured reality (this session) is closer to "roughly 1 in 4 attempts succeeds on a free tier, and it can stay pinned at 0 for an extended period once a daily cap is hit." This belongs in the README/adoption docs as a plainly stated limitation, per CLAUDE.md §10's honesty rules.
+
+**Why not now:**
+Phase 8's job was to measure and report this honestly (done — see `docs/hybrid-comparison.md`), not to write the adopter-facing README, which is Phase 9's job.
+
+**Resolution:** *(pending)*
+
+---
+
+### NOTE-008 — Benchmark evidence CLIs overwrite their own prior report with no versioning or backup
+**Status:** PARKED
+**Raised:** 2026-07-15, during Phase 8's comparison benchmark, after directly losing data to this gap
+**Target phase:** Unassigned — whenever `packages/benchmark`'s CLI tooling is next touched
+**Blueprint touchpoint:** none — tooling hygiene, not a design decision
+
+**The idea:**
+`hybridComparisonCli.ts` (this phase) and its precedent `healEvidenceCli.ts` (Phase 6) both write their JSON/markdown report to a fixed filename in `packages/benchmark/reports/`, unconditionally overwriting whatever was there. This bit real work this session: the first hybrid-comparison run produced the richest real data (20 invocations, 13 successful verdicts), but two subsequent reruns (chasing a "cleaner" sample) silently overwrote that file before it was copied aside, permanently losing the per-invocation detail (the aggregate numbers survived only because they'd been echoed to the console and captured in the session transcript).
+
+**Why it matters:**
+Any evidence-gathering CLI whose output feeds a committed doc (`docs/hybrid-comparison.md`, `docs/tuning-log.md`'s iteration history) is one accidental rerun away from losing real, possibly non-reproducible data (live API calls, timing-sensitive captures) with no recovery path.
+
+**Why not now:**
+A real gap, but a tooling-hygiene one, not a Phase 8 design/DoD blocker — the phase's actual evidence was recovered honestly via the transcript and reported as such.
+
+**Resolution:** *(pending — candidate fix: timestamp or `--out` flag on both evidence CLIs, or refuse to overwrite without `--force`)*
 
 ---
 
@@ -231,11 +271,13 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Mitigation:** Phase 2's Definition of Done requires an explicit "invisibility proof" — the full Phase 1 reference suite run twice (vanilla vs wrapped) with asserted-identical results and an auto-wait-dependent spec passing wrapped. Do not proceed to Phase 3 until this proof is documented.
 
 ### RISK-002 — Schedule slippage crowding out Phase 8 (Gemini fallback)
-**Status:** WATCHING
+**Status:** MITIGATED (did not materialize — see resolution below)
 **Raised:** 2026-07-04 (approach doc §0.2 slippage rule)
 **Phase affected:** Phase 8
 **Risk:** Earlier phases (especially 5 — matching/tuning) are the most open-ended; overrun could force a rushed or cut fallback phase.
 **Mitigation:** Slippage rule already defined — if cumulative slip exceeds 2 days by end of Phase 5, Phase 8 consciously descopes to a documented extension point rather than being rushed. Tracked at every phase close (`CLAUDE.md` §5).
+
+**Resolution (2026-07-15):** Did not materialize. Phase 8 executed with its full documented scope (trigger contract, provider seam, comparison benchmark across all 8 classes) — no descope was needed. Downgraded from WATCHING to MITIGATED.
 
 ### RISK-003 — `EirLocator` forwards undocumented Playwright internals (`_apiName`, `_expect`)
 **Status:** WATCHING
@@ -374,6 +416,15 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Blocked/open: the "existing comment updates to clean state" branch of the no-heals design is unit-tested but wasn't separately exercised live this session (no PR here ever had findings *then* lost them) — worth knowing, not blocking.
 - CI: green on PR #14 (real code); PR #15 (dogfood demo) intentionally red — 3 real tests fail because the mutation is real, `suggest-only` never retries, and that's the honest, correct behavior being demonstrated.
 - Next: Phase 8 — Gemini Fallback + Comparison Benchmark. Starts with its Pre-Phase TS Tip (typed async boundaries and schema validation).
+
+### 2026-07-15 — Phase 8, all work items (1–5)
+- Did: three Understanding Gates run and passed (trigger predicate — mode-independent, reads the same 0.7/0.05 bars as policy; suggestion-cap — structural via verdict-type shape + sequencing, not a check; ReportRow extend-vs-within — extend, deliberately, provenance is structure not wording). zod added to `packages/eir` (first runtime dep, justified). Built `packages/eir/src/fallback/`: `trigger.ts` (`isFormallyUncertain`), `verdict.ts` (zod `WireVerdictSchema`, discriminated `ProviderVerdict`/`FallbackOutcome`), `prompt.ts` (pure builder, fingerprint+shortlist only), `provider.ts`/`geminiProvider.ts`/`nullProvider.ts` (the seam), `runFallback.ts` (`buildFallbackRunner` — off by default, clean no-key skip). Wired into `MatchAttempt.shortlist`, `MatchingContext.fallback`, `EirConfig.fallback`, `EirLocator`'s non-heal branch only, `HealAttemptEvent.fallback`, `ReportRow.fallback`; ci-action validator/renderer updated with explicit less-trusted wording. PR #16, CI green without any key present.
+- Cost Gate: presented and signed off before any real call (21 predicted invocations/run, `gemini-2.5-flash-lite`, ≈$0.003/run, <$0.02 session budget). Smoke test passed end-to-end before the full run.
+- Comparison benchmark: reused the committed heuristics-only baseline (suggestion-cap makes a rerun there structurally redundant) and added one real run per class with the fallback opted in. Five real runs total, 74 invocation attempts across two API keys: trigger census (21/run) confirmed twice exactly; 17 real responses, **100% endorsed** (zero contradictions, zero corrections, including on the near-dup adversarial class); 57 attempts degraded cleanly to `no-verdict` on real `http-429`/`http-503` — a genuine free-tier reliability ceiling, not an engine defect (logged as NOTE-007). A real process mistake — reran the CLI without preserving the richest run's output file first — cost the per-invocation detail from that run (aggregate numbers recovered from the session transcript instead); logged as NOTE-008 (evidence CLIs have no overwrite protection).
+- `docs/hybrid-comparison.md` states the honest verdict: no measured accuracy benefit on any of the 8 classes, plus the free-tier reliability finding; recommends leaving the fallback disabled by default.
+- Blocked/open: none blocking. NOTE-004 retargeted to Phase 9 (its own text named this phase's report-shape revisit as the trigger). RISK-002 resolved — did not materialize, full scope delivered.
+- CI: green on PR #16, confirmed keyless (no `GEMINI_API_KEY` anywhere in this repo or its workflow file).
+- Next: Phase 9 — Hardening, Docs, Release.
 
 ---
 
