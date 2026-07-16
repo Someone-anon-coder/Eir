@@ -125,12 +125,14 @@ Measured, not theoretical: `packages/benchmark`'s `class-shuffle` class plateaus
 **Why not now:**
 Fixing this means either (a) adding the element's own filtered class tokens as a captured `Fingerprint`/`CandidateFeatures` field (a 7th scorer dimension, `ownClassOverlap` or similar) or (b) extending `attrOverlap` to also consider the element's own class list — either way, a schema change to `Fingerprint` (Phase 3, already shipped/published) requiring every existing baseline to be recaptured, and a new/changed scorer requiring its own Understanding-Gate treatment and table-driven tests, same as the original six. Out of scope for a same-phase tuning-loop fix; a real capability addition, not a weight adjustment.
 
+**Phase 9 disposition (2026-07-16):** documented, not fixed — per the ledger-triage gate, no schema change this session. The README's results table (Session 2) will state the measured 25% `class-shuffle` ceiling and name this note as the schema-v2 candidate that would address it.
+
 **Resolution:** *(pending)*
 
 ---
 
 ### NOTE-004 — Post-condition verification silently no-ops when no baseline exists, same as a genuine "none"
-**Status:** PARKED
+**Status:** RESOLVED (implemented Phase 9, 2026-07-16)
 **Raised:** 2026-07-11, during Phase 6's NOTE-001 retrofit, while reviewing the real heal-mode evidence run
 **Target phase:** Phase 9 (retargeted 2026-07-15 — see below)
 **Blueprint touchpoint:** §7.6 (policy — post-condition verification)
@@ -146,12 +148,12 @@ Purely a reporting-fidelity question, not a correctness one (nothing here produc
 
 **Phase 8 revisit (2026-07-15):** this note's own text named "whenever the report shape gets revisited" as its target — Phase 8 did exactly that, extending `ReportRow` with a `fallback` field (Understanding Gate 3, see `docs/hybrid-comparison.md`/session brief). Deliberately did **not** fold this note in at the same time: it's a verification-fidelity gap in Phase 6's post-condition machinery, unrelated to fallback provenance, and Phase 8's own scope (trigger contract, provider seam, comparison benchmark) doesn't touch the post-condition path at all. Retargeted to Phase 9's hardening/acceptance sweep, which already owns the reporter's remaining fidelity gaps (NOTE-005).
 
-**Resolution:** *(pending)*
+**Resolution (Phase 9, 2026-07-16):** `RetryOutcome`'s `"healed"` variant (`packages/eir/src/policy/policyLog.ts`) gains a `verification: "verified" | "skipped-none" | "skipped-no-baseline"` field, computed in `EirLocator#retryHealed` (`packages/eir/src/eirLocator.ts`): `stored === undefined` → `"skipped-no-baseline"` (no baseline ever existed — the weaker signal this note is about); pulses unobservable or a real stored `"none"` → `"skipped-none"` (Phase 6 already treated these as equivalent); a genuine compare-and-match → `"verified"`. Threaded through `ReportRow.postConditionVerification` (same optional-field, mixed-version-tolerant pattern Phase 8 set for `fallback`) and `ci-action`'s validator/renderer — the PR comment now states the real breakdown (e.g. "2 rows genuinely verified... 1 row accepted on margin alone, no prior baseline existed") instead of a blanket "can't tell" disclaimer. New tests: `eirLocator.retry.test.ts` (all three states via the real retry path), `eirReporter.test.ts`, `ci-action`'s `report.test.ts`/`renderComment.test.ts`.
 
 ---
 
 ### NOTE-005 — Mechanism A (post-condition verification) has never caught a real wrong heal end-to-end
-**Status:** PARKED
+**Status:** RESOLVED (Phase 9, 2026-07-16 — mandatory fix per the phase's own ledger-triage instruction, not a documentation-only close)
 **Raised:** 2026-07-11, during Phase 7 session-open housekeeping (carried forward from the Phase 6 close conversation)
 **Target phase:** Phase 9 (hardening / acceptance sweep)
 **Blueprint touchpoint:** §7.6 (post-condition verification), §9.2 (behavioral acceptance criteria)
@@ -165,7 +167,7 @@ This is the exact asymmetry P4 cares about (false heals are worse than failures)
 **Why not now:**
 Phase 7 consumes the reporter artifact for CI delivery; it doesn't extend or re-exercise the matching/policy engine. Constructing a real false-heal case deliberately (rather than accepting a lucky benchmark result) is acceptance-sweep work, matching Blueprint §9.2's behavioral criteria — squarely Phase 9's job.
 
-**Resolution:** *(pending)*
+**Resolution (Phase 9, 2026-07-16):** `packages/eir/src/acceptance/note005RealFalseHeal.test.ts` — a real browser DOM (a genuine HTTP-served page via a real Chromium launched with `@playwright/test`'s `chromium`, added as a devDependency), the real unmocked `attemptMatch` funnel and all six scorers, and a real `EirLocator#retryHealed` retry. Scenario: a near-duplicate button pair transplanted from this note's own Login/Signup motivating example — the real target ("Delete Item") removes a DOM node when clicked, a genuine `dom-count-change: decreased` post-condition; after it's removed from the DOM (simulating the mutation that would trigger healing), only a structurally similar distractor remains ("Archive Item", which *adds* a node instead — the opposite signal). With a deliberately permissive `healThreshold` (0.2, stated explicitly in the test as far below the shipped 0.7 default and not a claim about safe defaults — the measured 0% false-heal rate stands), the real matcher confidently heals to the distractor (measured confidence ≈0.5602, real and reproducible), the retry genuinely executes against it (confirmed via the real DOM effect), and Mechanism A's `postConditionMatches` genuinely catches the mismatch, downgrading to `heal-rejected-post-condition-mismatch` — the original zero-match error is what the caller sees, per the retry-once contract. This is the live catch this note asked for, not a re-confirmation of the existing mocked-matcher unit tests. Needed a CI ordering fix (`.github/workflows/ci.yml`): Chromium now installs before `pnpm test`, not just before the demo-app e2e step, since `packages/eir`'s own suite needs a real browser now.
 
 ---
 
@@ -183,6 +185,8 @@ Marketplace publication is what makes the action actually reusable outside this 
 
 **Why not now:**
 Explicitly named OUT for Phase 7 by the approach doc ("Gemini. Marketplace publication of the action (post-project polish, NOTES.md)"). Publishing implies a versioning/release story `packages/eir`'s own npm releases already established a precedent for, worth doing deliberately post-Phase-9, not as a Phase 7 afterthought.
+
+**Phase 9 disposition (2026-07-16):** status confirmed unchanged — stays parked post-project, per the ledger triage's item 12.
 
 **Resolution:** *(pending)*
 
@@ -203,12 +207,14 @@ An adopter reading "the fallback is available" without this caveat could reasona
 **Why not now:**
 Phase 8's job was to measure and report this honestly (done — see `docs/hybrid-comparison.md`), not to write the adopter-facing README, which is Phase 9's job.
 
+**Phase 9 disposition (2026-07-16):** confirmed for documentation, not code — the README's fallback section (Session 2) will state the measured ~23% real-response rate plainly wherever the fallback is documented.
+
 **Resolution:** *(pending)*
 
 ---
 
 ### NOTE-008 — Benchmark evidence CLIs overwrite their own prior report with no versioning or backup
-**Status:** PARKED
+**Status:** RESOLVED (Phase 9, 2026-07-16)
 **Raised:** 2026-07-15, during Phase 8's comparison benchmark, after directly losing data to this gap
 **Target phase:** Unassigned — whenever `packages/benchmark`'s CLI tooling is next touched
 **Blueprint touchpoint:** none — tooling hygiene, not a design decision
@@ -222,7 +228,83 @@ Any evidence-gathering CLI whose output feeds a committed doc (`docs/hybrid-comp
 **Why not now:**
 A real gap, but a tooling-hygiene one, not a Phase 8 design/DoD blocker — the phase's actual evidence was recovered honestly via the transcript and reported as such.
 
-**Resolution:** *(pending — candidate fix: timestamp or `--out` flag on both evidence CLIs, or refuse to overwrite without `--force`)*
+**Resolution (Phase 9, 2026-07-16):** `packages/benchmark/src/evidenceFileGuard.ts`'s `assertWritable(filePath, force)` — refuses to overwrite an existing file unless `--force` is passed explicitly, checked (for both the JSON and Markdown outputs) before either is written so a rerun never partially clobbers. Wired into both `healEvidenceCli.ts` and `hybridComparisonCli.ts` (each gains a `--force` flag); unit-tested in `evidenceFileGuard.test.ts`.
+
+---
+
+### NOTE-009 — `EirLocator` needs a real unwrap-if-`EirLocator` step for `.and()`/`.or()`/`.dragTo()`/`.locator(sel, {has})`
+**Status:** PARKED
+**Raised:** 2026-07-16, during Phase 9's ledger triage (RISK-005's disposition)
+**Target phase:** Unassigned — post-release, whenever `EirLocator`'s method surface is next touched
+**Blueprint touchpoint:** §7.1 (interception layer) — an implementation completeness gap, not a principle question
+
+**The idea:**
+RISK-005 is now confirmed a real, reproducible bug (see its Phase 9 disposition above and `packages/demo-app/tests/eir-proof/locator-as-argument.spec.ts`): `EirLocator` never unwraps an `EirLocator` argument back to the real Playwright `Locator` it wraps when passed as an *argument* to another Locator's method. The fix is an internal `instanceof EirLocator` check (or a narrow, package-private unwrap accessor) inside `.and()`, `.or()`, `.dragTo()`, and `.locator(sel, { has })` specifically — the four real call sites confirmed to read another `Locator`'s private fields directly.
+
+**Why it matters:**
+Real adopting suites do call `.and()`/`.or()` to compose locators, and `dragTo()` for drag-and-drop flows. Today, doing so with an Eir-wrapped page silently breaks in a confusing way (a Playwright internal error about frames, not an Eir-authored message) rather than working transparently, which cuts against Blueprint P1/P2 (the tool should be invisible until it heals).
+
+**Why not now:**
+A real design decision (should the unwrap be `instanceof`-based or structural? does it need its own Understanding Gate given CLAUDE.md §7.1's `any`/cast discipline?) and its own table-driven tests — more than an hour's work, and Phase 9's remaining scope (README, demo path, external test, release) doesn't have room for it without rushing the release.
+
+**Resolution:** *(pending)*
+
+---
+
+### NOTE-010 — `docs/ci.md`'s workflow snippet has never been verified from an external fork
+**Status:** PARKED
+**Raised:** 2026-07-12 during Phase 7 (verbally noted, no NOTE-### assigned at the time); formalized with an ID during Phase 9's ledger triage, 2026-07-16
+**Target phase:** Post-release polish
+**Blueprint touchpoint:** none — a verification-coverage gap, not a design decision
+
+**The idea:**
+Phase 7's DoD judged `docs/ci.md`'s snippet proven via four green/expected-red CI runs across two real PRs on this repo (#14, #15) rather than a separate external-fork test, on the reasoning that live-repo evidence was disproportionately strong already. That judgment call is recorded honestly (Phase 7's 2026-07-12 progress log entry) but the external-fork case itself has never actually been run.
+
+**Why it matters:**
+The one thing a same-repo test can't rule out is a packaging/permissions surprise specific to a *fork* (different `github.token` defaults, a fork's `pull_request` event having reduced permissions by default, etc.) — exactly the kind of friction Blueprint §9.1's install bar cares about.
+
+**Why not now:**
+Judged disproportionate for Phase 7's own DoD (see above) and not required by Phase 9's own §9.1 external-clean-project test, which covers `playwright-eir`'s npm install path, not `ci-action`'s GitHub Actions path specifically. Deferred rather than silently dropped.
+
+**Resolution:** *(pending)*
+
+---
+
+### NOTE-011 — The no-heals "comment updates to a clean state" branch has never been exercised live
+**Status:** PARKED
+**Raised:** 2026-07-12 during Phase 7 (verbally noted as "worth knowing, not blocking" in that session's progress log); formalized with an ID during Phase 9's ledger triage, 2026-07-16
+**Target phase:** Post-release polish
+**Blueprint touchpoint:** §7.7 (reporting — the no-heals path)
+
+**The idea:**
+`ci-action`'s no-heals handling (a PR whose findings disappear on a later push should update the existing comment to a "nothing to report" state, not leave a stale findings comment or post a duplicate) is unit-tested but has never been exercised by a real PR that had findings and then lost them across two pushes.
+
+**Why it matters:**
+This is the one branch of the upsert-comment logic without live confirmation; a real adopting team's PR (fix the mutation, push again) would be the first live exercise of exactly this path.
+
+**Why not now:**
+Low risk — unit-tested, and the underlying upsert-by-marker mechanism is otherwise proven live (dogfood PR #15's second/third pushes updated the same comment ID). Not worth engineering an artificial live scenario just to exercise this one branch during Phase 9's already-large scope.
+
+**Resolution:** *(pending)*
+
+---
+
+### NOTE-012 — The hybrid-comparison's "no benefit" claim needed its exact trigger-scope boundary stated explicitly
+**Status:** RESOLVED (Phase 9, 2026-07-16)
+**Raised:** 2026-07-16, during Phase 9's ledger triage (flagged as a Phase 8 review finding, previously untracked by a NOTE-### ID)
+**Target phase:** Phase 9
+**Blueprint touchpoint:** §7.8 (benchmark honesty), §9.3 (measurement bar)
+
+**The idea:**
+`isFormallyUncertain` (`packages/eir/src/fallback/trigger.ts`) only ever returns true for a `MatchAttempt` of kind `"matched"` whose winner failed heal qualification. A `"no-candidates"` attempt (zero live candidates found at all) or a `"rejected"` attempt (triage gated it out before matching ran) can never reach the trigger. `docs/hybrid-comparison.md` explained per-class *why* some classes never invoke the fallback (e.g. `sibling-reorder`'s RISK-009 gap) but never stated the *general* boundary this implies: the LLM was never consulted on true no-candidate misses, in either mode, on this benchmark.
+
+**Why it matters:**
+Without the boundary stated explicitly, "no measured benefit" reads as a broader claim than the evidence supports — an interviewer or adopter could reasonably (but wrongly) generalize it to "the LLM can't help with misses," which was never tested.
+
+**Why not now:**
+N/A — cheap, high-value doc fix, done this session.
+
+**Resolution:** `docs/hybrid-comparison.md` gained an explicit paragraph in "The trigger predicate" section stating the exact scope (`"matched"`-only, never `"no-candidates"`/`"rejected"`) and a third numbered caveat in "The honest verdict" restating it where a reader skimming just the conclusion would see it. The precise honest claim is now spelled out: "no measured benefit on the cases the fallback was consulted about," not "the LLM can't help with misses."
 
 ---
 
@@ -293,6 +375,8 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** `EirLocator`/`EirPage` only extend `chainPath`/wrap the return value for the exact 6 methods Blueprint §7.1 names (`locator`, `getByRole`, `getByLabel`, `getByText`, `getByTestId`, `getByPlaceholder`). Chaining through any other Locator-returning method (`filter`, `first`, `last`, `and`, `or`, `normalize`, `contentFrame`, `getByAltText`, `getByTitle`) returns the real, unwrapped `Locator` — that branch silently stops being tracked (no capture log, no future fingerprinting) even though it still behaves correctly as vanilla Playwright.
 **Mitigation:** Not currently exercised — the reference suite uses none of these methods. Revisit and widen the capture-point list if a future suite (benchmark or real-world adoption) relies on one of them.
 
+**Phase 9 disposition (2026-07-16):** documented, not fixed — per the ledger-triage gate, this is a "document, not fix" item. The README's "what Eir sees" section (Session 2) will state plainly that `filter`/`first`/`last`/`and`/`or`/`getByAltText`/`getByTitle`/`contentFrame` are untracked passthroughs, so an adopter knows the exact boundary rather than discovering it by surprise.
+
 ### RISK-007 — Post-success fingerprint capture loses every navigational action (resolved, kept for context)
 **Status:** MITIGATED
 **Raised:** 2026-07-06, during Phase 3 wiring (integration run against the demo app)
@@ -321,6 +405,8 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Risk:** Methods like `.and(other)`, `.or(other)`, `dragTo(target)`, or `locator(sel, { has: other })` expect a real Playwright `Locator` and may reach into private internal state beyond `_apiName`/`_expect` (the only two members `EirLocator` forwards). Passing an `EirLocator` in one of these argument positions is untested and could fail in ways the current invisibility proof wouldn't catch, since the reference suite doesn't exercise them.
 **Mitigation:** Not currently exercised — no spec in the reference suite uses these APIs. Flagged so it isn't discovered by surprise if a future spec (or a real adopting suite) does.
 
+**Phase 9 disposition (2026-07-16):** confirmed as a real, reproducible bug, not a theoretical risk — read Playwright's own client source (`playwright-core@1.61.1`): `.and()`/`.or()`/`.locator(sel, {has})` read a real `Locator`'s private `_frame`/`_selector` fields directly; `EirLocator` never unwraps an `EirLocator` argument back to the real `Locator` it wraps, so these throw `"Locators must belong to the same frame"` synchronously (`.dragTo()` fails differently, on `undefined._selector`). `packages/demo-app/tests/eir-proof/locator-as-argument.spec.ts` is a committed characterization test proving this today (asserts the current throw, so it stays informative in CI rather than permanently red). The actual fix — an internal unwrap-if-`EirLocator` step in `and`/`or`/`dragTo`/`locator` — is real design work, not attempted this session; tracked fresh as **NOTE-009**. Documented as a known limitation in the README (Session 2): don't pass an `EirLocator` where Playwright expects a real `Locator`.
+
 ### RISK-010 — `dom-count-change`'s page-wide element count is occasionally non-deterministic
 **Status:** WATCHING
 **Raised:** 2026-07-11, during Phase 6's own DoD verification (running the reference suite twice in a row to check for a zero-diff baseline, the same proof Phase 3 required for fingerprints)
@@ -329,11 +415,13 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Mitigation:** Not fixed this phase — the asymmetry this project cares about most (P4, false heals) isn't violated: a flaky stored post-condition can only make heal-and-continue's retry verification *more* conservative (an occasional spurious mismatch downgrades a genuinely-good heal to a suggestion), never less safe. Recorded here rather than papered over. If it proves disruptive in practice, candidate fixes include scoping the count to a smaller DOM subtree (e.g. the acted-on element's container) or debouncing the "after" pulse with a short settle wait — neither implemented, both would need their own Understanding Gate.
 
 ### RISK-011 — `classifyFailureSpecies` misses zero-match when no `actionTimeout` is configured
-**Status:** MITIGATED (for this repo's own reference suite; the general engine gap remains)
+**Status:** MITIGATED — fully, including the general engine gap (Phase 9, 2026-07-16; previously mitigated only for this repo's own reference suite)
 **Raised:** 2026-07-12, during Phase 7, while generating real `eir-report.json` data for the PR-comment mockup
 **Phase affected:** Phase 5 (introduced, `triage/failureSpecies.ts`), Phase 7 (discovered — blocked the dogfood workflow's core mechanism until fixed)
 **Risk:** `classifyFailureSpecies` (`packages/eir/src/triage/failureSpecies.ts`) classifies zero-match by checking the caught error's message for the literal substring `"Timeout"` (capital T) — the shape Playwright produces for a *bounded action timeout* (`use.actionTimeout`). If a suite has no `actionTimeout` configured, a vanished locator's `fill()`/`click()`/etc. retries unboundedly until Playwright's own *test-level* timeout kills it instead, producing `"Test timeout of 30000ms exceeded."` (lowercase "timeout") — a message `classifyFailureSpecies` classifies as `"unknown"`, which Gate 3 then rejects as not heal-eligible. Net effect: on a suite without `actionTimeout` set, Eir's entire triage/match/report pipeline silently never engages on a real, ordinary broken selector — confirmed live against `packages/demo-app`'s reference suite (an `id-rename` mutation against a real fingerprinted selector produced zero `eir-report.json` rows and a bare Playwright test-timeout failure, with no Eir signal anywhere). `packages/benchmark`'s own probe config already sets `actionTimeout: 5_000`, which is exactly why its results never exposed this gap before.
 **Mitigation:** `packages/demo-app/playwright.config.ts` now sets `actionTimeout: 5_000`, matching the benchmark's config — the reference suite (and Phase 7's dogfood workflow, which depends on it) now correctly exercises triage on a real broken selector. This is a demo-app config fix, not an engine change. **Not fixed at the engine level**: `classifyFailureSpecies`'s message-shape detection is still coupled to a specific Playwright config assumption (`actionTimeout` being set) that isn't documented anywhere as a prerequisite for Eir to function on real failures. A real adopting suite without `actionTimeout` configured — plausibly the common case, since Playwright doesn't set one by default — would hit this exact silent gap. Widening `classifyFailureSpecies` to also recognize the test-level timeout message shape (or documenting `actionTimeout` as a stated Eir prerequisite in the README/install docs) is real follow-up work, out of scope for Phase 7 (no engine changes this phase) — candidate for Phase 9 hardening or a README caveat.
+
+**Phase 9 engine-level fix (2026-07-16):** `classifyFailureSpecies` (`packages/eir/src/triage/failureSpecies.ts`) widened its timeout check from a case-sensitive `message.includes("Timeout")` to a case-insensitive `message.toLowerCase().includes("timeout")` — this now also recognizes `"Test timeout of ${n}ms exceeded."` (the message shape produced when no `actionTimeout` is configured and the action retries until the *test's own* timeout kills it), which the original check missed entirely. The function only ever runs on an already-caught action-call error, so widening the match doesn't risk misclassifying an unrelated failure. Unit-tested (`failureSpecies.test.ts`). `actionTimeout` remains a *recommended* config (faster triage — 5s vs. a full test timeout, often 30s+) rather than a hard prerequisite, and is still called out plainly in the README (Session 2) since faster detection matters even though the silent-failure gap itself is closed.
 
 ### RISK-009 — `sibling-reorder`-class breakage is invisible to Eir's own failure-triage layer
 **Status:** MITIGATED (partial — see Phase 6 update below; not fully closed)
@@ -425,6 +513,17 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Blocked/open: none blocking. NOTE-004 retargeted to Phase 9 (its own text named this phase's report-shape revisit as the trigger). RISK-002 resolved — did not materialize, full scope delivered.
 - CI: green on PR #16, confirmed keyless (no `GEMINI_API_KEY` anywhere in this repo or its workflow file).
 - Next: Phase 9 — Hardening, Docs, Release.
+
+### 2026-07-16 — Phase 9, Session 1 (ledger triage + NOTE-005 + acceptance sweep)
+- Did: judged Phase 9 too large for one session up front (per the session's own instruction) and proposed the natural split — session 1: ledger triage, NOTE-005, acceptance sweep, cheap fixes; session 2: README, demo path, external test, release, career artifacts. Confirmed. Ran the Pre-Phase TS Tip (built `dist/`, read all three public entry points' `.d.ts` — clean, one minor open question flagged for the README pass: whether `eirVersion()` should stay in the public API). Ran the batched ledger-triage gate (all 12 items proposed at once, approved as proposed).
+- Fixed (not just documented, per the triage): **RISK-011** — `classifyFailureSpecies` widened to case-insensitive timeout detection, closing the silent-triage-death gap for adopters without `actionTimeout` configured, engine-level this time (not just the demo-app config workaround from Phase 7). **NOTE-004** — `RetryOutcome`'s `"healed"` variant now distinguishes `verified`/`skipped-none`/`skipped-no-baseline`, threaded through the reporter and `ci-action`. **NOTE-008** — evidence CLIs refuse to overwrite an existing report without `--force`. **RISK-005** — confirmed as a real bug (not theoretical) via `playwright-core`'s own source; landed a committed characterization test proving it; the actual unwrap fix parked fresh as **NOTE-009** (real design work, not a same-session patch). **NOTE-012** (new, from a Phase 8 review finding) — `docs/hybrid-comparison.md` now states the fallback trigger's exact scope (`"matched"`-only) explicitly, closing the risk of over-generalizing "no benefit" to true misses.
+- **NOTE-005 (the mandatory one):** built a real, live false-heal demonstration — `packages/eir/src/acceptance/note005RealFalseHeal.test.ts`. A real Chromium browser (via `@playwright/test`, now a devDependency of `packages/eir` too), a real HTTP-served page, the real unmocked matching funnel, and a real `EirLocator` retry. A near-duplicate button pair (Login/Signup's own motivating shape): the real target is calibrated, removed, and a structurally similar distractor with a genuinely different real effect is left in its place. With a deliberately permissive `healThreshold` (0.2 — stated explicitly as not a claim about the shipped 0.7 default, which still measures 0% false-heal), the real matcher confidently heals to the distractor (measured confidence ≈0.5602), the retry genuinely executes against it, and Mechanism A genuinely catches the mismatch and downgrades to `heal-rejected-post-condition-mismatch`. Required moving CI's Chromium install earlier (before `pnpm test`, not just before the demo-app e2e step).
+- §9.2 acceptance sweep: compiled `docs/acceptance-sweep.md`, linking every criterion to a proving test. Two were already fully proven (happy-path invisibility, suggest-only never retries); two had partial proof upgraded to a direct comparison or automated check (`neverFingerprintedFailsVanilla.test.ts`, `storeSizeEnvelope.test.ts`); one had no automated proof at all and got one (`noSourceWrites.test.ts`, a structural scan asserting every fs write call in `packages/eir/src` is confined to four already-audited files). Parallel-worker integrity (#7) was freshly re-run this session (1 vs. 4 workers against the real reference suite) rather than relying only on Phase 3's original manual proof: every fingerprint file byte-identical; RISK-010's already-documented post-condition non-determinism reproduced exactly as described, confirmed independent of worker count.
+- Documented-not-fixed items confirmed per the triage, each getting a Phase 9 disposition note in its own entry above: RISK-004 (capture-point coverage), NOTE-003 (class-shuffle ceiling), NOTE-007 (Gemini reliability), NOTE-006 (Marketplace, confirmed still parked). Two Phase 7 niceties formally deferred with fresh IDs: NOTE-010 (`docs/ci.md` external-fork verification) and NOTE-011 (no-heals clean-state branch never exercised live).
+- All work on branch `phase-9-hardening-ledger-triage-2026-07-16`, five scoped commits so far, CI not yet pushed this session.
+- Blocked/open: none. Zero silently-open ledger items — every one of the 12 has a disposition and, where deferred, a NOTE-### tracking it forward.
+- CI: green locally (`pnpm lint && pnpm typecheck && pnpm test`, all 5 workspace packages) — not yet pushed/observed on GitHub Actions this session.
+- Next: Phase 9, Session 2 — README draft + rendered review, demo path timed from a clean clone, external clean-project npm-install test, release (version decision, publish, GitHub release), career artifacts, closing TS tip, `phase-9-done`/`project-done` tags.
 
 ---
 
