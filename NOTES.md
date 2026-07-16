@@ -536,6 +536,51 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - CI: green on PR #17 throughout (`build` check, most recent run completed 2026-07-16T13:51:45Z).
 - Next: merge PR #17, tag `v0.3.0` + create the GitHub release with the results table, tag `phase-9-done`/`project-done` after Aayush's final DoD confirmation, deliver the closing session brief.
 
+### 2026-07-16 — Repo Audit (post-project-done, pre-1.0.0)
+- Did: produced `FULL_UNDERSTANDING.md` at the repo root — a 14-section,
+  fully-commanded audit snapshot of `main`@`38baa60` (the `phase-9-done`/
+  `project-done`/`v0.3.0` commit), commissioned as the foundational
+  document for the 1.0.0 completeness-and-security review. Describe-only
+  session per its own hard rule: zero fixes applied, every imperfection
+  found routed to §13 instead. Verified live rather than recalled: CI
+  status of HEAD (green, one non-blocking Node-20-deprecation annotation),
+  npm registry state (`0.3.0`/`latest`, confirmed via `npm view`), a real
+  secret-shaped-string grep across tracked files (zero matches), a real
+  `pnpm --filter playwright-eir build` + `dist/*.d.ts` read for the public
+  API surface, a real deep-import attempt against the `exports` map
+  (blocked as expected), `npm pack --dry-run` (291 files, 113.6 kB,
+  dist-only), the full production dependency tree (`zod@4.4.3`, the
+  package's only runtime dependency), and a fresh `pnpm test` run per
+  package (505 total Vitest tests passing across `eir`/`benchmark`/
+  `ci-action`/`demo-app`, matching but independently re-confirming Phase
+  9's own count for `packages/eir`).
+- A local `.env` file at the repo root triggered the session's "stop and
+  report a leaked secret" tripwire on sight; checked immediately
+  (`git ls-files`, `git check-ignore -v`, `git log --all --full-history --
+  .env`) and confirmed untracked, correctly gitignored, and absent from
+  all git history — not a leak, no pause needed, noted in §1/§11 rather
+  than escalated further.
+- Found and recorded in §13 (not fixed): `CLAUDE.md` §9's repository map
+  places `.eir/` at repo root when it actually lives at
+  `packages/demo-app/.eir/`; a stale `policy/thresholds.ts` comment names
+  a report string (`silent-drift-suspected`) that doesn't match the real
+  code (`drift-suspected`); `packages/demo-app/playwright.config.ts`'s
+  `actionTimeout` comment still describes RISK-011's pre-fix behavior as
+  current; the CI dogfood mutation step is permanently pinned to one
+  exact, already-merged, one-time branch name; and a real (if narrow)
+  correctness gap in `ci-action`'s "has findings" check, which uses
+  `suggestion !== null` as its sole signal and can therefore miss a
+  genuine heal in the rare case `suggestSelector` itself returns `null`.
+  Full list, with severity guesses, in the document's §13 — ten items
+  total, none fixed this session per the audit's own hard rule.
+- Blocked/open: none. This was a read-only audit session; no code changed.
+- CI: not yet pushed this session (document-only branch).
+- Next: PR review + merge (Aayush's go), then triage `FULL_UNDERSTANDING.md`
+  §13's ten findings and §12/§14's version-gap items into fresh NOTE-###
+  entries here as Aayush decides which matter for 1.0.0 — this session
+  deliberately opened none itself, per its own instruction to keep findings
+  parked in the document until triaged together.
+
 ---
 
 ## 6. Changelog to Governing Documents
