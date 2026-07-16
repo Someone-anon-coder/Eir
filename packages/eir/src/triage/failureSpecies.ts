@@ -16,6 +16,18 @@
  *   harder to force deterministically than the other two (Locator actions
  *   re-resolve on every retry, so the race window is narrow) — flagged
  *   here rather than silently assumed, per CLAUDE.md's honesty rules.
+ *
+ * RISK-011 (Phase 9 hardening): without `use.actionTimeout` configured,
+ * an action on a vanished locator never produces Playwright's bounded
+ * `"Timeout ${n}ms exceeded."` action-timeout message at all — it retries
+ * until the *test's own* timeout kills it, producing
+ * `"Test timeout of ${n}ms exceeded."` instead (lowercase `timeout`,
+ * different sentence). The original capital-`"Timeout"` check missed this
+ * shape entirely, so an adopter without `actionTimeout` set got a silent,
+ * fully-dead triage pipeline on every real broken selector. The timeout
+ * check below is case-insensitive so both shapes classify as zero-match —
+ * this function only ever runs on an already-caught action-call error, so
+ * widening the match doesn't risk misclassifying an unrelated failure.
  */
 
 export type FailureSpecies = "zero-match" | "detached" | "found-but-never-visible" | "unknown";
@@ -25,6 +37,8 @@ const RESOLVED_MARKER = "resolved to";
 
 export function classifyFailureSpecies(message: string): FailureSpecies {
   if (message.includes(DETACHED_MARKER)) return "detached";
-  if (!message.includes(RESOLVED_MARKER)) return message.includes("Timeout") ? "zero-match" : "unknown";
+  if (!message.includes(RESOLVED_MARKER)) {
+    return message.toLowerCase().includes("timeout") ? "zero-match" : "unknown";
+  }
   return "found-but-never-visible";
 }

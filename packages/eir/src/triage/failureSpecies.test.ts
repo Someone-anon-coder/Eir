@@ -22,9 +22,19 @@ Call log:
 
 const DETACHED_MESSAGE = "Element is not attached to the DOM";
 
+// RISK-011: the real message shape produced when no `actionTimeout` is
+// configured — the action retries until the *test's* own timeout kills
+// it instead of a bounded action timeout. Lowercase "timeout", no call
+// log, no "resolved to" — previously fell through to "unknown".
+const NO_ACTION_TIMEOUT_MESSAGE = "Test timeout of 30000ms exceeded.";
+
 describe("classifyFailureSpecies", () => {
   it("classifies a locator that never resolved as zero-match", () => {
     expect(classifyFailureSpecies(ZERO_MATCH_MESSAGE)).toBe("zero-match");
+  });
+
+  it("classifies a test-level timeout (no actionTimeout configured) as zero-match, not unknown (RISK-011)", () => {
+    expect(classifyFailureSpecies(NO_ACTION_TIMEOUT_MESSAGE)).toBe("zero-match");
   });
 
   it("classifies a resolved-but-never-actionable element as found-but-never-visible", () => {
