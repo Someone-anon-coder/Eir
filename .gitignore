@@ -16,6 +16,10 @@ playwright/.cache/
 # Aayush's TS-tip playground — scratch only, never shipped
 ts-scratch/
 
+# Aayush's personal career artifacts —
+# for his own use, not for a public-repo audience. Kept local, never pushed.
+career/
+
 # Eir fingerprint/post-condition store: per-worker scratch shards, merged
 # away in globalTeardown and never meant to be committed. `.eir/routes/`
 # is NOT ignored — that's the committed baseline (Blueprint §7.3), and

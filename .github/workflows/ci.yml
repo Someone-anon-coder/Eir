@@ -36,6 +36,14 @@ jobs:
 
       - run: pnpm typecheck
 
+      # Phase 9 hardening (NOTE-005): playwright-eir's own unit suite now
+      # includes a real-browser proving test (a live false heal + Mechanism
+      # A's rejection of it, packages/eir/src/acceptance/), so Chromium has
+      # to exist before `pnpm test`, not just before the demo-app e2e step
+      # below. One install serves both — Playwright's browser cache isn't
+      # per-package.
+      - run: pnpm --filter demo-app exec playwright install --with-deps chromium
+
       - run: pnpm test
 
       # Phase 7 dogfood demo only: applies a real, seeded id-rename mutation
@@ -54,8 +62,6 @@ jobs:
           echo "VITE_EIR_MUTATIONS<<EOF" >> "$GITHUB_ENV"
           echo "$PAYLOAD" >> "$GITHUB_ENV"
           echo "EOF" >> "$GITHUB_ENV"
-
-      - run: pnpm --filter demo-app exec playwright install --with-deps chromium
 
       - run: pnpm --filter demo-app e2e
 

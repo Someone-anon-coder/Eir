@@ -72,6 +72,53 @@ describe("readEirReport", () => {
     expect(report.rows[0]?.fallback).toEqual({ provider: "gemini", verdict: "endorsed", detail: "same testid" });
   });
 
+  it("parses a pre-NOTE-004 healed row (no postConditionVerification key) as null", async () => {
+    const file = path.join(dir, "eir-report.json");
+    await writeFile(
+      file,
+      JSON.stringify({
+        rows: [
+          {
+            testTitle: "t",
+            method: "click",
+            route: "/dashboard/devices",
+            selectorKey: "k",
+            action: "healed",
+            confidence: 0.9,
+            suggestion: null,
+            screenshotFile: null,
+          },
+        ],
+      }),
+    );
+    const report = await readEirReport(file);
+    expect(report.rows[0]?.postConditionVerification).toBeNull();
+  });
+
+  it("parses a NOTE-004 healed row with postConditionVerification intact", async () => {
+    const file = path.join(dir, "eir-report.json");
+    await writeFile(
+      file,
+      JSON.stringify({
+        rows: [
+          {
+            testTitle: "t",
+            method: "click",
+            route: "/dashboard/devices",
+            selectorKey: "k",
+            action: "healed",
+            confidence: 0.9,
+            suggestion: null,
+            screenshotFile: null,
+            postConditionVerification: "verified",
+          },
+        ],
+      }),
+    );
+    const report = await readEirReport(file);
+    expect(report.rows[0]?.postConditionVerification).toBe("verified");
+  });
+
   const invalidShapes: readonly [string, unknown][] = [
     ["not an object", "not json shaped as a report"],
     ["missing rows", {}],
@@ -123,6 +170,24 @@ describe("readEirReport", () => {
             suggestion: "s",
             screenshotFile: null,
             fallback: { provider: "gemini", verdict: "llm-healed", detail: null },
+          },
+        ],
+      },
+    ],
+    [
+      "row with an unknown postConditionVerification value",
+      {
+        rows: [
+          {
+            testTitle: "t",
+            method: "m",
+            route: "/",
+            selectorKey: "k",
+            action: "healed",
+            confidence: 0.9,
+            suggestion: null,
+            screenshotFile: null,
+            postConditionVerification: "definitely-fine-trust-me",
           },
         ],
       },

@@ -1,7 +1,7 @@
 {
   "name": "playwright-eir",
-  "version": "0.2.0",
-  "description": "Self-healing locator engine for Playwright. Under active development.",
+  "version": "0.3.0",
+  "description": "Self-healing locator engine for Playwright: fingerprints elements while your suite passes, and suggests (or retries) a fix when a selector breaks.",
   "keywords": [
     "playwright",
     "testing",
@@ -53,6 +53,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.0",
     "typescript": "^6.0.3"
   },

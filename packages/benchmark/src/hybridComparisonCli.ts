@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertWritable } from "./evidenceFileGuard.js";
 import { renderHybridComparisonMarkdown, runHybridComparison, type HybridClassResult } from "./hybridComparison.js";
 
 const REPORTS_DIR = new URL("../reports", import.meta.url).pathname;
@@ -13,10 +14,14 @@ const REPORTS_DIR = new URL("../reports", import.meta.url).pathname;
  * which would be a misleading comparison run — so this CLI checks first
  * and refuses to proceed without it).
  *
- * Usage: `pnpm bench:hybrid --seed 42`
+ * Usage: `pnpm bench:hybrid --seed 42 [--force]`
+ * (NOTE-008: refuses to overwrite an existing report without `--force` —
+ * this run makes real, billed API calls, so a lost report is expensive
+ * to reproduce, not just inconvenient.)
  */
-function parseSeed(argv: readonly string[]): number {
+function parseArgs(argv: readonly string[]): { readonly seed: number; readonly force: boolean } {
   let seed = 42;
+  let force = false;
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--seed") {
       const value = argv[i + 1];
@@ -26,13 +31,17 @@ function parseSeed(argv: readonly string[]): number {
       }
       seed = parsed;
       i++;
+      continue;
+    }
+    if (argv[i] === "--force") {
+      force = true;
     }
   }
-  return seed;
+  return { seed, force };
 }
 
 async function main(): Promise<void> {
-  const seed = parseSeed(process.argv.slice(2));
+  const { seed, force } = parseArgs(process.argv.slice(2));
 
   const apiKey = process.env["GEMINI_API_KEY"];
   if (apiKey === undefined || apiKey.length === 0) {
@@ -41,6 +50,15 @@ async function main(): Promise<void> {
     );
   }
 
+  await mkdir(REPORTS_DIR, { recursive: true });
+  const jsonPath = path.join(REPORTS_DIR, "hybrid-comparison.json");
+  const mdPath = path.join(REPORTS_DIR, "hybrid-comparison.md");
+  // NOTE-008: this run makes real, billed, possibly non-reproducible API
+  // calls — refusing to silently clobber a prior run matters more here
+  // than anywhere else in the benchmark tooling.
+  await assertWritable(jsonPath, force);
+  await assertWritable(mdPath, force);
+
   console.log(`Running hybrid comparison across all 8 classes (seed ${String(seed)})...`);
   const results: HybridClassResult[] = [];
   for (const result of await runHybridComparison(seed)) {
@@ -48,9 +66,6 @@ async function main(): Promise<void> {
     results.push(result);
   }
 
-  await mkdir(REPORTS_DIR, { recursive: true });
-  const jsonPath = path.join(REPORTS_DIR, "hybrid-comparison.json");
-  const mdPath = path.join(REPORTS_DIR, "hybrid-comparison.md");
   await writeFile(jsonPath, `${JSON.stringify({ seed, generatedAt: new Date().toISOString(), results }, null, 2)}\n`, "utf-8");
   await writeFile(mdPath, `${renderHybridComparisonMarkdown(results)}\n`, "utf-8");
 

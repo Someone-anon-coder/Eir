@@ -138,12 +138,12 @@ describe("suggest-only mode", () => {
 });
 
 describe("heal mode — retry-once semantics", () => {
-  it("heals: retries the matched candidate and returns its result when nothing to verify (post-condition none)", async () => {
-    vi.mocked(capturePulse).mockResolvedValue(null); // no pulse available -> nothing to verify, per postConditionMatches' "none" reasoning
+  it("heals: retries the matched candidate and returns its result when no post-condition was ever stored (no baseline)", async () => {
+    vi.mocked(capturePulse).mockResolvedValue(null);
     const candidate = fakeCandidateLocator();
     const page = fakePage(candidate);
     const real = fakeOriginalLocator(page);
-    const matching = fakeMatching(HEAL_MODE);
+    const matching = fakeMatching(HEAL_MODE); // no stored post-condition passed -> lookup() returns undefined
     const eir = new EirLocator(real, [{ method: "getByTestId", args: ["device-row-remove"] }], fakeRecorder(), fakePostConditionRecorder(), matching);
 
     await expect(eir.click()).resolves.toBeUndefined();
@@ -152,6 +152,45 @@ describe("heal mode — retry-once semantics", () => {
     expect(matching.annotate).toHaveBeenCalledWith(
       "eir-healed",
       expect.stringContaining("device-row-remove") as unknown as string,
+    );
+    // NOTE-004: no baseline ever existed for this selector -> a materially weaker trust signal, distinguished from "verified".
+    expect(matching.policyLog.record).toHaveBeenCalledWith(
+      expect.objectContaining({ retryOutcome: { kind: "healed", verification: "skipped-no-baseline" } }),
+    );
+  });
+
+  it("heals: a stored post-condition of \"none\" always passes verification, labeled skipped-none (NOTE-004)", async () => {
+    const stored: PostCondition = { v: 1, kind: "none" };
+    vi.mocked(capturePulse)
+      .mockResolvedValueOnce(null) // #runImperative's unused pulseBefore
+      .mockResolvedValueOnce({ route: "/dashboard/devices", elementCount: 50 }) // retry before
+      .mockResolvedValueOnce({ route: "/dashboard/devices", elementCount: 50 }); // retry after — unchanged, matches "none"
+    const candidate = fakeCandidateLocator();
+    const page = fakePage(candidate);
+    const real = fakeOriginalLocator(page);
+    const matching = fakeMatching(HEAL_MODE, stored);
+    const eir = new EirLocator(real, [{ method: "getByTestId", args: ["device-row-remove"] }], fakeRecorder(), fakePostConditionRecorder(), matching);
+
+    await expect(eir.click()).resolves.toBeUndefined();
+
+    expect(matching.policyLog.record).toHaveBeenCalledWith(
+      expect.objectContaining({ retryOutcome: { kind: "healed", verification: "skipped-none" } }),
+    );
+  });
+
+  it("heals: a stored baseline exists but this retry's pulse couldn't be observed, labeled skipped-none (NOTE-004)", async () => {
+    const stored: PostCondition = { v: 1, kind: "dom-count-change", sign: "decreased" };
+    vi.mocked(capturePulse).mockResolvedValue(null); // pulses unobservable this retry, despite a real stored baseline
+    const candidate = fakeCandidateLocator();
+    const page = fakePage(candidate);
+    const real = fakeOriginalLocator(page);
+    const matching = fakeMatching(HEAL_MODE, stored);
+    const eir = new EirLocator(real, [{ method: "getByTestId", args: ["device-row-remove"] }], fakeRecorder(), fakePostConditionRecorder(), matching);
+
+    await expect(eir.click()).resolves.toBeUndefined();
+
+    expect(matching.policyLog.record).toHaveBeenCalledWith(
+      expect.objectContaining({ retryOutcome: { kind: "healed", verification: "skipped-none" } }),
     );
   });
 
@@ -169,6 +208,10 @@ describe("heal mode — retry-once semantics", () => {
 
     await expect(eir.click()).resolves.toBeUndefined();
     expect(matching.annotate).toHaveBeenCalledWith("eir-healed", expect.any(String) as unknown as string);
+    // NOTE-004: a real stored post-condition, genuinely compared and matched -> "verified", not just "healed".
+    expect(matching.policyLog.record).toHaveBeenCalledWith(
+      expect.objectContaining({ retryOutcome: { kind: "healed", verification: "verified" } }),
+    );
   });
 
   it("rejects the heal (rethrows the ORIGINAL error) when the retry succeeds but the post-condition mismatches", async () => {

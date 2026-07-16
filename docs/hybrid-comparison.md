@@ -51,6 +51,27 @@ shortlist ever exists to hand the model). The trigger contract fires on
 exactly the rows it was designed to and no others, confirmed by real
 measurement, not just unit tests.
 
+**The precise scope this implies (Phase 9 hardening, stated explicitly
+rather than left implicit):** `isFormallyUncertain` (`packages/eir/src/fallback/trigger.ts`)
+only ever returns true for a `MatchAttempt` of kind `"matched"` whose
+winner failed heal qualification. A `"no-candidates"` attempt (the
+matcher found zero live candidates to score at all) and a `"rejected"`
+attempt (triage gated the failure out before matching even ran) can
+**never** reach the trigger — there is no candidate shortlist to hand
+the model in either case, by the same data constraint (fingerprint +
+shortlist only, never raw DOM) that shapes the whole prompt design. This
+is exactly why `sibling-reorder` (0% suggest/miss split entirely into
+`missed`, but via RISK-009's "never throws at all" gap — no match
+attempt of *any* kind, so obviously no trigger) and `tag-swap`/
+`wrapper-inject` (100% heal-qualified, so `matched`-and-confident, never
+`matched`-and-uncertain) never produce an invocation. **The honest claim
+from this comparison is therefore "no measured benefit on the cases the
+fallback was consulted about" — not "the LLM can't help with misses."**
+A true no-candidate miss was never shown to the model in this benchmark,
+in either mode; whether an LLM given raw context could do anything with
+a case heuristics couldn't even shortlist is a question this comparison
+does not answer.
+
 ## Finding 1 — free-tier reliability is a real, measured adoption cost
 
 | Run | Key | Invocations attempted | Real responses | No-verdict (rate-limited) | Notes |
@@ -151,15 +172,25 @@ because it was measured rather than assumed, and the measurement
 required building the entire suggestion-capped, schema-validated,
 gracefully-degrading pipeline regardless of what the numbers said.
 
-Two caveats an adopter should weigh, both real and both against
+Three caveats an adopter should weigh, all real and all against
 enabling it by default:
 
 1. **No demonstrated accuracy benefit** on any of this benchmark's 8
    mutation classes, including the one (`near-duplicate-sibling-swap`)
-   specifically designed to be hard.
+   specifically designed to be hard — **on the cases the fallback was
+   consulted about.** The trigger only ever fires on a `"matched"` attempt
+   that failed heal qualification; a true no-candidate miss (`"no-candidates"`)
+   or a triage-rejected failure (`"rejected"`) never reaches the model in
+   this benchmark, in either mode. This finding does not speak to whether
+   an LLM could help with those cases — that's untested, not disproven.
 2. **Free-tier reliability is poor enough to be a practical concern.**
    77% of this session's real invocation attempts degraded to
    `no-verdict` from rate limiting alone, across two separate keys.
+3. **The scope is narrower than "the LLM never helps."** See "The trigger
+   predicate" above for the exact boundary — this is a statement about
+   this benchmark's 8 mutation classes and the specific uncertainty shape
+   the heuristic engine formally admits to, not a general claim about LLM
+   assistance for locator healing.
 
 ### Recommendation
 
