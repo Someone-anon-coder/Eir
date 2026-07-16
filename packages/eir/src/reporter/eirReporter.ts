@@ -2,10 +2,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Reporter, TestCase, TestResult } from "@playwright/test/reporter";
 import type { FallbackRowVerdict } from "../fallback/verdict.js";
+import type { PostConditionVerification } from "../policy/policyLog.js";
 import type { SerializedPolicyEvent } from "../policy/policyLogFile.js";
 
 /** Re-exported so `playwright-eir/reporter` consumers (the ci-action) can type the fallback verdict without a deep import the exports map forbids. */
 export type { FallbackRowVerdict } from "../fallback/verdict.js";
+/** Re-exported for the same reason (NOTE-004, Phase 9): `ci-action` types a healed row's verification fidelity without a forbidden deep import. */
+export type { PostConditionVerification } from "../policy/policyLog.js";
 
 /**
  * Blueprint §7.7's reporter: a run-end heal-summary table printed to the
@@ -58,6 +61,17 @@ export interface ReportRow {
   /** Path relative to the report's own output directory, or `null` if no screenshot was captured. */
   readonly screenshotFile: string | null;
   readonly fallback: ReportRowFallback | null;
+  /**
+   * NOTE-004 (Phase 9): only meaningful on a `"healed"` row — `null` for
+   * every other action (nothing was retried, so nothing to distinguish).
+   * `"verified"` = a stored post-condition was genuinely compared and
+   * matched; `"skipped-none"` = nothing observable to check, by design
+   * (a real stored `"none"`, or an unobservable pulse this one time —
+   * Phase 6 always treated those as equivalent); `"skipped-no-baseline"`
+   * = no post-condition was ever stored for this selector at all, a
+   * materially weaker trust signal than the other two.
+   */
+  readonly postConditionVerification: PostConditionVerification | null;
 }
 
 const POLICY_EVENT_NAME = /^eir-policy-event:(\d+)$/;
@@ -74,6 +88,16 @@ function actionFor(event: Extract<SerializedPolicyEvent, { kind: "heal-attempt" 
     return "heal-attempt-failed";
   }
   return event.action.kind === "fail-with-suggestion" ? "suggested" : "missed";
+}
+
+/** NOTE-004: only a `"healed"` row carries verification fidelity — every other action never reached `#retryHealed` at all. */
+function postConditionVerificationFor(
+  event: Extract<SerializedPolicyEvent, { kind: "heal-attempt" }>,
+): PostConditionVerification | null {
+  if (event.action.kind === "heal-and-continue" && event.retryOutcome.kind === "healed") {
+    return event.retryOutcome.verification;
+  }
+  return null;
 }
 
 /** `Buffer` at runtime; the attachment's own `body` may already be a Node `Buffer`, so this only reads from disk when only `path` is present (e.g. a very large attachment Playwright chose to spill). */
@@ -129,6 +153,7 @@ export class EirReporter implements Reporter {
           suggestion: null,
           screenshotFile,
           fallback: null,
+          postConditionVerification: null,
         });
         continue;
       }
@@ -158,6 +183,7 @@ export class EirReporter implements Reporter {
                 verdict: event.fallback.verdict,
                 detail: event.fallback.detail,
               },
+        postConditionVerification: postConditionVerificationFor(event),
       });
     }
   }
@@ -183,13 +209,14 @@ export class EirReporter implements Reporter {
   }
 
   #renderMarkdown(): string {
-    const header = "| Test | Route | Selector | Action | Confidence | Suggestion | LLM fallback | Screenshot |\n|---|---|---|---|---|---|---|---|";
+    const header = "| Test | Route | Selector | Action | Confidence | Verification | Suggestion | LLM fallback | Screenshot |\n|---|---|---|---|---|---|---|---|---|";
     const lines = this.#rows.map((row) => {
       const confidence = row.confidence === null ? "" : row.confidence.toFixed(4);
+      const verification = row.postConditionVerification ?? "";
       const suggestion = row.suggestion ?? "";
       const fallback = row.fallback === null ? "" : `${row.fallback.provider}: ${row.fallback.verdict}`;
       const screenshot = row.screenshotFile !== null ? `![](${row.screenshotFile})` : "";
-      return `| ${row.testTitle} | ${row.route} | ${row.selectorKey} | ${row.action} | ${confidence} | ${suggestion} | ${fallback} | ${screenshot} |`;
+      return `| ${row.testTitle} | ${row.route} | ${row.selectorKey} | ${row.action} | ${confidence} | ${verification} | ${suggestion} | ${fallback} | ${screenshot} |`;
     });
     if (lines.length === 0) {
       return "# Eir Heal Report\n\nNo heal-eligible activity this run.\n";
@@ -202,8 +229,12 @@ export class EirReporter implements Reporter {
     console.log("\n[eir] heal summary:");
     for (const row of this.#rows) {
       const confidence = row.confidence === null ? "" : ` (confidence ${row.confidence.toFixed(4)})`;
+      const verification =
+        row.postConditionVerification === null ? "" : ` [post-condition: ${row.postConditionVerification}]`;
       const fallback = row.fallback === null ? "" : ` [llm ${row.fallback.provider}: ${row.fallback.verdict}]`;
-      console.log(`  ${row.action.padEnd(20)} ${row.route} :: ${row.selectorKey}${confidence}${fallback}`);
+      console.log(
+        `  ${row.action.padEnd(20)} ${row.route} :: ${row.selectorKey}${confidence}${verification}${fallback}`,
+      );
     }
   }
 }

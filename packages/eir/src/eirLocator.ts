@@ -17,6 +17,7 @@ import { INITIAL_WEIGHTS } from "./matching/aggregate.js";
 import type { MatchingContext } from "./matching/context.js";
 import { attemptMatch } from "./matching/matcher.js";
 import { checkSelfSimilarity } from "./policy/driftCheck.js";
+import type { PostConditionVerification } from "./policy/policyLog.js";
 import type { PolicyAction } from "./policy/stateMachine.js";
 import { decidePolicyAction } from "./policy/stateMachine.js";
 import { DEFAULT_DRIFT_SELF_SIMILARITY_THRESHOLD } from "./policy/thresholds.js";
@@ -80,7 +81,7 @@ interface HealDecision {
 }
 
 type RetryExecution<R> =
-  | { readonly kind: "healed"; readonly result: R }
+  | { readonly kind: "healed"; readonly result: R; readonly verification: PostConditionVerification }
   | { readonly kind: "heal-rejected-post-condition-mismatch" }
   | { readonly kind: "heal-attempted-retry-failed" };
 
@@ -268,6 +269,14 @@ export class EirLocator implements Locator {
    * result). A stored post-condition of `"none"` (or a pulse Eir
    * couldn't observe) always passes — the documented partial-coverage
    * case; nothing to verify isn't the same as verification failing.
+   *
+   * NOTE-004 (Phase 9): which of the three reasons a heal "passed"
+   * verification is worth distinguishing in the report, not just
+   * collapsing to a bare `"healed"` — see `PostConditionVerification`'s
+   * docstring. `stored === undefined` (no baseline ever recorded for this
+   * selector) is a materially weaker trust signal than a real stored
+   * `"none"` or an unobservable pulse this one time; both of the latter
+   * are the same "nothing to check" case Phase 6 always treated alike.
    */
   async #retryHealed<R>(
     action: (locator: Locator) => Promise<R>,
@@ -282,14 +291,23 @@ export class EirLocator implements Locator {
       const after = await capturePulse(page);
 
       const stored = this.#matching.postConditionReader.lookup(route, selectorKey);
-      if (stored !== undefined && before !== null && after !== null) {
-        const observed = derivePostCondition(before, after);
-        if (!postConditionMatches(stored, observed)) {
-          return { kind: "heal-rejected-post-condition-mismatch" };
-        }
+      if (stored === undefined) {
+        return { kind: "healed", result, verification: "skipped-no-baseline" };
+      }
+      if (before === null || after === null) {
+        return { kind: "healed", result, verification: "skipped-none" };
       }
 
-      return { kind: "healed", result };
+      const observed = derivePostCondition(before, after);
+      if (!postConditionMatches(stored, observed)) {
+        return { kind: "heal-rejected-post-condition-mismatch" };
+      }
+
+      return {
+        kind: "healed",
+        result,
+        verification: stored.kind === "none" ? "skipped-none" : "verified",
+      };
     } catch {
       return { kind: "heal-attempted-retry-failed" };
     }
@@ -339,7 +357,9 @@ export class EirLocator implements Locator {
           matchAttempt: decision.matchAttempt,
           action: decision.action,
           retryOutcome:
-            retryOutcome.kind === "healed" ? { kind: "healed" } : { kind: retryOutcome.kind },
+            retryOutcome.kind === "healed"
+              ? { kind: "healed", verification: retryOutcome.verification }
+              : { kind: retryOutcome.kind },
           screenshot: decision.screenshot,
           // Structurally never consulted on this branch (Blueprint P4): the
           // fallback runs only after a non-heal decision, below.

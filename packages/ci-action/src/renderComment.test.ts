@@ -15,6 +15,7 @@ function row(
     suggestion: null,
     screenshotFile: null,
     fallback: null,
+    postConditionVerification: null,
     ...overrides,
   };
 }
@@ -159,7 +160,7 @@ describe("renderComment", () => {
     expect(body).not.toContain("screenshot");
   });
 
-  it("never claims verification on a healed row (NOTE-004) and shows the heal-mode caveat", () => {
+  it("NOTE-004: states plainly when a healed row has no prior baseline to verify against", () => {
     const rows: ReportRow[] = [
       row({
         route: "/x",
@@ -167,16 +168,43 @@ describe("renderComment", () => {
         action: "healed",
         confidence: 0.91,
         suggestion: 'getByTestId("a-mut")',
+        postConditionVerification: "skipped-no-baseline",
       }),
     ];
     const body = renderComment({ rows, ...BASE, mode: "heal" });
     expect(body).toContain("HEALED");
-    // The caveat itself may explain the word "verified" as a concept, but
-    // must never assert this specific row *was* verified — the artifact
-    // has no field to back that claim (NOTE-004).
-    expect(body).not.toMatch(/this heal was verified|verified safe|successfully verified/i);
-    expect(body).toContain("NOTE-004");
+    expect(body).toContain("no prior baseline existed to verify against");
     expect(body).toContain("Mode: **heal**");
+  });
+
+  it("NOTE-004: credits a healed row genuinely verified against a recorded post-condition", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "healed",
+        confidence: 0.91,
+        suggestion: 'getByTestId("a-mut")',
+        postConditionVerification: "verified",
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE, mode: "heal" });
+    expect(body).toContain("genuinely verified against a recorded post-condition");
+    expect(body).not.toContain("no prior baseline existed");
+  });
+
+  it("NOTE-004: says nothing about verification for non-healed rows", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.5,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).not.toContain("HEALED row");
   });
 
   it("omits the mode line entirely when mode is unknown", () => {

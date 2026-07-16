@@ -3,6 +3,18 @@ import type { MatchAttempt } from "../matching/matcher.js";
 import type { PolicyAction } from "./stateMachine.js";
 
 /**
+ * NOTE-004 (Phase 9 hardening): a `"healed"` retry outcome used to carry
+ * no information about *why* Mechanism A's verification step passed —
+ * "genuinely compared before/after and matched," "stored post-condition
+ * was a real `\"none\"` (nothing to check, by design)," and "no
+ * post-condition was ever stored for this selector at all (no baseline)"
+ * all collapsed into the same bare `"healed"`. The first is a real,
+ * independent correctness check; the third is a much weaker trust signal
+ * an adopter deserves to see distinguished. See NOTES.md NOTE-004.
+ */
+export type PostConditionVerification = "verified" | "skipped-none" | "skipped-no-baseline";
+
+/**
  * What actually happened once policy acted on a match (Phase 6) — richer
  * than `MatchLogEntry` (Phase 5's raw match result, unchanged, still read
  * by the benchmark's existing classifier). This is the channel the
@@ -10,7 +22,7 @@ import type { PolicyAction } from "./stateMachine.js";
  */
 export type RetryOutcome =
   | { readonly kind: "not-attempted" }
-  | { readonly kind: "healed" }
+  | { readonly kind: "healed"; readonly verification: PostConditionVerification }
   | { readonly kind: "heal-rejected-post-condition-mismatch" }
   | { readonly kind: "heal-attempted-retry-failed" };
 

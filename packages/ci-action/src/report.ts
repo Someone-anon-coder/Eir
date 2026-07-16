@@ -1,5 +1,11 @@
 import { readFile } from "node:fs/promises";
-import type { FallbackRowVerdict, HealAction, ReportRow, ReportRowFallback } from "playwright-eir/reporter";
+import type {
+  FallbackRowVerdict,
+  HealAction,
+  PostConditionVerification,
+  ReportRow,
+  ReportRowFallback,
+} from "playwright-eir/reporter";
 
 export interface EirReport {
   readonly rows: readonly ReportRow[];
@@ -26,6 +32,21 @@ const FALLBACK_VERDICTS: ReadonlySet<FallbackRowVerdict> = new Set([
   "no-verdict",
 ]);
 
+const POST_CONDITION_VERIFICATIONS: ReadonlySet<PostConditionVerification> = new Set([
+  "verified",
+  "skipped-none",
+  "skipped-no-baseline",
+]);
+
+/** NOTE-004's ReportRow extension (Phase 9). `undefined` is accepted for mixed-version tolerance (a report written by a pre-NOTE-004 playwright-eir) and normalized to `null` by `readEirReport`, same pattern as `fallback`. */
+function isPostConditionVerification(
+  value: unknown,
+): value is PostConditionVerification | null | undefined {
+  return (
+    value === null || value === undefined || POST_CONDITION_VERIFICATIONS.has(value as PostConditionVerification)
+  );
+}
+
 /** Phase 8's ReportRow extension. `undefined` is accepted for mixed-version tolerance (a report written by a pre-fallback playwright-eir) and normalized to `null` by `readEirReport`. */
 function isReportRowFallback(value: unknown): value is ReportRowFallback | null | undefined {
   if (value === null || value === undefined) return true;
@@ -51,7 +72,8 @@ function isReportRow(value: unknown): value is ReportRow {
     (candidate["confidence"] === null || typeof candidate["confidence"] === "number") &&
     (candidate["suggestion"] === null || typeof candidate["suggestion"] === "string") &&
     (candidate["screenshotFile"] === null || typeof candidate["screenshotFile"] === "string") &&
-    isReportRowFallback(candidate["fallback"])
+    isReportRowFallback(candidate["fallback"]) &&
+    isPostConditionVerification(candidate["postConditionVerification"])
   );
 }
 
@@ -70,5 +92,11 @@ export async function readEirReport(reportPath: string): Promise<EirReport> {
   if (!isEirReport(parsed)) {
     throw new InvalidReportError(`${reportPath} does not match the expected eir-report.json shape`);
   }
-  return { rows: parsed.rows.map((row) => ({ ...row, fallback: row.fallback ?? null })) };
+  return {
+    rows: parsed.rows.map((row) => ({
+      ...row,
+      fallback: row.fallback ?? null,
+      postConditionVerification: row.postConditionVerification ?? null,
+    })),
+  };
 }

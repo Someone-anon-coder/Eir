@@ -65,6 +65,35 @@ function pluralize(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
+/**
+ * NOTE-004 (Phase 9): now that `ReportRow` distinguishes *why* a heal's
+ * post-condition check passed, the comment states the real breakdown
+ * instead of a blanket "can't tell" disclaimer. `verified` is a genuine,
+ * independent correctness check; `skipped-no-baseline` — no post-condition
+ * was ever recorded for this selector — is a materially weaker signal and
+ * is called out by name so a reviewer knows which HEALED rows to look at
+ * more closely.
+ */
+function renderVerificationNote(rows: readonly ReportRow[]): string | null {
+  const healedRows = rows.filter((row) => row.action === "healed");
+  if (healedRows.length === 0) return null;
+
+  const verified = healedRows.filter((row) => row.postConditionVerification === "verified").length;
+  const skippedNone = healedRows.filter((row) => row.postConditionVerification === "skipped-none").length;
+  const noBaseline = healedRows.filter(
+    (row) => row.postConditionVerification === "skipped-no-baseline" || row.postConditionVerification == null,
+  ).length;
+
+  const parts: string[] = [];
+  if (verified > 0) parts.push(`${pluralize(verified, "row")} genuinely verified against a recorded post-condition`);
+  if (skippedNone > 0) parts.push(`${pluralize(skippedNone, "row")} had nothing observable to check, by design`);
+  if (noBaseline > 0) {
+    parts.push(`${pluralize(noBaseline, "row")} accepted on margin alone — no prior baseline existed to verify against`);
+  }
+
+  return `Of the ${pluralize(healedRows.length, "HEALED row")} above: ${parts.join("; ")}. Treat every **HEALED** row as "retried and passed," and weigh the unverified ones more carefully.`;
+}
+
 function renderModeLine(mode: ReportedMode): string | null {
   switch (mode) {
     case "suggest-only":
@@ -145,11 +174,9 @@ export function renderComment(input: RenderCommentInput): string {
     );
   }
 
-  if (healedCount > 0) {
-    lines.push(
-      "Eir's report doesn't yet distinguish a heal verified against a recorded post-condition from one accepted with no prior baseline to check against (tracked as NOTE-004) — treat every **HEALED** row above as \"retried and passed,\" not as an independent correctness guarantee.",
-      "",
-    );
+  const verificationNote = renderVerificationNote(input.rows);
+  if (verificationNote !== null) {
+    lines.push(verificationNote, "");
   }
 
   if (asideRows.length > 0) {

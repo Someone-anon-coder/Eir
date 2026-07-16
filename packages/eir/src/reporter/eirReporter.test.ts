@@ -50,7 +50,7 @@ const HEALED_EVENT: SerializedPolicyEvent = {
     shortlist: [],
   },
   action: { kind: "heal-and-continue" },
-  retryOutcome: { kind: "healed" },
+  retryOutcome: { kind: "healed", verification: "verified" },
   screenshotBase64: null,
   fallback: null,
 };
@@ -111,8 +111,46 @@ describe("EirReporter", () => {
         suggestion: 'getByTestId("device-row-remove-v2")',
         screenshotFile: null,
         fallback: null,
+        postConditionVerification: "verified",
       },
     ]);
+  });
+
+  it("distinguishes verified / skipped-none / skipped-no-baseline healed rows (NOTE-004)", async () => {
+    const skippedNone: SerializedPolicyEvent = {
+      ...HEALED_EVENT,
+      retryOutcome: { kind: "healed", verification: "skipped-none" },
+    };
+    const skippedNoBaseline: SerializedPolicyEvent = {
+      ...HEALED_EVENT,
+      retryOutcome: { kind: "healed", verification: "skipped-no-baseline" },
+    };
+
+    const reporter = new EirReporter({ outputDir: dir });
+    reporter.onTestEnd(fakeTest("t1"), fakeResult([jsonAttachment("eir-policy-event:0", HEALED_EVENT)]));
+    reporter.onTestEnd(fakeTest("t2"), fakeResult([jsonAttachment("eir-policy-event:0", skippedNone)]));
+    reporter.onTestEnd(fakeTest("t3"), fakeResult([jsonAttachment("eir-policy-event:0", skippedNoBaseline)]));
+    await reporter.onEnd();
+
+    const json = JSON.parse(await readFile(path.join(dir, "eir-report.json"), "utf8")) as {
+      rows: { postConditionVerification: string | null }[];
+    };
+    expect(json.rows.map((r) => r.postConditionVerification)).toEqual([
+      "verified",
+      "skipped-none",
+      "skipped-no-baseline",
+    ]);
+  });
+
+  it("reports postConditionVerification as null for non-healed rows (nothing was retried to verify)", async () => {
+    const reporter = new EirReporter({ outputDir: dir });
+    reporter.onTestEnd(fakeTest("click a reordered row"), fakeResult([jsonAttachment("eir-policy-event:0", DRIFT_EVENT)]));
+    await reporter.onEnd();
+
+    const json = JSON.parse(await readFile(path.join(dir, "eir-report.json"), "utf8")) as {
+      rows: { postConditionVerification: string | null }[];
+    };
+    expect(json.rows[0]?.postConditionVerification).toBeNull();
   });
 
   it("writes a paired screenshot file and links it from the row", async () => {
