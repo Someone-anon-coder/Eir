@@ -127,7 +127,9 @@ Fixing this means either (a) adding the element's own filtered class tokens as a
 
 **Phase 9 disposition (2026-07-16):** documented, not fixed — per the ledger-triage gate, no schema change this session. The README's results table (Session 2) will state the measured 25% `class-shuffle` ceiling and name this note as the schema-v2 candidate that would address it.
 
-**Resolution:** *(pending)*
+**C1 disposition (1.0.0 closure, 2026-07-17):** confirmed as a deliberate 1.0 STANCE, per the default this closure session set — a schema v2 forces every adopter to recapture baselines, real v1.x roadmap material, not a closure-session rush job. README.md's Known Limitations states the measured 25% ceiling as the flagship known limitation; a new "Post-1.0 roadmap" section names schema v2 (with the migration-story implication spelled out) as the first roadmap item, pointing back at this note.
+
+**Resolution:** Stays PARKED by design — a deliberate 1.0 stance, not a defect awaiting a fix. Revisit when a fingerprint-schema v2 is scoped as real roadmap work.
 
 ---
 
@@ -188,7 +190,9 @@ Explicitly named OUT for Phase 7 by the approach doc ("Gemini. Marketplace publi
 
 **Phase 9 disposition (2026-07-16):** status confirmed unchanged — stays parked post-project, per the ledger triage's item 12.
 
-**Resolution:** *(pending)*
+**C3 disposition (1.0.0 closure, 2026-07-17):** status confirmed unchanged again — stays parked post-1.0, per this session's own Bucket C triage. README.md's Known Limitations still names this as intentionally parked (NOTE-006).
+
+**Resolution:** Stays PARKED — a deliberate scope decision, not a defect. Revisit only if real external adoption makes the local-path reference a genuine friction point.
 
 ---
 
@@ -381,6 +385,8 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 
 **Phase 9 disposition (2026-07-16):** documented, not fixed — per the ledger-triage gate, this is a "document, not fix" item. The README's "what Eir sees" section (Session 2) will state plainly that `filter`/`first`/`last`/`and`/`or`/`getByAltText`/`getByTitle`/`contentFrame` are untracked passthroughs, so an adopter knows the exact boundary rather than discovering it by surprise.
 
+**C2 disposition (1.0.0 closure, 2026-07-17):** re-verified against the post-A1 code directly (`grep` for each method's signature in `eirLocator.ts`) — all 8 methods are still plain pass-throughs returning the real, untracked `Locator`; A1's unwrap fix changed what these methods *accept* as an argument (NOTE-009/RISK-005), never what they *return*, so this risk's core claim is unaffected and remains accurate. README.md's bullet extended (per the same discussion that scoped A1) to also name the adjacent `page.frame()`/`page.mainFrame()` gap — `Frame` was never part of Eir's wrapped surface at all — as the same class of accepted 1.0 boundary, not a new bug.
+
 ### RISK-007 — Post-success fingerprint capture loses every navigational action (resolved, kept for context)
 **Status:** MITIGATED
 **Raised:** 2026-07-06, during Phase 3 wiring (integration run against the demo app)
@@ -417,6 +423,8 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Phase affected:** Phase 6 (NOTE-001 retrofit)
 **Risk:** `PostCondition`'s `dom-count-change` signal (`capture/pagePulse.ts`) counts every element on the page (`document.querySelectorAll("*").length`) before and after an action. Two back-to-back, otherwise-identical reference-suite runs produced a different stored post-condition for the wizard's `getByTestId("wizard-next")` button — `"none"` on one run, `"dom-count-change": "decreased"` on the other — the one non-deterministic entry among six route files' worth of captures. The page-wide count is coarse enough to pick up incidental render noise (something transient — an animation frame, a focus-ring element, a timing-sensitive re-render) unrelated to the action's actual, meaningful effect. `route-change` (binary) and the single-element `Fingerprint` scorers are unaffected; this is specific to the page-wide counting approach.
 **Mitigation:** Not fixed this phase — the asymmetry this project cares about most (P4, false heals) isn't violated: a flaky stored post-condition can only make heal-and-continue's retry verification *more* conservative (an occasional spurious mismatch downgrades a genuinely-good heal to a suggestion), never less safe. Recorded here rather than papered over. If it proves disruptive in practice, candidate fixes include scoping the count to a smaller DOM subtree (e.g. the acted-on element's container) or debouncing the "after" pulse with a short settle wait — neither implemented, both would need their own Understanding Gate.
+
+**C4 disposition (1.0.0 closure, 2026-07-17):** confirmed accepted at 1.0, not revisited — `docs/acceptance-sweep.md`'s Phase 9 re-verification (fresh 1-worker/4-worker reference-suite runs) reproduced this exact non-determinism independent of worker count, confirming the diagnosis (timing-related render noise, not a merge/corruption bug) and that it never touches fingerprint identity data. The safe-direction-only guarantee (can only make verification more conservative, never less safe) is the reason this ships as an accepted 1.0 limitation rather than a blocker; candidate fixes remain exactly as stated above, unimplemented, for if it ever proves disruptive in practice.
 
 ### RISK-011 — `classifyFailureSpecies` misses zero-match when no `actionTimeout` is configured
 **Status:** MITIGATED — fully, including the general engine gap (Phase 9, 2026-07-16; previously mitigated only for this repo's own reference suite)
