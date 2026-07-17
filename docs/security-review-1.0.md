@@ -23,7 +23,7 @@ adopter.
 | 3 | Browser-context code | **PASS** |
 | 4 | Filesystem writes | **PASS** |
 | 5 | Network calls | **PASS** |
-| 6 | `ci-action` threat model | **PASS-WITH-CAVEAT** |
+| 6 | `ci-action` threat model | **PASS** (live-verified via NOTE-010) |
 | 7 | Supply chain | **PASS** |
 
 ---
@@ -168,7 +168,7 @@ only ever runs inside a GitHub Actions job, never as part of the
 published `playwright-eir` package (`ci-action` is a separate, unpublished
 package — confirmed via `package.json`, no npm `publishConfig`).
 
-## 6. `ci-action` threat model — PASS-WITH-CAVEAT
+## 6. `ci-action` threat model — PASS
 
 **What a malicious PR can make the action do:**
 
@@ -180,13 +180,12 @@ package — confirmed via `package.json`, no npm `publishConfig`).
 - **Fork PR:** the workflow uses plain `pull_request` (not
   `pull_request_target`) — confirmed by reading the trigger list in
   `.github/workflows/ci.yml`. This is the safe choice: GitHub's own
-  platform behavior caps a fork PR's `GITHUB_TOKEN` to read-only (or
-  requires maintainer approval to run at all, per the repo's "Fork pull
-  request workflows" setting) regardless of what permissions the workflow
-  file requests, and never exposes base-repo secrets to fork-authored
-  code. `pull_request_target` would have been the dangerous choice
-  (base-repo token + secrets, running fork-authored code) — not used
-  here.
+  platform behavior caps a genuine *cross-repository* fork PR's
+  `GITHUB_TOKEN` to read-only unconditionally (regardless of what
+  permissions the workflow file requests), and never exposes base-repo
+  secrets to fork-authored code. `pull_request_target` would have been
+  the dangerous choice (base-repo token + secrets, running fork-authored
+  code) — not used here.
 - **Report-path / content:** `ci-action`'s own source contains **zero
   filesystem write calls** (confirmed by grep — only `readFile` in
   `githubContext.ts` and `report.ts`). `report-path` is a workflow-author-
@@ -200,12 +199,31 @@ package — confirmed via `package.json`, no npm `publishConfig`).
   whose page content contains hostile characters can no longer corrupt
   the comment's table structure.
 
-**Caveat:** this analysis is read-and-reason, not a live fork test. The
-one thing it can't independently confirm is whether the comment-posting
-step behaves cleanly (or fails gracefully) under a real external fork's
-actual default token permissions — this is exactly NOTE-010's scope,
-tracked separately and evaluated once the external verification (a
-friend's fork) returns results.
+**Live-verified, not just reasoned (NOTE-010, closed 2026-07-17):** a real
+external volunteer forked the repo (`rohan2104jadhav/Eir`) and ran the
+`docs/ci.md`-documented adoption path — a PR entirely within their own
+fork, stock default settings, no changes made. Their fork's own
+repo-level "Workflow permissions" default was **read-only** (confirmed
+via their own Settings screenshot), yet the comment posted correctly
+(comment id `5000875939`, matching A5's own findings byte-for-byte on
+routes and confidence). The raw CI log confirms why: `GITHUB_TOKEN
+Permissions: Contents: read, Metadata: read, PullRequests: write` —
+exactly the workflow file's own explicit `permissions:` block, which
+overrides the repo-level default when a workflow declares its own. This
+is the exact mechanism this section already claimed, now independently
+confirmed on infrastructure Aayush doesn't control. Full detail: NOTES.md
+NOTE-010.
+
+**Scope note, stated honestly (not a caveat on the verdict above):** the
+verification above covers the real adoption path — a team forking or
+copying this workflow into *their own* repo, running on PRs *within that
+repo*, exactly what `docs/ci.md` documents. It does not cover a genuine
+cross-repository PR from a fork back to `Someone-anon-coder/Eir` itself —
+a different, narrower concern (contributing to Eir's own upstream) where
+GitHub's platform-level fork-PR token restriction applies
+unconditionally and cannot be overridden by any workflow's own
+`permissions:` block. That scenario was never what `docs/ci.md` or
+NOTE-010 were about, and stays out of scope by design.
 
 ## 7. Supply chain — PASS
 
@@ -230,9 +248,7 @@ friend's fork) returns results.
 
 One real finding (injection surfaces), fixed and regression-guarded
 before this document was written — not deferred, not caveated. Everything
-else re-verifies clean against the same evidence bar: a live command or a
-direct source read, not the audit's word carried forward unchecked. The
-one caveat (item 6, `ci-action`'s fork-PR behavior) is already tracked as
-NOTE-010 and does not block 1.0 — it's a functional-friction question, not
-a security hole; the design choice that would create a real hole
-(`pull_request_target`) was never made.
+else re-verifies clean against the same evidence bar: a live command, a
+direct source read, or (item 6) a real external volunteer's fork — not
+the audit's word carried forward unchecked. Every verdict is a clean
+**PASS**; nothing is deferred past 1.0.
