@@ -237,7 +237,7 @@ A real gap, but a tooling-hygiene one, not a Phase 8 design/DoD blocker — the 
 ---
 
 ### NOTE-009 — `EirLocator` needs a real unwrap-if-`EirLocator` step for `.and()`/`.or()`/`.dragTo()`/`.locator(sel, {has})`
-**Status:** PARKED
+**Status:** RESOLVED (A1, 1.0.0 closure, 2026-07-17)
 **Raised:** 2026-07-16, during Phase 9's ledger triage (RISK-005's disposition)
 **Target phase:** Unassigned — post-release, whenever `EirLocator`'s method surface is next touched
 **Blueprint touchpoint:** §7.1 (interception layer) — an implementation completeness gap, not a principle question
@@ -251,7 +251,7 @@ Real adopting suites do call `.and()`/`.or()` to compose locators, and `dragTo()
 **Why not now:**
 A real design decision (should the unwrap be `instanceof`-based or structural? does it need its own Understanding Gate given CLAUDE.md §7.1's `any`/cast discipline?) and its own table-driven tests — more than an hour's work, and Phase 9's remaining scope (README, demo path, external test, release) doesn't have room for it without rushing the release.
 
-**Resolution:** *(pending)*
+**Resolution (A1, 1.0.0 closure, 2026-07-17):** fixed as the closure session's #1 priority item, per the audit's own framing ("the #1 reason 0.3.0 wasn't 1.0"). Systematically audited every method on `EirLocator`'s and `EirPage`'s wrapped surface whose real Playwright signature accepts a `Locator` argument — 8 call sites, not just the 4 originally named here: `.and()`, `.or()`, `.dragTo()`, `.filter()`, `.locator(sel, { has })` (both the `EirLocator` and `EirPage` variants), `addLocatorHandler`, `removeLocatorHandler`. Centralized in one place rather than per-call-site casts: `EirLocator.unwrap()` (a static method) plus exported `unwrapLocator()`/`unwrapHasOptions()` helpers, used at every one of the 8 boundaries. `packages/demo-app/tests/eir-proof/locator-as-argument.spec.ts` flipped from a characterization test documenting the throw to a regression-guarding test asserting the fix, verified against a real browser. PR #19.
 
 ---
 
@@ -418,13 +418,15 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 **Mitigation:** Hand-wrote the 2 overload signatures directly on `removeAllListeners` (cheap at this scale, unlike the 19-signature event methods), with a single broader implementation signature (`(...args): this | Promise<void>`) that branches on argument count to return the right shape. This is a real, permanent fix, not a suppression — `tsc` now verifies it structurally everywhere `EirPage` is used as `Page`.
 
 ### RISK-005 — Real Playwright methods that take a `Locator` argument may not accept an `EirLocator`
-**Status:** WATCHING
+**Status:** MITIGATED (A1, 1.0.0 closure, 2026-07-17 — real permanent fix, not a suppression; same item as NOTE-009 above)
 **Raised:** 2026-07-06, during Phase 2 wrapper-class design
 **Phase affected:** Phase 2 (introduced)
 **Risk:** Methods like `.and(other)`, `.or(other)`, `dragTo(target)`, or `locator(sel, { has: other })` expect a real Playwright `Locator` and may reach into private internal state beyond `_apiName`/`_expect` (the only two members `EirLocator` forwards). Passing an `EirLocator` in one of these argument positions is untested and could fail in ways the current invisibility proof wouldn't catch, since the reference suite doesn't exercise them.
 **Mitigation:** Not currently exercised — no spec in the reference suite uses these APIs. Flagged so it isn't discovered by surprise if a future spec (or a real adopting suite) does.
 
 **Phase 9 disposition (2026-07-16):** confirmed as a real, reproducible bug, not a theoretical risk — read Playwright's own client source (`playwright-core@1.61.1`): `.and()`/`.or()`/`.locator(sel, {has})` read a real `Locator`'s private `_frame`/`_selector` fields directly; `EirLocator` never unwraps an `EirLocator` argument back to the real `Locator` it wraps, so these throw `"Locators must belong to the same frame"` synchronously (`.dragTo()` fails differently, on `undefined._selector`). `packages/demo-app/tests/eir-proof/locator-as-argument.spec.ts` is a committed characterization test proving this today (asserts the current throw, so it stays informative in CI rather than permanently red). The actual fix — an internal unwrap-if-`EirLocator` step in `and`/`or`/`dragTo`/`locator` — is real design work, not attempted this session; tracked fresh as **NOTE-009**. Documented as a known limitation in the README (Session 2): don't pass an `EirLocator` where Playwright expects a real `Locator`.
+
+**A1 disposition (1.0.0 closure, 2026-07-17):** fixed. See NOTE-009's own resolution above for the full detail (8 call sites audited, centralized `EirLocator.unwrap()`/`unwrapLocator()`/`unwrapHasOptions()`, characterization test flipped to a regression guard, PR #19). This risk is downgraded from WATCHING to MITIGATED rather than marked fully RESOLVED-and-closed, since it's an unbounded category (a future Playwright version could add a new Locator-accepting method this audit didn't enumerate) — the same ongoing-tripwire posture already applied to RISK-003.
 
 ### RISK-010 — `dom-count-change`'s page-wide element count is occasionally non-deterministic
 **Status:** WATCHING
