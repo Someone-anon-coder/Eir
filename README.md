@@ -336,6 +336,18 @@ after shipping — full detail and evidence in NOTES.md.
 - **The Gemini fallback has a real free-tier reliability ceiling** — see
   "The Gemini fallback" above. Shipped disabled by default on this
   evidence.
+- **This package knowingly forwards a handful of undocumented Playwright
+  internals** (`_apiName`, `_expect`, `_expectScreenshot`, `_frame`,
+  `_selector`) so `expect(page)`/`expect(locator)` assertions — including
+  `toHaveScreenshot()` — work through Eir's wrappers. None of these are
+  part of Playwright's public API or its TypeScript types, so there is no
+  compile-time contract protecting any of them; each was confirmed working
+  via a real spike (success path + failure-message parity, or a genuine
+  screenshot comparison), not assumed. CI running against the pinned
+  `@playwright/test` peer range on every push is the ongoing tripwire —
+  if a future Playwright version renames or restructures any of these, CI
+  breaking on that version bump is where to look first, before assuming
+  the bug is in Eir's own logic. (NOTES.md RISK-003)
 - **`docs/ci.md`'s GitHub Actions snippet has been proven on this repo's
   own PRs, not yet from an external fork specifically** — a fork's
   reduced default token permissions are the one class of surprise a

@@ -34,16 +34,28 @@ import type { FingerprintRecorder } from "./store/fingerprintStore.js";
 import type { PostConditionRecorder } from "./store/postConditionStore.js";
 
 /**
- * Playwright's `expect()` duck-types these two members at runtime
+ * Playwright's `expect()` duck-types these members at runtime
  * (`expectTypes` checks `_apiName`; every assertion calls `_expect(...)`
- * directly) — neither is part of the public `Locator` type, so there is
- * no compile-time contract here. Confirmed via a throwaway spike (success
- * path + failure-message parity) before relying on it. Tracked as
- * NOTES.md RISK-003: a future Playwright version could change this
- * without a type error warning us.
+ * directly) — none are part of the public `Locator` type, so there is
+ * no compile-time contract here. Confirmed via throwaway spikes (success
+ * path + failure-message parity for `_apiName`/`_expect`; a real
+ * `expect(locator).toHaveScreenshot()` run for `_frame`/`_selector`,
+ * B2/RISK-003, 1.0.0 closure) before relying on any of them. Tracked as
+ * NOTES.md RISK-003: a future Playwright version could change any of
+ * these without a type error warning us.
+ *
+ * `_frame`/`_selector` specifically: `toHaveScreenshot()`'s real
+ * implementation reaches into `options.locator._frame._channel` and
+ * `.locator._selector` directly (`Page#_expectScreenshot`, playwright-
+ * core) — not through any method call this class could intercept and
+ * unwrap the way `.and()`/`.or()`/etc. do (NOTE-009). Forwarding these two
+ * fields is the only way to make `expect(eirLocator).toHaveScreenshot()`
+ * work at all.
  */
 interface LocatorPrivateInternals {
   readonly _apiName: unknown;
+  readonly _frame: unknown;
+  readonly _selector: unknown;
   _expect(...args: unknown[]): unknown;
 }
 
@@ -836,5 +848,16 @@ export class EirLocator implements Locator {
 
   _expect(...args: unknown[]): unknown {
     return internalsOf(this.#real)._expect(...args);
+  }
+
+  // B2/RISK-003 (1.0.0 closure): makes expect(eirLocator).toHaveScreenshot()
+  // work — see LocatorPrivateInternals' docstring above for why.
+
+  get _frame(): unknown {
+    return internalsOf(this.#real)._frame;
+  }
+
+  get _selector(): unknown {
+    return internalsOf(this.#real)._selector;
   }
 }

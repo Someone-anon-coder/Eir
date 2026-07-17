@@ -192,6 +192,18 @@ describe("plain pass-through", () => {
       matches: true,
     });
   });
+
+  // B2/RISK-003 (1.0.0 closure): toHaveScreenshot()'s real implementation
+  // reads these two off a Locator argument directly — see
+  // screenshot-assertions.spec.ts for the real, live-browser proof.
+  it("_frame and _selector forward to the real locator's private internals", () => {
+    const frame = { _channel: "frame@123" };
+    const real = fakeLocator({ _frame: frame, _selector: "#target" });
+    const eir = new EirLocator(real, [], fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+
+    expect(eir._frame).toBe(frame);
+    expect(eir._selector).toBe("#target");
+  });
 });
 
 describe("NOTE-009/RISK-005: unwrapping an EirLocator passed as an argument", () => {
