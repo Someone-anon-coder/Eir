@@ -1,5 +1,6 @@
 import type { HealAction, ReportRow } from "playwright-eir/reporter";
 import { dedupeReportRows } from "./dedupe.js";
+import { sanitizeForMarkdownCell } from "./markdownSanitize.js";
 import { REPORT_MARKER } from "./marker.js";
 
 /**
@@ -49,8 +50,9 @@ function hasDiff(row: ReportRow): boolean {
 }
 
 function diffCell(row: ReportRow): string {
-  const suggestion = row.suggestion ?? "";
-  return `\`- ${row.selectorKey}\`<br>\`+ ${suggestion}\``;
+  const selectorKey = sanitizeForMarkdownCell(row.selectorKey);
+  const suggestion = sanitizeForMarkdownCell(row.suggestion ?? "");
+  return `\`- ${selectorKey}\`<br>\`+ ${suggestion}\``;
 }
 
 function confidenceCell(row: ReportRow, seenCount: number): string {
@@ -161,7 +163,7 @@ export function renderComment(input: RenderCommentInput): string {
       "|---|---|---|---|",
       ...diffEntries.map(
         ({ row, seenCount }) =>
-          `| ${BADGE_BY_ACTION[row.action]}${llmMarker(row)} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row, seenCount)} |`,
+          `| ${BADGE_BY_ACTION[row.action]}${llmMarker(row)} | \`${sanitizeForMarkdownCell(row.route)}\` | ${diffCell(row)} | ${confidenceCell(row, seenCount)} |`,
       ),
       "",
     );
@@ -175,8 +177,11 @@ export function renderComment(input: RenderCommentInput): string {
       "⚠ **LLM-assisted rows** — Eir's deterministic heuristics could not decide these (confidence or decision margin below the trust bars), so an LLM verdict was recorded *at suggestion strength only*: it can never retry an action, heal a test, or modify anything. An LLM opinion is less trustworthy than a heuristic score — verify these by hand before applying.",
       "",
       ...fallbackRows.map(({ row, fallback }) => {
-        const detail = fallback.detail !== null && fallback.verdict !== "no-verdict" ? ` — ${fallback.detail}` : "";
-        return `- \`${row.selectorKey}\` · ${fallback.provider}: **${fallback.verdict}**${detail}`;
+        const detail =
+          fallback.detail !== null && fallback.verdict !== "no-verdict"
+            ? ` — ${sanitizeForMarkdownCell(fallback.detail)}`
+            : "";
+        return `- \`${sanitizeForMarkdownCell(row.selectorKey)}\` · ${fallback.provider}: **${fallback.verdict}**${detail}`;
       }),
       "",
     );

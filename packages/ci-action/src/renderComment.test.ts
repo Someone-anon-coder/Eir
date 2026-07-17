@@ -286,7 +286,12 @@ describe("renderComment", () => {
     expect(body).toContain("SUGGESTED · ⚠ LLM |");
     expect(body).toContain("**LLM-assisted rows**");
     expect(body).toContain("at suggestion strength only");
-    expect(body).toContain("gemini: **contradicted** — <button> — button >> nth=2: text matches better");
+    // Security review 1.0: angle brackets are HTML-escaped so embedded
+    // markup-looking text (Playwright's own "button >> nth=2" chain
+    // syntax, in this fixture) renders as literal text, not markup.
+    expect(body).toContain(
+      "gemini: **contradicted** — &lt;button&gt; — button &gt;&gt; nth=2: text matches better",
+    );
     // The purely heuristic row carries no marker.
     const lineForB = body.split("\n").find((line) => line.includes('getByTestId("b")') && line.startsWith("|"));
     expect(lineForB).toBeDefined();
@@ -410,5 +415,72 @@ describe("renderComment", () => {
     ];
     const body = renderComment({ rows, ...BASE });
     expect(body).toContain("not a full audit of every selector on this PR");
+  });
+
+  describe("security review 1.0: markdown/table injection", () => {
+    // A real hostile fixture (docs/security-review-1.0.md, injection
+    // surfaces): a page-controlled attribute value flowing into
+    // selectorKey/suggestion/route/fallback.detail must never be able to
+    // close the surrounding code span, fragment the table into fake
+    // cells, or escape the row into free-form comment content.
+    it("neutralizes a hostile suggestion string in the diff cell", () => {
+      const rows: ReportRow[] = [
+        row({
+          route: "/x",
+          selectorKey: 'getByTestId("normal")',
+          action: "suggested",
+          confidence: 0.8,
+          suggestion: 'getByTestId("a`) | INJECTED | <script>alert(1)</script>\ngetByTestId(evil")',
+        }),
+      ];
+      const body = renderComment({ rows, ...BASE });
+      const tableLines = body.split("\n").filter((line) => line.startsWith("|"));
+
+      // Exactly the header, the separator, and one data row — no
+      // fabricated extra rows/cells from the injected pipes or newline.
+      expect(tableLines).toHaveLength(3);
+      expect(body).not.toContain("<script>");
+      expect(body).toContain("&lt;script&gt;");
+    });
+
+    it("neutralizes a hostile route string in the route cell", () => {
+      const rows: ReportRow[] = [
+        row({
+          route: "/x | `evil`\ninjected-row",
+          selectorKey: 'getByTestId("b")',
+          action: "suggested",
+          confidence: 0.8,
+          suggestion: 'getByTestId("c")',
+        }),
+      ];
+      const body = renderComment({ rows, ...BASE });
+      const tableLines = body.split("\n").filter((line) => line.startsWith("|"));
+
+      expect(tableLines).toHaveLength(3);
+      expect(body).not.toContain("injected-row\n");
+    });
+
+    it("neutralizes a hostile fallback detail string", () => {
+      const rows: ReportRow[] = [
+        row({
+          route: "/x",
+          selectorKey: 'getByTestId("a")',
+          action: "suggested",
+          confidence: 0.5,
+          suggestion: 'getByTestId("a-mut")',
+          fallback: {
+            provider: "gemini",
+            verdict: "contradicted",
+            detail: "reason | `with` a backtick and a pipe\nand a newline",
+          },
+        }),
+      ];
+      const body = renderComment({ rows, ...BASE });
+      const bulletLine = body.split("\n").find((line) => line.includes("gemini: **contradicted**"));
+
+      expect(bulletLine).toBeDefined();
+      expect(bulletLine).not.toContain("`with`");
+      expect(bulletLine).not.toContain(" | `");
+    });
   });
 });
