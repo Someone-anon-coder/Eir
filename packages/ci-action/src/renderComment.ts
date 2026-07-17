@@ -1,4 +1,5 @@
 import type { HealAction, ReportRow } from "playwright-eir/reporter";
+import { dedupeReportRows } from "./dedupe.js";
 import { REPORT_MARKER } from "./marker.js";
 
 /**
@@ -52,8 +53,9 @@ function diffCell(row: ReportRow): string {
   return `\`- ${row.selectorKey}\`<br>\`+ ${suggestion}\``;
 }
 
-function confidenceCell(row: ReportRow): string {
-  return row.confidence === null ? "—" : row.confidence.toFixed(4);
+function confidenceCell(row: ReportRow, seenCount: number): string {
+  const value = row.confidence === null ? "—" : row.confidence.toFixed(4);
+  return seenCount > 1 ? `${value} (seen ${seenCount}x)` : value;
 }
 
 /** Provenance marker (Phase 8): a row the LLM fallback weighed in on is visually distinct in the table itself, not only in the detail block below it. */
@@ -123,14 +125,20 @@ export function renderComment(input: RenderCommentInput): string {
     return renderEmptyBody().replace("{{DOCS_URL}}", input.docsUrl);
   }
 
-  const diffRows = input.rows.filter(hasDiff);
-  const asideRows = input.rows.filter((row) => !hasDiff(row));
-  const screenshotCount = input.rows.filter((row) => row.screenshotFile !== null).length;
+  // A3 (1.0.0 closure): a Playwright attempt CI retries re-runs Eir's
+  // whole pipeline and appends its own row for the same selector — dedupe
+  // before any downstream count or table, so both the headline numbers
+  // and the table itself reflect unique selectors, not raw attempt counts.
+  const deduped = dedupeReportRows(input.rows);
 
-  const routeCount = new Set(diffRows.map((row) => row.route)).size;
-  const suggestedCount = diffRows.filter((row) => row.action === "suggested").length;
-  const healedCount = diffRows.filter((row) => row.action === "healed").length;
-  const rejectedOrFailedCount = diffRows.length - suggestedCount - healedCount;
+  const diffEntries = deduped.filter((entry) => hasDiff(entry.row));
+  const asideEntries = deduped.filter((entry) => !hasDiff(entry.row));
+  const screenshotCount = deduped.filter((entry) => entry.row.screenshotFile !== null).length;
+
+  const routeCount = new Set(diffEntries.map((entry) => entry.row.route)).size;
+  const suggestedCount = diffEntries.filter((entry) => entry.row.action === "suggested").length;
+  const healedCount = diffEntries.filter((entry) => entry.row.action === "healed").length;
+  const rejectedOrFailedCount = diffEntries.length - suggestedCount - healedCount;
 
   const summaryParts = [
     `${suggestedCount} suggested`,
@@ -147,19 +155,19 @@ export function renderComment(input: RenderCommentInput): string {
     "",
   ];
 
-  if (diffRows.length > 0) {
+  if (diffEntries.length > 0) {
     lines.push(
       "| Status | Route | Suggested diff | Confidence |",
       "|---|---|---|---|",
-      ...diffRows.map(
-        (row) =>
-          `| ${BADGE_BY_ACTION[row.action]}${llmMarker(row)} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row)} |`,
+      ...diffEntries.map(
+        ({ row, seenCount }) =>
+          `| ${BADGE_BY_ACTION[row.action]}${llmMarker(row)} | \`${row.route}\` | ${diffCell(row)} | ${confidenceCell(row, seenCount)} |`,
       ),
       "",
     );
   }
 
-  const fallbackRows = input.rows.flatMap((row) =>
+  const fallbackRows = deduped.flatMap(({ row }) =>
     row.fallback === null ? [] : [{ row, fallback: row.fallback }],
   );
   if (fallbackRows.length > 0) {
@@ -174,14 +182,14 @@ export function renderComment(input: RenderCommentInput): string {
     );
   }
 
-  const verificationNote = renderVerificationNote(input.rows);
+  const verificationNote = renderVerificationNote(deduped.map((entry) => entry.row));
   if (verificationNote !== null) {
     lines.push(verificationNote, "");
   }
 
-  if (asideRows.length > 0) {
+  if (asideEntries.length > 0) {
     lines.push(
-      `Eir also logged ${pluralize(asideRows.length, "other outcome")} with no actionable suggestion this run (no confident match, or a successful action that looked suspiciously unlike its own baseline) — see the local \`eir-report.md\` artifact for the full detail.`,
+      `Eir also logged ${pluralize(asideEntries.length, "other outcome")} with no actionable suggestion this run (no confident match, or a successful action that looked suspiciously unlike its own baseline) — see the local \`eir-report.md\` artifact for the full detail.`,
       "",
     );
   }
