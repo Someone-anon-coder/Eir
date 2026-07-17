@@ -68,10 +68,15 @@ jobs:
 
       - run: pnpm --filter demo-app e2e
 
-      # Phase 4 DoD: CI runs one fast bench class as a smoke check on the
+      # Phase 4 DoD: CI runs two fast bench classes as a smoke check on the
       # mutation harness itself — not the full 8-class baseline (that's a
       # deliberate, manually-run/committed artifact, not a CI gate).
+      # sibling-reorder added at 1.0.0 closure (B3, audit §13 #6): it's the
+      # one class with a known, only-partially-closed detection gap
+      # (RISK-009/Mechanism B) — cheap and fast (100% miss, no matching
+      # work), so per-push CI now touches it instead of only id-rename.
       - run: pnpm bench --class id-rename --seed 42
+      - run: pnpm bench --class sibling-reorder --seed 42
 
       # Phase 7: screenshots are never inlined into the PR comment — GitHub
       # strips `data:` URI image sources from comment bodies (confirmed

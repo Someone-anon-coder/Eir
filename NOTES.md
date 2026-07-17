@@ -434,6 +434,8 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 
 **Phase 6 update (2026-07-11):** Mechanism B (NOTE-001's retrofit) implements exactly the detection heuristic proposed above — `checkSelfSimilarity` compares an ordinary success's fresh capture against its stored baseline, flagging `drift-suspected` on a low score. Real measured evidence (`packages/benchmark/reports/note001-heal-evidence-sibling-reorder.md`, seed 42): fires correctly on all 4 targets whose action Eir actually wraps (self-similarity 0.6471, below the 0.7 bar) — a genuine, measured close of this risk's core scenario. **Not fully closed**, honestly: the other 4 targets in this same class either drive a plain-pass-through Playwright call (`getAttribute`, never wrapped by Eir at all — see RISK-004) or a selector chain with no pre-existing captured baseline to compare against, and produce no signal either way. Downgraded from WATCHING to MITIGATED (partial), not RESOLVED — the remaining gap is real and belongs to RISK-004's territory (capture-point/wrapped-surface coverage), not a new mechanism.
 
+**B3 disposition (1.0.0 closure, 2026-07-17):** audit §13 #6 observed that CI's per-push bench smoke step only ever ran `id-rename`, never touching the one class with a known, only-partially-closed detection gap. `.github/workflows/ci.yml` now runs `sibling-reorder` as a second smoke class alongside `id-rename` — cheap (100% miss, no matching work to do) and now gives every push at least one touch on this class, rather than relying solely on the manually-run full 8-class baseline to exercise it.
+
 ---
 
 ## 4. Decisions Already Made (index, not detail)
