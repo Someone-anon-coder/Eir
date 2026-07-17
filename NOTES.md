@@ -271,7 +271,7 @@ Judged disproportionate for Phase 7's own DoD (see above) and not required by Ph
 ---
 
 ### NOTE-011 — The no-heals "comment updates to a clean state" branch has never been exercised live
-**Status:** PARKED
+**Status:** RESOLVED (A5, 1.0.0 closure, 2026-07-17)
 **Raised:** 2026-07-12 during Phase 7 (verbally noted as "worth knowing, not blocking" in that session's progress log); formalized with an ID during Phase 9's ledger triage, 2026-07-16
 **Target phase:** Post-release polish
 **Blueprint touchpoint:** §7.7 (reporting — the no-heals path)
@@ -282,10 +282,10 @@ Judged disproportionate for Phase 7's own DoD (see above) and not required by Ph
 **Why it matters:**
 This is the one branch of the upsert-comment logic without live confirmation; a real adopting team's PR (fix the mutation, push again) would be the first live exercise of exactly this path.
 
-**Why not now:**
+**Why not now (superseded — see resolution below):**
 Low risk — unit-tested, and the underlying upsert-by-marker mechanism is otherwise proven live (dogfood PR #15's second/third pushes updated the same comment ID). Not worth engineering an artificial live scenario just to exercise this one branch during Phase 9's already-large scope.
 
-**Resolution:** *(pending)*
+**Resolution (A5, 1.0.0 closure, 2026-07-17):** cheap thanks to A4's `eir-dogfood/*` prefix generalization. Opened [PR #29](https://github.com/Someone-anon-coder/Eir/pull/29) from a fresh `eir-dogfood/note-011-live-exercise-2026-07-17` branch: first push (no code changes) triggered the real id-rename mutation, and the Eir comment posted with 3 genuine findings (comment id `5000261508`; A3's dedup fix also visible live — each row correctly shows "(seen 2x)" from CI's parallel workers). A follow-up commit zeroed the mutation payload out (`--exclude-prefix ""` matches every target id) to simulate "the team fixed it and pushed again" — CI reran green, and the *same* comment (id `5000261508`, confirmed via the GitHub API — exactly one comment total on the PR, not two) updated in place to "No heal-eligible activity this run — nothing for Eir to suggest." Same comment ID before/after, honest wording, zero duplicates — the exact standard of proof Phase 7 gave the upsert mechanism itself.
 
 ---
 
