@@ -610,6 +610,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 **Triggered by:** NOTE-001 (formally adopted 2026-07-08 during Phase 5's close; implemented this session as part of Phase 6)
 **Change:** BLUEPRINT.md §7.2 gains a bullet describing post-condition capture as a sibling artifact alongside the fingerprint (no schema change). BLUEPRINT.md §7.6 gains a paragraph describing post-condition verification as a distinct, complementary gate to decision margin on heal-and-continue's retry. EIR_BLUEPRINT_APPROACH.md's Phase 3 section gains a retrospective cross-reference note (the concurrent-capture pattern built there was reused here). EIR_BLUEPRINT_APPROACH.md's Phase 6 section gains: a "Scope expansion" paragraph under Objective/Why now, work item 7 (the retrofit itself), an added Understanding Gate bullet, an OUT-list guard against a general-purpose assertion framework, and a DoD line requiring real heal-mode benchmark evidence.
 
+### 2026-07-17 — CLAUDE.md — §9 repository map corrected (A6, 1.0.0 closure)
+**Triggered by:** FULL_UNDERSTANDING.md §13 #1 (audit finding, 2026-07-16) — `.eir/` was listed at the repo root; the real, only committed store lives at `packages/demo-app/.eir/` (`packages/benchmark/.eir/` is a separate, deliberately gitignored one). `README.md`'s own repository map already had this right; only `CLAUDE.md` had drifted.
+**Change:** §9's repository map line changed from `.eir/` to `packages/demo-app/.eir/`, moved next to the `packages/demo-app/` line it belongs under.
+
 ---
 
 *This file has no end state — it grows for the life of the project. If it gets unwieldy, split by section into `notes/parked.md`, `notes/log.md`, `notes/risks.md` and leave a pointer here; don't let size become a reason to stop maintaining it.*

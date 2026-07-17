@@ -25,7 +25,7 @@ export const DEFAULT_MIN_MARGIN = 0.05;
  * Mechanism B (RISK-009 closure): the bar a freshly-captured fingerprint's
  * self-similarity score against its own last-known-good baseline must
  * clear on an *ordinary* (non-throwing) success, or the success gets
- * flagged `silent-drift-suspected` in the report. Deliberately reuses
+ * flagged `drift-suspected` in the report. Deliberately reuses
  * `DEFAULT_HEAL_THRESHOLD`'s value rather than inventing a new number:
  * the same trust bar that says "confident enough to retry a healed
  * candidate" is repurposed to ask "confident enough that this was still
