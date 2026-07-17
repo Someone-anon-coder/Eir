@@ -101,6 +101,19 @@ describe("plain pass-through", () => {
 
     expect(eirPage._apiName).toBe("Page");
   });
+
+  // B2/RISK-003 (1.0.0 closure): makes expect(eirPage).toHaveScreenshot()
+  // work — see screenshot-assertions.spec.ts for the real, live-browser proof.
+  it("_expectScreenshot forwards to the real page's private internal", async () => {
+    const expectScreenshot = vi.fn().mockResolvedValue({ actual: Buffer.from("png-bytes") });
+    const real = fakePage({ _expectScreenshot: expectScreenshot });
+    const eirPage = new EirPage(real, fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+
+    const result = await eirPage._expectScreenshot({ isNot: false });
+
+    expect(expectScreenshot).toHaveBeenCalledWith({ isNot: false });
+    expect(result).toEqual({ actual: Buffer.from("png-bytes") });
+  });
 });
 
 describe("removeAllListeners overload branching", () => {

@@ -12,11 +12,16 @@ import type { PostConditionRecorder } from "./store/postConditionStore.js";
  * receiver (`expectTypes` in Playwright's matcher internals) but route their
  * actual polling through `page.mainFrame()._expect(...)` — a plain
  * pass-through already returning the real `Frame` — so only `_apiName`
- * needs forwarding here, confirmed via a throwaway spike. See NOTES.md
- * RISK-003 for the known `_expectScreenshot` gap.
+ * needed forwarding for those two. `expect(page).toHaveScreenshot()` is
+ * different: it calls `pageOrLocator._expectScreenshot(...)` directly on
+ * whichever receiver `expect()` was given, so `EirPage` itself needs the
+ * method forwarded (B2/RISK-003, 1.0.0 closure — confirmed via a real
+ * `toHaveScreenshot()` run: `TypeError: page._expectScreenshot is not a
+ * function` before this fix).
  */
 interface PagePrivateInternals {
   readonly _apiName: unknown;
+  _expectScreenshot(...args: unknown[]): unknown;
 }
 
 function internalsOf(real: Page): PagePrivateInternals {
@@ -597,9 +602,14 @@ export class EirPage implements Page {
     return this.#real[Symbol.asyncDispose]();
   }
 
-  // ---- private runtime hook `expect(page).toHaveURL()/.toHaveTitle()` needs; not part of the public Page type ----
+  // ---- private runtime hooks expect(page) assertions need; not part of the public Page type ----
 
   get _apiName(): unknown {
     return internalsOf(this.#real)._apiName;
+  }
+
+  // B2/RISK-003 (1.0.0 closure): makes expect(eirPage).toHaveScreenshot() work.
+  _expectScreenshot(...args: unknown[]): unknown {
+    return internalsOf(this.#real)._expectScreenshot(...args);
   }
 }
