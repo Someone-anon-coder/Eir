@@ -1,4 +1,5 @@
 import { createGithubClient } from "./githubClient.js";
+import { hasFindings } from "./findings.js";
 import { resolveActionInputs, resolveGithubContext, resolveRunUrl } from "./githubContext.js";
 import { renderComment } from "./renderComment.js";
 import { readEirReport } from "./report.js";
@@ -29,8 +30,7 @@ async function run(): Promise<void> {
     repo: context.repo,
   });
 
-  const hasFindings = report.rows.some((row) => row.suggestion !== null);
-  const outcome = await upsertEirComment(client, context.prNumber, body, hasFindings);
+  const outcome = await upsertEirComment(client, context.prNumber, body, hasFindings(report.rows));
 
   const detail =
     outcome.kind === "skipped-no-findings" ? "" : ` (comment ${String(outcome.commentId)})`;
