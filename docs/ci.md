@@ -94,6 +94,22 @@ Without this, every push to a long-lived PR adds another comment, and
 reviewers learn to scroll past all of them — the exact failure mode that
 kills adoption of any PR bot.
 
+## Duplicate rows from retried tests
+
+If your suite (or CI itself) retries a failing test, Eir's whole
+triage→match→policy pipeline re-runs on each attempt and `eir-report.json`
+ends up with one row per attempt — 3 genuinely distinct broken selectors
+across 2 retried attempts becomes 6 raw rows. The comment renderer
+collapses rows that share the same route, original selector, and
+suggested selector into one table entry before rendering, so the
+headline counts and the table both reflect unique selectors, not raw
+attempts. When duplicates disagree on confidence, the highest is shown,
+annotated `(seen Nx)` so the retry isn't hidden — it's mild evidence the
+break reproduces, not a fluke. This dedup is renderer-only: the
+`eir-report.json`/`.md` artifact itself keeps every real attempt
+untouched, since that file is the raw evidence trail a benchmark or a
+debugging session might read later.
+
 ## Why this token, this scope
 
 The example above declares `permissions: pull-requests: write` explicitly

@@ -323,6 +323,81 @@ describe("renderComment", () => {
     expect(body).not.toContain("http-429");
   });
 
+  it("A3: collapses retried rows for the same selector into one, headline count reflects unique selectors", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.72,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.72,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    const diffLines = body.split("\n").filter((line) => line.includes('getByTestId("a")'));
+    expect(diffLines).toHaveLength(1);
+    expect(body).toContain("**1 route flagged** · 1 suggested, 0 healed this run.");
+  });
+
+  it("A3: notes the duplicate count and shows the highest confidence when duplicates disagree", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.5,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.81,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).toContain("0.8100 (seen 2x)");
+    expect(body).not.toContain("0.5000");
+  });
+
+  it("A3: does not annotate a selector that was seen only once", () => {
+    const rows: ReportRow[] = [
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.8,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).not.toContain("seen");
+  });
+
+  it("A3: dedupes non-actionable (missed/drift-suspected) duplicates in the aside count too", () => {
+    const rows: ReportRow[] = [
+      row({ route: "/y", selectorKey: 'getByTestId("b")', action: "missed" }),
+      row({ route: "/y", selectorKey: 'getByTestId("b")', action: "missed" }),
+      row({
+        route: "/x",
+        selectorKey: 'getByTestId("a")',
+        action: "suggested",
+        confidence: 0.8,
+        suggestion: 'getByTestId("a-mut")',
+      }),
+    ];
+    const body = renderComment({ rows, ...BASE });
+    expect(body).toContain("1 other outcome");
+  });
+
   it("carries the RISK-009 scope note honestly limiting coverage claims", () => {
     const rows: ReportRow[] = [
       row({
