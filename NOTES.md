@@ -438,6 +438,13 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 
 **B3 disposition (1.0.0 closure, 2026-07-17):** audit §13 #6 observed that CI's per-push bench smoke step only ever ran `id-rename`, never touching the one class with a known, only-partially-closed detection gap. `.github/workflows/ci.yml` now runs `sibling-reorder` as a second smoke class alongside `id-rename` — cheap (100% miss, no matching work to do) and now gives every push at least one touch on this class, rather than relying solely on the manually-run full 8-class baseline to exercise it.
 
+### RISK-012 — `ci-action`'s PR comment had no injection escaping (resolved, kept for context)
+**Status:** MITIGATED
+**Raised:** 2026-07-17, during the 1.0.0 closure session's security review (docs/security-review-1.0.md, injection surfaces)
+**Phase affected:** Phase 7 (introduced), inherited by every session since
+**Risk:** `renderComment.ts` embedded `route`/`selectorKey`/`suggestion`/a fallback verdict's `detail` directly into the rendered Markdown table with no escaping — all four ultimately trace back to live page content (attribute values, text) Eir captures from the page under test. Confirmed via a real hostile fixture (a suggestion string with a backtick, a pipe, an embedded `<script>` tag, and a literal newline): the backtick closed the surrounding code span early, the pipes fragmented the single table row into fabricated extra cells, and the newline let content escape the table into free-form comment body — real markdown/table-structure corruption, not requiring a malicious actor (ordinary content containing a backtick or pipe would trigger it by accident).
+**Mitigation:** `packages/ci-action/src/markdownSanitize.ts`'s `sanitizeForMarkdownCell()` — HTML-escapes `&`/`</>` (order matters), replaces backtick with a fullwidth look-alike (can't close a code span), escapes `|` as `\|` (GFM's own table-cell escape), and collapses any CR/LF to a space (content can never escape a row). Applied at every embed point in `renderComment.ts`. Verified by re-running the same hostile fixture after the fix (renders inertly in one cell) and by a full unit/integration test suite (`markdownSanitize.test.ts` + `renderComment.test.ts`'s injection block).
+
 ---
 
 ## 4. Decisions Already Made (index, not detail)
