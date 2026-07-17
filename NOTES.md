@@ -323,11 +323,13 @@ Things that must be decided before a specific point, but aren't proposals to bui
 ```
 
 ### Q-001 — What should `suggestThreshold` (the floor below which not even a suggestion is shown) default to?
-**Status:** ANSWERED (provisionally — labeled an estimate, not a measurement)
+**Status:** ANSWERED (provisionally — labeled an estimate, not a measurement; a real anchoring attempt made at 1.0.0 closure found no evidence either way, see below)
 **Raised:** 2026-07-11, during Phase 6's threshold-justification Understanding Gate
 **Needed by:** Phase 6 (enacting real policy defaults)
 **Options considered:** (a) leave unset/0 — always show a suggestion, no matter how weak; (b) pick a conservative first-principles number with no data behind it, label it clearly as an estimate; (c) block Phase 6 on generating synthetic low-confidence benchmark data just to measure this one number.
 **Answer:** (b) — `DEFAULT_SUGGEST_THRESHOLD = 0.3` (`packages/eir/src/policy/thresholds.ts`), justified in `docs/thresholds.md`. Phase 5's benchmark never produced a genuinely low-confidence `"matched"` result (every match it ever saw was worth showing as a suggestion), so there is no measured distribution to anchor a number to — blocking on (c) would have meant manufacturing an artificial scenario just to generate a number, which is worse than an honestly-labeled estimate. Revisit once real low-confidence match data exists (a future mutation class stress-testing recall, or real-world adoption data).
+
+**B1 revisit (1.0.0 closure, 2026-07-17):** ran the full 8-class benchmark with match-logging on (`packages/benchmark/reports/suggest-threshold-evidence-seed42.md`) specifically to attempt this anchor before shipping 1.0. Found 66 matched attempts across all 8 classes, confidence range 0.5849–1.0000 — zero anywhere near the 0.3 floor. This is the same structural gap Q-001 already named, now confirmed with real data rather than inferred from the absence of it: the taxonomy has no "weak but plausible lead" zone to calibrate against. `0.3` stays exactly as it was — an honestly-labeled estimate, not relabeled as measured. Revisit criterion unchanged.
 
 ---
 

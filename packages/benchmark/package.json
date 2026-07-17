@@ -9,6 +9,7 @@
     "bench": "tsx src/cli.ts",
     "bench:heal-evidence": "tsx src/healEvidenceCli.ts",
     "bench:hybrid": "tsx src/hybridComparisonCli.ts",
+    "bench:score-distribution": "tsx src/scoreDistributionCli.ts",
     "mutation-payload": "tsx src/printMutationPayload.ts"
   },
   "devDependencies": {

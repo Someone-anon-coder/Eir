@@ -1,0 +1,407 @@
+{
+  "seed": 42,
+  "generatedAt": "2026-07-17T06:38:43.864Z",
+  "matched": [
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.login.usernameInputId",
+      "confidence": 0.625,
+      "margin": 0.27316666666666667
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.login.passwordInputId",
+      "confidence": 0.8392857142857143,
+      "margin": 0.48745238095238097
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.login.usernameInput",
+      "confidence": 0.625,
+      "margin": 0.27316666666666667
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.provisioning.requesterNameInput",
+      "confidence": 0.8125,
+      "margin": 0.43654761904761896
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.provisioning.submitButton",
+      "confidence": 0.7352941176470589,
+      "margin": 0.436522747643106
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.wizard.titleInput",
+      "confidence": 0.8125,
+      "margin": 0.4475192307692307
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.wizard.requestedByInput",
+      "confidence": 0.8125,
+      "margin": 0.4475192307692307
+    },
+    {
+      "mutationClass": "id-rename",
+      "targetId": "id-rename.account.openDeleteButton",
+      "confidence": 0.7352941176470589,
+      "margin": 0.40779532440172617
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.nav.provisioningLink",
+      "confidence": 0.8882464985994398,
+      "margin": 0.5034621848739496
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.nav.logoutButton",
+      "confidence": 0.8674117647058823,
+      "margin": 0.5158823529411765
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.nav.accountLink",
+      "confidence": 0.8895686274509804,
+      "margin": 0.5151148459383754
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.nav.requestsLink",
+      "confidence": 0.8687058823529412,
+      "margin": 0.46366386554621847
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.account.openDeleteButton",
+      "confidence": 0.8867002801120448,
+      "margin": 0.5685201944627956
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.account.confirmButton",
+      "confidence": 0.8867002801120448,
+      "margin": 0.5685201944627956
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.devices.archivedRowName",
+      "confidence": 0.992901202510441,
+      "margin": 0.004125386868087055
+    },
+    {
+      "mutationClass": "text-change",
+      "targetId": "text-change.wizard.nextButtonStep1",
+      "confidence": 0.778156862745098,
+      "margin": 0.3676196507965967
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.nav.logoutButton",
+      "confidence": 0.9117647058823528,
+      "margin": 0.4719999999999999
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.nav.devicesLink",
+      "confidence": 0.9117647058823528,
+      "margin": 0.5269803921568625
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.nav.provisioningLink",
+      "confidence": 1,
+      "margin": 0.6152156862745097
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.nav.accountLink",
+      "confidence": 0.9949803921568627,
+      "margin": 0.5968627450980393
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.nav.requestsLink",
+      "confidence": 1,
+      "margin": 0.5968627450980393
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.account.openDeleteButton",
+      "confidence": 0.9105098039215686,
+      "margin": 0.5349019607843137
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.account.confirmButton",
+      "confidence": 0.9105098039215686,
+      "margin": 0.5349019607843137
+    },
+    {
+      "mutationClass": "tag-swap",
+      "targetId": "tag-swap.provisioning.submitButton",
+      "confidence": 0.9105098039215686,
+      "margin": 0.6117384339176157
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.devices.active.table",
+      "confidence": 0.9284889298049614,
+      "margin": 0.46426358266078704
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.devices.archived.table",
+      "confidence": 0.9084104984324124,
+      "margin": 0.4743027983470615
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.devices.active.card",
+      "confidence": 0.5999607843137256,
+      "margin": 0.17736206561832663
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.devices.archived.card",
+      "confidence": 0.5849019607843137,
+      "margin": 0.17736206561832651
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.devices.pageClassName",
+      "confidence": 0.6161176470588237,
+      "margin": 0.334098141795812
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.provisioning.pageClassName",
+      "confidence": 0.6311764705882353,
+      "margin": 0.3117398731710182
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.account.pageClassName",
+      "confidence": 0.6311764705882353,
+      "margin": 0.31694491856243523
+    },
+    {
+      "mutationClass": "class-shuffle",
+      "targetId": "class-shuffle.nav.layoutClassName",
+      "confidence": 0.6370196078431373,
+      "margin": 0.1764705882352941
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.wizard.titleInput",
+      "confidence": 0.8808750000000001,
+      "margin": 0.5152488375717055
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.wizard.requestedByInput",
+      "confidence": 0.756992199676819,
+      "margin": 0.5111364304460497
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.provisioning.requesterNameInput",
+      "confidence": 0.896875,
+      "margin": 0.549047619047619
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.provisioning.effectiveDateInput",
+      "confidence": 0.8218749999999999,
+      "margin": 0.549047619047619
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.provisioning.notesTextarea",
+      "confidence": 0.7174999999999999,
+      "margin": 0.7174999999999999
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.account.openDeleteButton",
+      "confidence": 0.9117647058823528,
+      "margin": 0.5842659126370201
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.account.cancelButton",
+      "confidence": 0.9420392156862745,
+      "margin": 0.46262184873949574
+    },
+    {
+      "mutationClass": "wrapper-inject",
+      "targetId": "wrapper-inject.account.confirmButton",
+      "confidence": 0.8664313725490197,
+      "margin": 0.4688264252540046
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.table-row.archived",
+      "confidence": 0.9949803921568627,
+      "margin": 0.010039215686274416
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.editRemove.dev-2.edit",
+      "confidence": 0.992901202510441,
+      "margin": 0
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.saveCancel.dev-3.cancel",
+      "confidence": 0.7764929971988795,
+      "margin": 0.01680672268907568
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.accountModal.confirm",
+      "confidence": 0.8627450980392156,
+      "margin": 0.41101400560224083
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.editRemove.dev-4.edit",
+      "confidence": 0.992901202510441,
+      "margin": 0.004125386868087055
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.saveCancel.dev-5.cancel",
+      "confidence": 0.7815126050420168,
+      "margin": 0.02684593837535021
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.wizardFields.title",
+      "confidence": 0.8847660256410257,
+      "margin": 0.5091185897435898
+    },
+    {
+      "mutationClass": "near-duplicate-sibling-swap",
+      "targetId": "near-dup.editRemove.dev-9.remove",
+      "confidence": 0.9949803921568627,
+      "margin": 0.010039215686274416
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.nav.provisioningLink",
+      "confidence": 0.8882464985994398,
+      "margin": 0.5034621848739496
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.nav.logoutButton",
+      "confidence": 0.8674117647058823,
+      "margin": 0.5158823529411765
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.nav.accountLink",
+      "confidence": 0.8895686274509804,
+      "margin": 0.5151148459383754
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.nav.requestsLink",
+      "confidence": 0.8687058823529412,
+      "margin": 0.46366386554621847
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.account.openDeleteButton",
+      "confidence": 0.6219943977591037,
+      "margin": 0.30381431210985443
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.account.confirmButton",
+      "confidence": 0.6219943977591037,
+      "margin": 0.30381431210985443
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.devices.archivedRowName",
+      "confidence": 0.9949803921568627,
+      "margin": 0.006204576514508786
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "text-change.wizard.nextButtonStep1",
+      "confidence": 0.778156862745098,
+      "margin": 0.3676196507965967
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.login.usernameInputId",
+      "confidence": 0.625,
+      "margin": 0.27316666666666667
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.login.passwordInputId",
+      "confidence": 0.8392857142857143,
+      "margin": 0.48745238095238097
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.login.usernameInput",
+      "confidence": 0.625,
+      "margin": 0.27316666666666667
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.provisioning.requesterNameInput",
+      "confidence": 0.8125,
+      "margin": 0.43654761904761896
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.provisioning.submitButton",
+      "confidence": 0.7352941176470589,
+      "margin": 0.436522747643106
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.wizard.titleInput",
+      "confidence": 0.8125,
+      "margin": 0.4475192307692307
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.wizard.requestedByInput",
+      "confidence": 0.8125,
+      "margin": 0.4475192307692307
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "id-rename.account.openDeleteButton",
+      "confidence": 0.6219943977591037,
+      "margin": 0.30381431210985443
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "sibling-reorder.wizard.resourceSelect",
+      "confidence": 0.778156862745098,
+      "margin": 0.3676196507965967
+    },
+    {
+      "mutationClass": "compound-release",
+      "targetId": "sibling-reorder.wizard.durationSelect",
+      "confidence": 0.778156862745098,
+      "margin": 0.3676196507965967
+    }
+  ],
+  "totalProbes": 80,
+  "passedProbes": 0,
+  "failedNoAttempt": 14,
+  "noCandidates": 0,
+  "rejected": 0
+}

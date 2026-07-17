@@ -11,7 +11,7 @@ path (Phase 6 Understanding Gate).
 |---|---:|---|
 | `DEFAULT_HEAL_THRESHOLD` | `0.7` | **Measured** — Phase 5's `MEASUREMENT_HIGH_CONFIDENCE_THRESHOLD` |
 | `DEFAULT_MIN_MARGIN` | `0.05` | **Measured** — Phase 5's `MEASUREMENT_MIN_MARGIN` |
-| `DEFAULT_SUGGEST_THRESHOLD` | `0.3` | **Estimated** — no benchmark evidence exists either way (see below) |
+| `DEFAULT_SUGGEST_THRESHOLD` | `0.3` | **Estimated** — a real anchoring attempt (1.0.0 closure, B1) found no evidence either way (see below) |
 | `DEFAULT_DRIFT_SELF_SIMILARITY_THRESHOLD` | `0.7` | Reuses `DEFAULT_HEAL_THRESHOLD` — a deliberate reuse, not an independent measurement |
 
 ## `healThreshold` (0.7) and the margin bar (0.05) — measured, adopted as-is
@@ -52,6 +52,24 @@ mean...?" is more likely to be noise than a lead worth reviewing. This is
 **labeled as an estimate, not a measurement**, per this project's honesty
 rules — logged as NOTES.md Q-001 for revisit once real low-confidence
 match data exists to tune against.
+
+**1.0.0 closure attempt (B1, 2026-07-17):** ran the full 8-class benchmark
+(seed 42) with match-logging on, collecting the raw confidence of every
+`matched` attempt across all 80 probes —
+`packages/benchmark/reports/suggest-threshold-evidence-seed42.md`. Result:
+66 matched attempts, confidence range **0.5849–1.0000**, mean 0.8211,
+median 0.8393. **Zero attempts fell anywhere near the 0.3 floor** — the
+lowest score measured is nearly double the threshold, and there is no
+data in the [0, 0.58) range at all. This confirms rather than resolves
+Q-001's original finding: this benchmark's mutation taxonomy structurally
+never produces a genuinely low-confidence match (every mutation either
+destroys enough signal to produce `missed`, or preserves enough to score
+well above any plausible suggestion floor). The honest conclusion is that
+this measurement attempt **did not anchor the number** — `0.3` stays an
+estimate, not because the attempt was skipped, but because the data
+gathered doesn't bear on the range that matters. Revisit criterion
+unchanged: real low-confidence match data (a future mutation class
+stress-testing recall specifically, or real adoption data).
 
 ## `DEFAULT_DRIFT_SELF_SIMILARITY_THRESHOLD` (0.7) — Mechanism B, reusing the heal bar
 
