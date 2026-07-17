@@ -61,7 +61,12 @@ jobs:
       - name: Apply dogfood mutation (eir-dogfood/* branches only)
         if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'eir-dogfood/')
         run: |
-          PAYLOAD=$(pnpm --filter benchmark mutation-payload --class id-rename --seed 42 --exclude-prefix login.)
+          # NOTE-011 live exercise only (A5, 1.0.0 closure): --exclude-prefix ""
+          # matches every target id, zeroing the payload out entirely, so this
+          # PR's suite goes green and the Eir comment updates to a clean state.
+          # This is a one-off edit on this exercise branch only — main's own
+          # workflow keeps the real mutation.
+          PAYLOAD=$(pnpm --filter benchmark mutation-payload --class id-rename --seed 42 --exclude-prefix login. --exclude-prefix "")
           echo "VITE_EIR_MUTATIONS<<EOF" >> "$GITHUB_ENV"
           echo "$PAYLOAD" >> "$GITHUB_ENV"
           echo "EOF" >> "$GITHUB_ENV"
