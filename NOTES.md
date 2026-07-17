@@ -197,7 +197,7 @@ Explicitly named OUT for Phase 7 by the approach doc ("Gemini. Marketplace publi
 ---
 
 ### NOTE-007 — Gemini free-tier rate limits are a real, measured adoption cost for the fallback
-**Status:** PARKED
+**Status:** RESOLVED (Phase 9, 2026-07-16 — via documentation, per this note's own scope)
 **Raised:** 2026-07-15, during Phase 8's comparison benchmark
 **Target phase:** Phase 9 (README/adopter docs caveat)
 **Blueprint touchpoint:** none directly — an operational/adoption fact, not a design decision
@@ -213,7 +213,7 @@ Phase 8's job was to measure and report this honestly (done — see `docs/hybrid
 
 **Phase 9 disposition (2026-07-16):** confirmed for documentation, not code — the README's fallback section (Session 2) will state the measured ~23% real-response rate plainly wherever the fallback is documented.
 
-**Resolution:** *(pending)*
+**Resolution (Phase 9, 2026-07-16):** `README.md`'s "The Gemini fallback" section states the measured finding plainly — 17/74 real responses (23%) across two API keys, with the exact caveat this note raised ("can stay pinned at 0 for an extended period once a daily cap is hit") — and the Known Limitations section cross-references it. This note's own scope was documentation, not code (see "Why not now" above); the action it called for was completed in Phase 9 and this entry simply hadn't been marked resolved since — closed here for ledger consistency ahead of 1.0.0.
 
 ---
 
@@ -278,8 +278,6 @@ Judged disproportionate for Phase 7's own DoD (see above) and not required by Ph
 - The e2e step itself failed as expected (the mutation genuinely broke 3 specs) — the comment-posting step still ran and succeeded (`if: always()`), matching documented behavior exactly.
 
 **Scope note, stated honestly:** this verifies the real-world adoption path — a team forking/copying this workflow into *their own* repo, running on PRs *within that repo*. It does not test a genuine cross-repository PR from a fork back to `Someone-anon-coder/Eir` itself (a different, narrower concern — contributing to Eir's own upstream — where GitHub's platform-level fork-PR token restriction applies unconditionally and cannot be overridden by a workflow's own `permissions:` block, `pull_request_target` aside). That scenario was never what NOTE-010 or `docs/ci.md` were about, and remains out of scope by design, not a gap.
-
-**Resolution:** *(pending)*
 
 ---
 
@@ -612,6 +610,84 @@ One entry per working session. Short. This is a trail, not a report — future-y
   entries here as Aayush decides which matter for 1.0.0 — this session
   deliberately opened none itself, per its own instruction to keep findings
   parked in the document until triaged together.
+
+### 2026-07-17 — 1.0.0 Closure (two sittings — interim work, then re-snapshot + release)
+- Did (first sitting, batched triage-confirmation gate approved, 12 PRs
+  merged — #19 through #28, #30 through #32): fixed A1 (NOTE-009/RISK-005 —
+  `EirLocator`/`EirPage` now unwrap themselves at every real
+  Locator-argument boundary, 8 call sites, centralized in one helper —
+  the audit's own "#1 reason 0.3.0 wasn't 1.0"), A2 (ci-action's
+  `hasFindings` keyed off `action` not `suggestion` nullity), A3
+  (retried-attempt row dedup in the rendered PR comment, dedup rule
+  proposed and approved before writing code), A4 (dogfood mutation
+  generalized to the `eir-dogfood/*` branch prefix), A5 (NOTE-011's
+  live clean-state exercise, unblocked by A4 — real PR, same comment ID
+  before/after, zero duplicates), A6 (three doc/comment drift fixes),
+  A7 (npm README re-diff — none found), B1 (`suggestThreshold` real
+  anchoring attempt — 66 matched attempts, 0.5849–1.0000 confidence
+  range, nothing near 0.3 — stays an estimate, now confirmed not
+  assumed), B2 (RISK-003's `_expectScreenshot` spike revealed a deeper,
+  fixable gap than expected — `_frame`/`_selector` also needed
+  forwarding — fixed, verified via real screenshot comparisons), B3
+  (CI smoke now also runs `sibling-reorder`), C1–C4 (deliberate 1.0
+  stances, all per the session's own defaults), and NOTE-010 (a real
+  external volunteer forked the repo, ran the documented adoption path
+  with stock settings, full pass, zero friction). A completed 7-area
+  security review (`docs/security-review-1.0.md`) found and fixed one
+  real issue: `ci-action`'s PR comment had no injection escaping
+  against page-derived content (RISK-012) — 6 of 7 areas passed clean
+  on first review.
+- Did (second sitting — this one): before trusting the first sitting's
+  own interim brief, independently re-verified its claims against real
+  repo state rather than recalling them — re-ran the full test suite,
+  lint, typecheck, the deep-import boundary test, the secret grep, and
+  `npm pack --dry-run`, and diffed every file the brief claimed
+  unchanged against the prior commit. Found one real gap doing this:
+  PR #19 (A1) changed code but never updated NOTE-009/RISK-005's own
+  NOTES.md ledger entries (still `PARKED`/`WATCHING` with a stray
+  unfilled `Resolution: (pending)` line), even though README already
+  correctly listed the fix — closed via PR #33. A second sweep at
+  session end (writing this very entry) caught two more of the same
+  class: NOTE-010 had a second, separate leftover `Resolution:
+  (pending)` template line sitting *after* its own real, filled-in
+  resolution (PR #32 added the real text but never deleted the
+  original template line), and NOTE-007 (Phase 9, Gemini rate limits)
+  had been actioned via the README back in Phase 9 but its own
+  `Resolution:` line was never filled in at the time — both fixed in
+  this same final pass. Re-snapshotted `FULL_UNDERSTANDING.md` at HEAD
+  `6100c748`/`25bf75b1` (PR #34) as a genuinely new document, not an
+  edit — new header, a full change-summary against the prior snapshot,
+  §11 replaced with a pointer to the security review's verdicts, §12's
+  ledger refreshed, §13 giving each prior imperfection its final
+  disposition (including this session's own ledger-gap find, kept in
+  rather than smoothed over), §14 rewritten as the 1.0.0 statement.
+  Version bump to `1.0.0` (PR #35): `package.json`, `eirVersion()`
+  test, and a `CHANGELOG.md` entry grouped from the real conventional
+  commits since `0.3.0`, stating the semver-honesty commitment
+  explicitly (the `exports` surface/`EirConfig`/`.eir/` file formats
+  are now a stability contract; fingerprint schema v2 is named as the
+  first change that would need a major bump). Full publishing safety
+  protocol: `npm whoami` confirmed, `npm pack --dry-run` reviewed at
+  the real `1.0.0` version, explicit publish go/no-go asked and
+  confirmed, Aayush ran `npm publish` himself; verified after the fact
+  via `npm view` (`1.0.0`/`latest`) and a shasum/integrity/file-count
+  match against the pre-publish dry-run (no drift between what was
+  reviewed and what shipped). Tagged `v1.0.0` (annotated,
+  `phase-9-done`/`project-done`/`v0.3.0` left untouched, per the
+  session's own rule) and created the GitHub release with the results
+  table, closure-list summary, and links to `FULL_UNDERSTANDING.md`/
+  `docs/security-review-1.0.md`.
+- Blocked/open: none. Zero silently-open ledger items as of this entry
+  — every NOTE/RISK/Q item's status is consistent with its own
+  disposition text and with `README.md`, re-checked by a full grep
+  sweep of every remaining `PARKED`/`WATCHING`/`Resolution: (pending)`
+  line in this file, not assumed clean.
+- CI: green on every merge this session, both sittings (PRs #19–28,
+  #30–35 all individually confirmed green; #29 correctly closed
+  without merging, a deliberate throwaway live-demo branch).
+- Next: none outstanding for 1.0.0 itself. Post-1.0 roadmap (per
+  `CHANGELOG.md`/`README.md`): fingerprint schema v2, the first item
+  that would need a major version bump.
 
 ---
 
