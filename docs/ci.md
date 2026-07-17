@@ -128,13 +128,23 @@ Two limits are baked into the wording rather than hidden:
 
 ## The dogfood demo
 
-`.github/workflows/ci.yml` includes one step scoped to an exact branch
-name (`phase-7-dogfood-demo-2026-07-12`) that applies a real, seeded
-`id-rename` mutation to Ward via `packages/benchmark`'s own
-`buildMutationRun` before the suite runs — the same reproducible mutation
-the benchmark's baseline table reports, just applied against the
+`.github/workflows/ci.yml` includes one step scoped to any branch under
+the `eir-dogfood/` prefix (generalized in the 1.0.0 closure session from
+Phase 7's original one-time exact branch name, `phase-7-dogfood-
+demo-2026-07-12`, which could never fire again once merged) that applies
+a real, seeded `id-rename` mutation to Ward via `packages/benchmark`'s
+own `buildMutationRun` before the suite runs — the same reproducible
+mutation the benchmark's baseline table reports, just applied against the
 reference suite instead of the harness's probes. Every other branch and
-PR is unaffected; `VITE_EIR_MUTATIONS` stays unset for everyone else,
-exactly as Phase 4 established. This is what produced the comment on
-[the dogfood PR](#) (linked once opened — see NOTES.md's daily log for
-the actual PR number).
+PR is unaffected; `VITE_EIR_MUTATIONS` stays unset for everyone outside
+the prefix, exactly as Phase 4 established.
+
+To run the demo yourself (on this repo, or on your own fork): create a
+branch named `eir-dogfood/<anything>`, push it with no changes at all —
+the branch name alone triggers the mutation — and open a PR. CI will run
+red on the mutated selectors and the Eir comment will show the
+suggestions. This produced the original demo on [PR #15](
+https://github.com/Someone-anon-coder/Eir/pull/15) (Phase 7,
+`phase-7-dogfood-demo-2026-07-12`) and is re-verified under the new
+prefix as part of the 1.0.0 closure session (NOTE-011's live
+clean-state exercise, and NOTE-010's external-fork verification).

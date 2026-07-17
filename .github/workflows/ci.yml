@@ -46,17 +46,20 @@ jobs:
 
       - run: pnpm test
 
-      # Phase 7 dogfood demo only: applies a real, seeded id-rename mutation
-      # (packages/benchmark's own `buildMutationRun`, the same machinery the
-      # benchmark's baseline table uses) to Ward, scoped to the exact demo
-      # branch by name so every other PR's calibration baseline and CI
-      # behavior stay untouched — Phase 4's invisibility guarantee for
-      # VITE_EIR_MUTATIONS holds for everyone except this one intentional
-      # branch. Login targets are excluded because renaming them cascades
-      # into blocking nearly every other spec (they all need to log in
-      # first), which would demonstrate a login outage, not selector drift.
-      - name: Apply dogfood mutation (demo branch only)
-        if: github.event_name == 'pull_request' && github.head_ref == 'phase-7-dogfood-demo-2026-07-12'
+      # Dogfood demo (A4, 1.0.0 closure — generalized from Phase 7's
+      # one-time exact branch name): applies a real, seeded id-rename
+      # mutation (packages/benchmark's own `buildMutationRun`, the same
+      # machinery the benchmark's baseline table uses) to Ward, scoped to
+      # any branch under the `eir-dogfood/` prefix so the demo is
+      # repeatable by anyone — including an external fork — not a one-time
+      # branch name that can never fire again. Every other branch and PR
+      # is unaffected; Phase 4's invisibility guarantee for
+      # VITE_EIR_MUTATIONS holds for everyone outside this prefix. Login
+      # targets are excluded because renaming them cascades into blocking
+      # nearly every other spec (they all need to log in first), which
+      # would demonstrate a login outage, not selector drift.
+      - name: Apply dogfood mutation (eir-dogfood/* branches only)
+        if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'eir-dogfood/')
         run: |
           PAYLOAD=$(pnpm --filter benchmark mutation-payload --class id-rename --seed 42 --exclude-prefix login.)
           echo "VITE_EIR_MUTATIONS<<EOF" >> "$GITHUB_ENV"
