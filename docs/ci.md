@@ -161,6 +161,11 @@ the branch name alone triggers the mutation — and open a PR. CI will run
 red on the mutated selectors and the Eir comment will show the
 suggestions. This produced the original demo on [PR #15](
 https://github.com/Someone-anon-coder/Eir/pull/15) (Phase 7,
-`phase-7-dogfood-demo-2026-07-12`) and is re-verified under the new
-prefix as part of the 1.0.0 closure session (NOTE-011's live
-clean-state exercise, and NOTE-010's external-fork verification).
+`phase-7-dogfood-demo-2026-07-12`) and was re-verified under the new
+prefix as part of the 1.0.0 closure session: NOTE-011's live
+findings→clean-state exercise on this repo, and NOTE-010's external-fork
+verification — a real volunteer's fork (default settings, no changes)
+produced a correctly-rendered comment despite the fork's own
+repo-level "Workflow permissions" default being read-only, confirming
+this workflow's explicit `permissions:` block does exactly what "Why
+this token, this scope" below claims.

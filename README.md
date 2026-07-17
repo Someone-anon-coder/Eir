@@ -355,11 +355,6 @@ after shipping — full detail and evidence in NOTES.md.
   if a future Playwright version renames or restructures any of these, CI
   breaking on that version bump is where to look first, before assuming
   the bug is in Eir's own logic. (NOTES.md RISK-003)
-- **`docs/ci.md`'s GitHub Actions snippet has been proven on this repo's
-  own PRs and on a real dogfood exercise's findings→clean-state
-  transition, not yet from an external fork specifically** — a fork's
-  reduced default token permissions are the one class of surprise a
-  same-repo test can't rule out. Tracked as NOTES.md NOTE-010.
 - GitHub Marketplace publication of `packages/ci-action` (so it can be
   referenced as `uses: owner/eir-ci-action@v1` from any repo instead of a
   local path) is intentionally parked post-release (NOTES.md NOTE-006).

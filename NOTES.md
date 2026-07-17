@@ -256,7 +256,7 @@ A real design decision (should the unwrap be `instanceof`-based or structural? d
 ---
 
 ### NOTE-010 — `docs/ci.md`'s workflow snippet has never been verified from an external fork
-**Status:** PARKED
+**Status:** RESOLVED (1.0.0 closure, 2026-07-17 — real external fork, real screenshots, real CI logs)
 **Raised:** 2026-07-12 during Phase 7 (verbally noted, no NOTE-### assigned at the time); formalized with an ID during Phase 9's ledger triage, 2026-07-16
 **Target phase:** Post-release polish
 **Blueprint touchpoint:** none — a verification-coverage gap, not a design decision
@@ -267,8 +267,17 @@ Phase 7's DoD judged `docs/ci.md`'s snippet proven via four green/expected-red C
 **Why it matters:**
 The one thing a same-repo test can't rule out is a packaging/permissions surprise specific to a *fork* (different `github.token` defaults, a fork's `pull_request` event having reduced permissions by default, etc.) — exactly the kind of friction Blueprint §9.1's install bar cares about.
 
-**Why not now:**
+**Why not now (superseded — see resolution below):**
 Judged disproportionate for Phase 7's own DoD (see above) and not required by Phase 9's own §9.1 external-clean-project test, which covers `playwright-eir`'s npm install path, not `ci-action`'s GitHub Actions path specifically. Deferred rather than silently dropped.
+
+**Resolution (1.0.0 closure, 2026-07-17):** a real external volunteer (a friend of Aayush's) forked the repo to `rohan2104jadhav/Eir`, enabled Actions, and opened a PR entirely within their own fork (`eir-dogfood/external-verification` → their own `main`) per the instruction sheet delivered this session — the exact `docs/ci.md`-described adoption path, not a code change of their own. **Full pass, real evidence:**
+
+- The fork's own repo-level "Workflow permissions" default is **read-only** ("Read repository contents and packages permissions," confirmed via their own Settings → Actions screenshot — not changed for this test, stock default).
+- The Eir comment posted correctly anyway (comment id `5000875939`, `github-actions` bot, confirmed via screenshot): "3 routes flagged · 3 suggested, 0 healed," the same 3 routes/confidences A5's own live exercise produced (`/dashboard/account` 0.7303, `/dashboard/provisioning` 0.8125, `/dashboard/requests/new` 0.8072 — each `(seen 2x)`, A3's dedup fix also confirmed live on a second, independent environment), a working artifact link, and the `suggest-only` mode line.
+- The raw CI log confirms *why* this worked despite the repo-level default: `GITHUB_TOKEN Permissions: Contents: read, Metadata: read, PullRequests: write` — exactly matching the workflow file's own explicit `permissions:` block, which overrides the repo-level default when a workflow declares its own. This is the precise mechanism `docs/ci.md`'s "Why this token, this scope" section already claimed, now independently confirmed on a machine and account Aayush doesn't control.
+- The e2e step itself failed as expected (the mutation genuinely broke 3 specs) — the comment-posting step still ran and succeeded (`if: always()`), matching documented behavior exactly.
+
+**Scope note, stated honestly:** this verifies the real-world adoption path — a team forking/copying this workflow into *their own* repo, running on PRs *within that repo*. It does not test a genuine cross-repository PR from a fork back to `Someone-anon-coder/Eir` itself (a different, narrower concern — contributing to Eir's own upstream — where GitHub's platform-level fork-PR token restriction applies unconditionally and cannot be overridden by a workflow's own `permissions:` block, `pull_request_target` aside). That scenario was never what NOTE-010 or `docs/ci.md` were about, and remains out of scope by design, not a gap.
 
 **Resolution:** *(pending)*
 
