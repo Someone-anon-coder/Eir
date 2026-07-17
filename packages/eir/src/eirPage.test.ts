@@ -125,3 +125,53 @@ describe("removeAllListeners overload branching", () => {
     await expect(result).resolves.toBeUndefined();
   });
 });
+
+describe("NOTE-009/RISK-005: unwrapping an EirLocator passed as an argument", () => {
+  function makeEirLocator(real: Locator): EirLocator {
+    return new EirLocator(real, [], fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+  }
+
+  it("locator() unwraps an EirLocator in options.has, alongside a string selector", () => {
+    const hasReal = fakeLocatorReturning("http://localhost:5173/dashboard/devices");
+    const locatorSpy = vi.fn().mockReturnValue(fakeLocatorReturning("http://localhost:5173/dashboard/devices"));
+    const real = fakePage({ locator: locatorSpy });
+    const eirPage = new EirPage(real, fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+
+    eirPage.locator(".row", { has: makeEirLocator(hasReal) });
+
+    expect(locatorSpy).toHaveBeenCalledWith(".row", { has: hasReal });
+  });
+
+  it("locator() omits options entirely when none were passed (preserves arity)", () => {
+    const locatorSpy = vi.fn().mockReturnValue(fakeLocatorReturning("http://localhost:5173/dashboard/devices"));
+    const real = fakePage({ locator: locatorSpy });
+    const eirPage = new EirPage(real, fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+
+    eirPage.locator("#login-username-input");
+
+    expect(locatorSpy).toHaveBeenCalledWith("#login-username-input");
+  });
+
+  it("addLocatorHandler() unwraps an EirLocator argument before delegating", () => {
+    const handlerReal = fakeLocatorReturning("http://localhost:5173/dashboard/devices");
+    const addSpy = vi.fn().mockResolvedValue(undefined);
+    const real = fakePage({ addLocatorHandler: addSpy });
+    const eirPage = new EirPage(real, fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+    const handler = vi.fn();
+
+    eirPage.addLocatorHandler(makeEirLocator(handlerReal), handler);
+
+    expect(addSpy).toHaveBeenCalledWith(handlerReal, handler);
+  });
+
+  it("removeLocatorHandler() unwraps an EirLocator argument before delegating", () => {
+    const targetReal = fakeLocatorReturning("http://localhost:5173/dashboard/devices");
+    const removeSpy = vi.fn().mockResolvedValue(undefined);
+    const real = fakePage({ removeLocatorHandler: removeSpy });
+    const eirPage = new EirPage(real, fakeRecorder(), fakePostConditionRecorder(), fakeMatching());
+
+    eirPage.removeLocatorHandler(makeEirLocator(targetReal));
+
+    expect(removeSpy).toHaveBeenCalledWith(targetReal);
+  });
+});

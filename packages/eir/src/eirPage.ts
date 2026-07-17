@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { EirLocator } from "./eirLocator.js";
+import { EirLocator, unwrapHasOptions, unwrapLocator } from "./eirLocator.js";
 import { logCaptured } from "./debugLog.js";
 import { forwardOverloaded } from "./forwardOverloaded.js";
 import type { MatchingContext } from "./matching/context.js";
@@ -44,7 +44,15 @@ export class EirPage implements Page {
   // ---- capture points (Blueprint §7.1): wrap the returned Locator so chains stay tracked ----
 
   locator(...args: Parameters<Page["locator"]>): ReturnType<Page["locator"]> {
-    const real = this.#real.locator(...args);
+    // NOTE-009/RISK-005: `Page.locator`'s selector is always a `string`
+    // (unlike `Locator.locator`, which also accepts a `Locator`) — only
+    // `options.has`/`hasNot` can carry one here.
+    const [selector, options] = args;
+    const unwrappedOptions = unwrapHasOptions(options);
+    const real =
+      unwrappedOptions === undefined
+        ? this.#real.locator(selector)
+        : this.#real.locator(selector, unwrappedOptions);
     const chainPath = extendChain([], "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
     return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
@@ -101,10 +109,14 @@ export class EirPage implements Page {
     return this;
   }
 
+  // NOTE-009/RISK-005: the `locator` argument must be a real `Locator`.
+  // `handler` is unaffected — Playwright invokes it with a real `Locator`
+  // it resolves itself, never with anything Eir constructs.
   addLocatorHandler(
     ...args: Parameters<Page["addLocatorHandler"]>
   ): ReturnType<Page["addLocatorHandler"]> {
-    return this.#real.addLocatorHandler(...args);
+    const [locator, ...rest] = args;
+    return this.#real.addLocatorHandler(unwrapLocator(locator), ...rest);
   }
 
   addScriptTag(...args: Parameters<Page["addScriptTag"]>): ReturnType<Page["addScriptTag"]> {
@@ -357,7 +369,8 @@ export class EirPage implements Page {
   removeLocatorHandler(
     ...args: Parameters<Page["removeLocatorHandler"]>
   ): ReturnType<Page["removeLocatorHandler"]> {
-    return this.#real.removeLocatorHandler(...args);
+    const [locator] = args;
+    return this.#real.removeLocatorHandler(unwrapLocator(locator));
   }
 
   requestGC(...args: Parameters<Page["requestGC"]>): ReturnType<Page["requestGC"]> {
