@@ -329,7 +329,14 @@ after shipping — full detail and evidence in NOTES.md.
   `.filter()`, `.first()`, `.last()`, `.and()`, `.or()`,
   `.getByAltText()`, `.getByTitle()`, or `.contentFrame()` returns a real,
   unwrapped Playwright `Locator` — it still works exactly like vanilla
-  Playwright, it's just not tracked or fingerprinted. (NOTES.md RISK-004)
+  Playwright, it's just not tracked or fingerprinted. `page.frame()`/
+  `page.mainFrame()` are the same story one level up: Playwright's `Frame`
+  was never part of Eir's wrapped surface at all, so anything reached
+  through a raw `Frame` (including its own `.locator(sel, { has })`) is
+  outside this boundary too. This is a permanent, accepted 1.0 boundary,
+  not a bug queue — widening it would mean wrapping `Frame` itself, real
+  design work with its own Understanding Gate, not a same-release patch.
+  (NOTES.md RISK-004)
 - **An element's own class tokens are never fingerprinted** — see
   "class-shuffle" in the failure-mode analysis above. NOTES.md NOTE-003 is
   the schema-v2 candidate that would address it.
@@ -349,15 +356,23 @@ after shipping — full detail and evidence in NOTES.md.
   breaking on that version bump is where to look first, before assuming
   the bug is in Eir's own logic. (NOTES.md RISK-003)
 - **`docs/ci.md`'s GitHub Actions snippet has been proven on this repo's
-  own PRs, not yet from an external fork specifically** — a fork's
+  own PRs and on a real dogfood exercise's findings→clean-state
+  transition, not yet from an external fork specifically** — a fork's
   reduced default token permissions are the one class of surprise a
   same-repo test can't rule out. Tracked as NOTES.md NOTE-010.
-- **The "PR comment updates to a clean state after all findings
-  disappear" path is unit-tested but has never been exercised by a real
-  PR living through that exact sequence.** Tracked as NOTES.md NOTE-011.
 - GitHub Marketplace publication of `packages/ci-action` (so it can be
   referenced as `uses: owner/eir-ci-action@v1` from any repo instead of a
   local path) is intentionally parked post-release (NOTES.md NOTE-006).
+
+## Post-1.0 roadmap
+
+- **Fingerprint schema v2** — the `class-shuffle` 25% ceiling above is the
+  measured cost of a real, deliberate v1 scope decision (an element's own
+  class tokens are never captured). Closing it means a schema version
+  bump and a migration story for every adopter's existing `.eir/`
+  baseline, not a config tweak — real v1.x-cycle design work, not a
+  same-release patch. NOTES.md NOTE-003 is the tracking entry this
+  roadmap item closes.
 
 ## Repository map
 
