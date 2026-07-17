@@ -330,12 +330,6 @@ after shipping — full detail and evidence in NOTES.md.
   `.getByAltText()`, `.getByTitle()`, or `.contentFrame()` returns a real,
   unwrapped Playwright `Locator` — it still works exactly like vanilla
   Playwright, it's just not tracked or fingerprinted. (NOTES.md RISK-004)
-- **Don't pass an `EirLocator` where Playwright expects a real `Locator`
-  argument** — `.and(other)`, `.or(other)`, `.dragTo(target)`, and
-  `.locator(sel, { has: other })` read a real `Locator`'s private internal
-  state directly and throw if handed a wrapped one. Confirmed as a real,
-  reproducible bug this release (not just a theoretical risk); the fix is
-  tracked for a future release as NOTES.md NOTE-009.
 - **An element's own class tokens are never fingerprinted** — see
   "class-shuffle" in the failure-mode analysis above. NOTES.md NOTE-003 is
   the schema-v2 candidate that would address it.
