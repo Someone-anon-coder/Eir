@@ -56,6 +56,44 @@ function messageOf(error: unknown): string {
 }
 
 /**
+ * NOTE-009/RISK-005: a handful of real Playwright `Locator` methods
+ * (`.and()`, `.or()`, `.dragTo()`, `.locator(sel, { has })`, `.filter({
+ * has })`, plus `Page#addLocatorHandler`/`removeLocatorHandler`) expect one
+ * of their *arguments* to be a real `Locator` and reach into its private
+ * `_frame`/`_selector` fields directly. An `EirLocator` is not a real
+ * `Locator` — it wraps one — so every such boundary must unwrap it first,
+ * or Playwright finds those private fields `undefined` and throws. This is
+ * the single, centralized place that happens; every call site (in this
+ * file and in `eirPage.ts`) uses it rather than reimplementing the check.
+ * `#real` is a true private class field — only code lexically inside the
+ * class body can read it off another instance, hence the static method
+ * below rather than a plain module-level function.
+ */
+export function unwrapLocator(locator: Locator): Locator {
+  return EirLocator.unwrap(locator);
+}
+
+interface HasOptions {
+  readonly has?: Locator;
+  readonly hasNot?: Locator;
+}
+
+/**
+ * Shared by every method whose options object can carry `has`/`hasNot`
+ * (`.filter()`, `.locator()`, `Page#locator()`). Preserves every other
+ * field untouched; returns the original object unchanged (not a copy) when
+ * neither field is present or neither is an `EirLocator`, so callers that
+ * omit `options` entirely still call the real method with the same arity.
+ */
+export function unwrapHasOptions<T extends HasOptions | undefined>(options: T): T {
+  if (options === undefined) return options;
+  const has = options.has !== undefined ? unwrapLocator(options.has) : options.has;
+  const hasNot = options.hasNot !== undefined ? unwrapLocator(options.hasNot) : options.hasNot;
+  if (has === options.has && hasNot === options.hasNot) return options;
+  return { ...options, has, hasNot };
+}
+
+/**
  * Gate 2's "page sane" half (Blueprint §7.4): a dead server, a browser
  * error page, or a document that never finished loading all mean healing
  * here would be noise, not drift. Best-effort and cheap — an unresponsive
@@ -113,6 +151,18 @@ export class EirLocator implements Locator {
   /** Not part of Playwright's `Locator` type — Eir's own book-keeping, read starting Phase 3. */
   get identity(): SelectorIdentity {
     return this.#identity;
+  }
+
+  /**
+   * NOTE-009/RISK-005's unwrap step. `#real` is a true private class field
+   * (`#`, not `private`) — readable off another instance only from code
+   * lexically inside this class body, which is why this is a static method
+   * rather than a free function next to it. Anything that isn't an
+   * `EirLocator` (a real `Locator`, or one from a different wrapper
+   * entirely) passes through untouched.
+   */
+  static unwrap(locator: Locator): Locator {
+    return locator instanceof EirLocator ? locator.#real : locator;
   }
 
   #routeAndKey(): { readonly route: string; readonly selectorKey: string } {
@@ -424,7 +474,19 @@ export class EirLocator implements Locator {
   // ---- capture points (Blueprint §7.1): wrap the returned Locator so chains stay tracked ----
 
   locator(...args: Parameters<Locator["locator"]>): Locator {
-    const real = this.#real.locator(...args);
+    const [selectorOrLocator, options] = args;
+    // NOTE-009/RISK-005: `selectorOrLocator` accepts `string | Locator`, and
+    // `options.has`/`hasNot` accept a `Locator` too — all three need
+    // unwrapping before reaching the real call. Identity/chain tracking
+    // below still uses the original `args`, unwrapped or not — selector-key
+    // generation is an orthogonal concern this fix doesn't touch.
+    const unwrappedSelector =
+      typeof selectorOrLocator === "string" ? selectorOrLocator : unwrapLocator(selectorOrLocator);
+    const unwrappedOptions = unwrapHasOptions(options);
+    const real =
+      unwrappedOptions === undefined
+        ? this.#real.locator(unwrappedSelector)
+        : this.#real.locator(unwrappedSelector, unwrappedOptions);
     const chainPath = extendChain(this.#identity.chainPath, "locator", args);
     logCaptured(real.toString(), routeFromUrl(real.page().url()));
     return new EirLocator(real, chainPath, this.#recorder, this.#postConditionRecorder, this.#matching);
@@ -533,7 +595,10 @@ export class EirLocator implements Locator {
     return this.#real.count(...args);
   }
 
-  // ---- everything else on Locator: plain pass-through, untouched (see NOTES.md RISK-004/005) ----
+  // ---- everything else on Locator: plain pass-through, untouched (see NOTES.md RISK-004) ----
+  // ---- (RISK-005/NOTE-009's Locator-argument unwrap is fixed at each of the few methods ----
+  // ---- below that actually take one — `.and()`, `.or()`, `.dragTo()`, `.filter()` — the ----
+  // ---- rest genuinely never receive a `Locator` argument and need no such handling.     ----
 
   all(...args: Parameters<Locator["all"]>): ReturnType<Locator["all"]> {
     return this.#real.all(...args);
@@ -551,8 +616,12 @@ export class EirLocator implements Locator {
     return this.#real.allTextContents(...args);
   }
 
+  // NOTE-009/RISK-005: `.and()` reaches into its argument's private
+  // `_frame`/`_selector` fields — an `EirLocator` must unwrap to the real
+  // `Locator` it holds before reaching this call.
   and(...args: Parameters<Locator["and"]>): ReturnType<Locator["and"]> {
-    return this.#real.and(...args);
+    const [other] = args;
+    return this.#real.and(unwrapLocator(other));
   }
 
   ariaSnapshot(...args: Parameters<Locator["ariaSnapshot"]>): ReturnType<Locator["ariaSnapshot"]> {
@@ -593,8 +662,15 @@ export class EirLocator implements Locator {
     return this.#real.dispatchEvent(...args);
   }
 
+  // NOTE-009/RISK-005: `target` must be a real `Locator`; `dragTo`'s own
+  // options never carry a `Locator` field (verified against Playwright's
+  // own types), so only the argument itself needs unwrapping.
   dragTo(...args: Parameters<Locator["dragTo"]>): ReturnType<Locator["dragTo"]> {
-    return this.#real.dragTo(...args);
+    const [target, options] = args;
+    const unwrappedTarget = unwrapLocator(target);
+    return options === undefined
+      ? this.#real.dragTo(unwrappedTarget)
+      : this.#real.dragTo(unwrappedTarget, options);
   }
 
   drop(...args: Parameters<Locator["drop"]>): ReturnType<Locator["drop"]> {
@@ -613,8 +689,13 @@ export class EirLocator implements Locator {
     return this.#real.elementHandles(...args);
   }
 
+  // NOTE-009/RISK-005: `options.has`/`hasNot` can each carry a `Locator`.
   filter(...args: Parameters<Locator["filter"]>): ReturnType<Locator["filter"]> {
-    return this.#real.filter(...args);
+    const [options] = args;
+    const unwrappedOptions = unwrapHasOptions(options);
+    return unwrappedOptions === undefined
+      ? this.#real.filter()
+      : this.#real.filter(unwrappedOptions);
   }
 
   first(...args: Parameters<Locator["first"]>): ReturnType<Locator["first"]> {
@@ -683,8 +764,11 @@ export class EirLocator implements Locator {
     return this.#real.nth(...args);
   }
 
+  // NOTE-009/RISK-005: `.or()` reaches into its argument's private
+  // `_frame`/`_selector` fields, same as `.and()` above.
   or(...args: Parameters<Locator["or"]>): ReturnType<Locator["or"]> {
-    return this.#real.or(...args);
+    const [other] = args;
+    return this.#real.or(unwrapLocator(other));
   }
 
   page(...args: Parameters<Locator["page"]>): ReturnType<Locator["page"]> {
