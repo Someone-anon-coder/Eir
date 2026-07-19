@@ -2,6 +2,8 @@
 
 Self-healing locator engine for Playwright.
 
+📖 Read the build story on Medium: [link](https://computer-info-1.medium.com/building-playwright-eir-a-self-healing-locator-engine-with-a-measured-0-false-heal-rate-70eac1c27bf7) · 🗂️ Project hub: [Notion link](https://forested-burn-5c6.notion.site/playwright-eir-Self-Healing-Locator-Engine-3a2807227cf6802bb219c80bd2acf56c)
+
 ## What it is, and why
 
 Playwright suites break not because the app broke, but because the DOM
