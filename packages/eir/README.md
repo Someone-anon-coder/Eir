@@ -13,6 +13,9 @@ selector it never fingerprinted fails exactly like vanilla Playwright.
 npm i -D playwright-eir
 ```
 
+Requires `@playwright/test` 1.60 or newer (tested on 1.60.0, 1.61.1, and every
+release since through 1.65.1) and Node ≥ 22.13.
+
 ```ts
 // before
 import { test, expect } from "@playwright/test";

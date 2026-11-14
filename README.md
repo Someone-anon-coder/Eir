@@ -29,6 +29,11 @@ where the tool doesn't work, not just where it does.
 npm i -D playwright-eir
 ```
 
+Requires `@playwright/test` **1.60 or newer** (tested on 1.60.0, 1.61.1, and every
+release since through 1.65.1) and Node ≥ 22.13. Earlier Playwright versions identify a
+`Locator`/`Page` in `expect()` by class name, which a wrapper can't pass, so
+every assertion fails there. 1.0.0 wrongly declared `>=1.40`.
+
 ```ts
 // before
 import { test, expect } from "@playwright/test";
@@ -386,11 +391,21 @@ after shipping — full detail and evidence in NOTES.md.
   part of Playwright's public API or its TypeScript types, so there is no
   compile-time contract protecting any of them; each was confirmed working
   via a real spike (success path + failure-message parity, or a genuine
-  screenshot comparison), not assumed. CI running against the pinned
-  `@playwright/test` peer range on every push is the ongoing tripwire —
-  if a future Playwright version renames or restructures any of these, CI
-  breaking on that version bump is where to look first, before assuming
-  the bug is in Eir's own logic. (NOTES.md RISK-003)
+  screenshot comparison), not assumed. The ongoing tripwire is
+  `.github/workflows/playwright-compat.yml`: every push runs the built
+  package's unit, real-browser and e2e suites against each supported
+  Playwright version, and a weekly job typechecks and runs everything
+  against `@playwright/test@latest` — if a future Playwright version
+  renames or restructures any of these, that job breaking is where to look
+  first, before assuming the bug is in Eir's own logic. (NOTES.md RISK-003)
+- **New Playwright releases need a matching Eir release.** The wrappers are
+  explicit typed classes (no `Proxy`), so a `Page`/`Locator` method added
+  upstream after an Eir release exists in your types but throws
+  `... is not a function` through Eir until it's forwarded. 1.0.0 missed
+  seven such members from Playwright 1.63/1.64 (`within`, `visible`,
+  `waitForFunction`, `ariaSnapshotJSON` ×2, `getByRef`, `webmcp`); 1.0.1
+  forwards them. The weekly `@latest` job above exists so the next one is
+  caught within a week. (NOTES.md RISK-013)
 - GitHub Marketplace publication of `packages/ci-action` (so it can be
   referenced as `uses: owner/eir-ci-action@v1` from any repo instead of a
   local path) is intentionally parked post-release (NOTES.md NOTE-006).
