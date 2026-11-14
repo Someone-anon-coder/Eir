@@ -725,6 +725,13 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Next: once merged, verify `/plugin install` and `npx skills add`
   against the real GitHub repo.
 
+### 2026-11-14 — Post-1.0, Playwright 1.63–1.65 compatibility (1.0.1 prepared)
+- Did: forwarded 7 Page/Locator members Playwright 1.63/1.64 added (RISK-013); declared the `page` fixture as Playwright's own `Page` so `EirPage` stops leaking into the published `.d.ts`; corrected the peer floor `>=1.40` → `>=1.60` (bisected: pre-1.60 `expect()` checks `constructor.name`); new `playwright-compat.yml` (runtime matrix + weekly `@latest`); zod floor `^4.6.7`. PR #38 (fix), stacked `release-1.0.1-version-bump-2026-11-14` (bump + CHANGELOG).
+- Evidence: runtime green on 1.60.0, 1.61.1, 1.62.0, 1.62.1, 1.63.0, 1.64.0, 1.64.1, 1.65.0, 1.65.1; 1.40.0 e2e fails on every assertion; new spec 6/6 fail on 1.0.0 wrappers, 6/6 pass now; adopter `skipLibCheck: false` 0 errors on 5 versions; 8-class benchmark byte-identical on 1.65.1.
+- Process change: Aayush retired the Understanding Gate (CLAUDE.md §3) for post-1.0 work, by direct instruction this session. CLAUDE.md not edited; amend it deliberately if this should be permanent in the file.
+- Open: drop `minimumReleaseAgeExclude` from `pnpm-workspace.yaml` once 1.65.1 is past pnpm's 24h window. Publish of 1.0.1 awaits Aayush's go + OTP.
+- CI: local lint/typecheck/unit/e2e green; PR CI pending.
+
 ---
 
 ## 6. Changelog to Governing Documents
