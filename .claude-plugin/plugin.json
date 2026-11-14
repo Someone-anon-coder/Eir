@@ -1,0 +1,12 @@
+{
+  "name": "playwright-eir",
+  "description": "Agent skills for playwright-eir, the self-healing locator engine for Playwright: set it up and act on its reports in any Playwright project, and run the benchmark, tests, PR process, and release procedure in the Eir repository.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Aayush Choudhary"
+  },
+  "homepage": "https://github.com/Someone-anon-coder/Eir",
+  "repository": "https://github.com/Someone-anon-coder/Eir",
+  "license": "MIT",
+  "keywords": ["playwright", "testing", "e2e", "self-healing", "locators"]
+}
