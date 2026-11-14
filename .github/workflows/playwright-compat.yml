@@ -34,7 +34,12 @@ permissions:
 
 jobs:
   supported:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: that label moved to Ubuntu 26.04 in Oct
+    # 2026, and older Playwright releases in this matrix (1.60.0 at least)
+    # refuse to install Chromium there ("does not support chromium on
+    # ubuntu26.04-x64"). This job tests Eir against each Playwright version,
+    # so it runs on an OS every version in the matrix supports.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
