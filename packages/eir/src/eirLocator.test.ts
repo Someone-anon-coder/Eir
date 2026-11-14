@@ -290,6 +290,17 @@ describe("NOTE-009/RISK-005: unwrapping an EirLocator passed as an argument", ()
     expect(orSpy).toHaveBeenCalledWith(otherReal);
   });
 
+  it("within() unwraps an EirLocator parent before delegating (Playwright 1.64+)", () => {
+    const parentReal = fakeLocator();
+    const withinSpy = vi.fn().mockReturnValue(fakeLocator());
+    const real = fakeLocator({ within: withinSpy });
+    const eir = makeEir(real);
+
+    eir.within(makeEir(parentReal));
+
+    expect(withinSpy).toHaveBeenCalledWith(parentReal);
+  });
+
   it("dragTo() unwraps an EirLocator target, options included, before delegating", () => {
     const targetReal = fakeLocator();
     const dragToSpy = vi.fn().mockResolvedValue(undefined);
