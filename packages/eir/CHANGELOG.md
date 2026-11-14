@@ -26,9 +26,9 @@ reporting, or the `.eir/` file formats — the full 8-class benchmark
 - **Type errors for `skipLibCheck: false` projects on a different
   Playwright version than Eir was built with.** The `page` fixture was
   declared as Eir's internal wrapper class, which leaked into the published
-  `.d.ts` (1.0.0 + Playwright 1.65 → `EirPage incorrectly implements
-  interface 'Page'`). It is now declared as Playwright's own `Page`, so
-  `page` is typed by *your* installed Playwright. Verified with 0 errors in
+  `.d.ts` (1.0.0 + Playwright 1.65 failed with "EirPage incorrectly
+  implements interface 'Page'"). It is now declared as Playwright's own
+  `Page`, so `page` is typed by _your_ installed Playwright. Verified with 0 errors in
   a clean strict project on 1.61.1, 1.62.1, 1.63.0, 1.64.1 and 1.65.1.
 - **Peer range corrected from `>=1.40` to `>=1.60`.** 1.0.0's declared
   floor was never tested and never true: Playwright 1.40–1.59 identify an
@@ -151,8 +151,8 @@ has structurally enforced since Phase 2.
   `_selector`) so `expect()` assertions work through the wrappers. CI
   against the pinned `@playwright/test` peer range is the ongoing
   tripwire for a future Playwright version renaming or restructuring any
-  of them. *(1.0.1 note: that CI only ever ran one pinned version; see
-  1.0.1 above for the real matrix.)*
+  of them. _(1.0.1 note: that CI only ever ran one pinned version; see
+  1.0.1 above for the real matrix.)_
 - The Gemini fallback has a real, measured free-tier reliability ceiling
   (~23% of invocation attempts got a real model response across this
   project's own comparison runs) — shipped disabled by default on that
