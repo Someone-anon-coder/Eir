@@ -69,8 +69,8 @@ function messageOf(error: unknown): string {
 
 /**
  * NOTE-009/RISK-005: a handful of real Playwright `Locator` methods
- * (`.and()`, `.or()`, `.dragTo()`, `.locator(sel, { has })`, `.filter({
- * has })`, plus `Page#addLocatorHandler`/`removeLocatorHandler`) expect one
+ * (`.and()`, `.or()`, `.dragTo()`, `.within()`, `.locator(sel, { has })`,
+ * `.filter({ has })`, plus `Page#addLocatorHandler`/`removeLocatorHandler`) expect one
  * of their *arguments* to be a real `Locator` and reach into its private
  * `_frame`/`_selector` fields directly. An `EirLocator` is not a real
  * `Locator` — it wraps one — so every such boundary must unwrap it first,
@@ -609,7 +609,8 @@ export class EirLocator implements Locator {
 
   // ---- everything else on Locator: plain pass-through, untouched (see NOTES.md RISK-004) ----
   // ---- (RISK-005/NOTE-009's Locator-argument unwrap is fixed at each of the few methods ----
-  // ---- below that actually take one — `.and()`, `.or()`, `.dragTo()`, `.filter()` — the ----
+  // ---- below that actually take one — `.and()`, `.or()`, `.dragTo()`, `.filter()`,       ----
+  // ---- `.within()` (Playwright 1.64+) — the                                               ----
   // ---- rest genuinely never receive a `Locator` argument and need no such handling.     ----
 
   all(...args: Parameters<Locator["all"]>): ReturnType<Locator["all"]> {
@@ -638,6 +639,13 @@ export class EirLocator implements Locator {
 
   ariaSnapshot(...args: Parameters<Locator["ariaSnapshot"]>): ReturnType<Locator["ariaSnapshot"]> {
     return this.#real.ariaSnapshot(...args);
+  }
+
+  // Playwright 1.63+.
+  ariaSnapshotJSON(
+    ...args: Parameters<Locator["ariaSnapshotJSON"]>
+  ): ReturnType<Locator["ariaSnapshotJSON"]> {
+    return this.#real.ariaSnapshotJSON(...args);
   }
 
   blur(...args: Parameters<Locator["blur"]>): ReturnType<Locator["blur"]> {
@@ -825,6 +833,21 @@ export class EirLocator implements Locator {
     return this.#real.toString(...args);
   }
 
+  // Playwright 1.63+. Returns a real `Locator`, untracked — same as
+  // `first()`/`nth()` (NOTES.md RISK-004).
+  visible(...args: Parameters<Locator["visible"]>): ReturnType<Locator["visible"]> {
+    return this.#real.visible(...args);
+  }
+
+  // Playwright 1.64+. NOTE-009/RISK-005: the parent `locator` argument is
+  // read through its private `_frame`/`_selector` fields, same as
+  // `.and()`/`.or()`. EirLocator's B2 getters happen to forward those, but
+  // unwrapping keeps this boundary independent of RISK-003's internals.
+  within(...args: Parameters<Locator["within"]>): ReturnType<Locator["within"]> {
+    const [parent] = args;
+    return this.#real.within(unwrapLocator(parent));
+  }
+
   // ---- generic/overloaded members: Parameters<>/ReturnType<> only see the last ----
   // ---- overload, so these are typed as full properties instead (Aayush-approved) ----
 
@@ -838,6 +861,12 @@ export class EirLocator implements Locator {
 
   readonly evaluateHandle: Locator["evaluateHandle"] = forwardOverloaded((...args: unknown[]) =>
     (this.#real.evaluateHandle as (...a: unknown[]) => unknown)(...args),
+  );
+
+  // Playwright 1.63+. Generic (`<Arg, E>`), so `Parameters<>` would erase
+  // the element/argument inference adopters rely on.
+  readonly waitForFunction: Locator["waitForFunction"] = forwardOverloaded((...args: unknown[]) =>
+    (this.#real.waitForFunction as (...a: unknown[]) => unknown)(...args),
   );
 
   // ---- private runtime hooks `expect()` needs; not part of the public Locator type ----

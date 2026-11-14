@@ -136,6 +136,13 @@ export class EirPage implements Page {
     return this.#real.ariaSnapshot(...args);
   }
 
+  // Playwright 1.64+.
+  ariaSnapshotJSON(
+    ...args: Parameters<Page["ariaSnapshotJSON"]>
+  ): ReturnType<Page["ariaSnapshotJSON"]> {
+    return this.#real.ariaSnapshotJSON(...args);
+  }
+
   bringToFront(...args: Parameters<Page["bringToFront"]>): ReturnType<Page["bringToFront"]> {
     return this.#real.bringToFront(...args);
   }
@@ -234,6 +241,15 @@ export class EirPage implements Page {
 
   getByAltText(...args: Parameters<Page["getByAltText"]>): ReturnType<Page["getByAltText"]> {
     return this.#real.getByAltText(...args);
+  }
+
+  // Playwright 1.64+. Deliberately NOT a capture point: an aria ref (`e2`,
+  // `f1e3`) only means something against the latest `ariaSnapshot({ mode:
+  // "ai" })` taken in that frame, so it isn't a stable selector key worth
+  // fingerprinting across runs. Plain pass-through, same as `getByAltText`/
+  // `getByTitle` (NOTES.md RISK-004).
+  getByRef(...args: Parameters<Page["getByRef"]>): ReturnType<Page["getByRef"]> {
+    return this.#real.getByRef(...args);
   }
 
   getByTitle(...args: Parameters<Page["getByTitle"]>): ReturnType<Page["getByTitle"]> {
@@ -594,6 +610,11 @@ export class EirPage implements Page {
 
   get touchscreen(): Page["touchscreen"] {
     return this.#real.touchscreen;
+  }
+
+  // Playwright 1.64+.
+  get webmcp(): Page["webmcp"] {
+    return this.#real.webmcp;
   }
 
   // ---- explicit resource management (`await using page = ...`) ----

@@ -149,6 +149,41 @@ a commit, or a log. Nothing in the default test or CI path calls the API.
   `CLAUDE.md`, `EIR_BLUEPRINT_APPROACH.md`, `NOTES.md`, root `README.md`).
   Keep it that way.
 
+## When Playwright ships a new version
+
+The wrappers are explicit classes (no `Proxy`), so every `Page`/`Locator`
+member Playwright adds needs a matching forward, or it throws
+`... is not a function` through Eir while still type-checking for adopters
+(NOTES.md RISK-013). The weekly `latest` job in
+`.github/workflows/playwright-compat.yml` fails when this happens.
+
+1. `pnpm -r update "@playwright/test@<new>"`, then
+   `pnpm --filter playwright-eir build`. Each "incorrectly implements
+   interface" error on `EirPage` or `EirLocator` names the missing members.
+2. Read each new member's declaration in
+   `node_modules/.pnpm/playwright-core@<new>/node_modules/playwright-core/types/types.d.ts`
+   and classify it:
+   - takes a `Locator` argument (or an options field holding one): forward
+     through `unwrapLocator()` / `unwrapHasOptions()` (RISK-005)
+   - generic or overloaded: a `forwardOverloaded` property, not
+     `Parameters<>`
+   - returns a `Locator`: a plain pass-through stays untracked (RISK-004).
+     Making it a capture point is a design decision for the owner.
+   - property: a getter
+3. Diff the old and new `types.d.ts` with doc comments stripped. New option
+   fields that carry a `Locator` don't cause compile errors but do need
+   unwrapping.
+4. Add a feature-detected case to
+   `packages/demo-app/tests/eir-proof/playwright-1.63-plus-surface.spec.ts`
+   (detect on `page.mainFrame()...`, the real object, so older runtimes in
+   the matrix skip instead of failing). Check it fails against the old
+   wrappers.
+5. Run `pnpm test`, e2e, and `pnpm bench:all`. The benchmark must be
+   identical to the committed baseline apart from `generatedAt`, and the
+   rewritten `results/`/`baseline.*` files must be restored, not committed.
+6. Add the version to the `supported` matrix in `playwright-compat.yml`, then
+   propose a patch release.
+
 ## Keeping documents in step
 
 A change is not finished until the places that describe it agree:

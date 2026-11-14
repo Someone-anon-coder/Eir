@@ -13,7 +13,7 @@
     "mutation-payload": "tsx src/printMutationPayload.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.1.0",
     "demo-app": "workspace:*",
     "playwright-eir": "workspace:*",

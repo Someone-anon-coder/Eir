@@ -20,7 +20,7 @@ Three guarantees shape everything below:
 - A selector it has **never fingerprinted fails exactly like vanilla
   Playwright**. No baseline means no suggestion.
 
-Requirements: Node >= 22.13, `@playwright/test` >= 1.40, ESM-compatible
+Requirements: Node >= 22.13, `@playwright/test` >= 1.60, ESM-compatible
 project. Benchmarked on Chromium only.
 
 ## Set it up in a project
