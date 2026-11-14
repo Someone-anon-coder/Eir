@@ -5,6 +5,52 @@ the interception shell, fingerprint capture, the matching engine, policy and
 reporting) lives in [`NOTES.md`](../../NOTES.md)'s Daily Progress Log —
 this file covers releases going forward, grouped from conventional commits.
 
+## 1.0.1
+
+Playwright compatibility release. No change to matching, scoring, policy,
+reporting, or the `.eir/` file formats — the full 8-class benchmark
+(seed 42) is byte-identical to 1.0.0's committed baseline on Playwright
+1.65.1.
+
+### Fixed
+
+- **Seven `Page`/`Locator` members added in Playwright 1.63/1.64 threw
+  `... is not a function` through Eir's wrappers.** Your types (from your
+  installed Playwright) said they existed; Eir's explicit wrapper classes,
+  built against 1.61.1, didn't forward them. Now forwarded:
+  `Locator.within()`, `.visible()`, `.waitForFunction()`,
+  `.ariaSnapshotJSON()`, and `Page.getByRef()`, `.ariaSnapshotJSON()`,
+  `.webmcp`. `within()` unwraps an Eir locator passed as its argument, like
+  `.and()`/`.or()` already did. `visible()` and `getByRef()` return
+  untracked Locators (same boundary as `.first()`/`getByTitle()`).
+- **Type errors for `skipLibCheck: false` projects on a different
+  Playwright version than Eir was built with.** The `page` fixture was
+  declared as Eir's internal wrapper class, which leaked into the published
+  `.d.ts` (1.0.0 + Playwright 1.65 → `EirPage incorrectly implements
+  interface 'Page'`). It is now declared as Playwright's own `Page`, so
+  `page` is typed by *your* installed Playwright. Verified with 0 errors in
+  a clean strict project on 1.61.1, 1.62.1, 1.63.0, 1.64.1 and 1.65.1.
+- **Peer range corrected from `>=1.40` to `>=1.60`.** 1.0.0's declared
+  floor was never tested and never true: Playwright 1.40–1.59 identify an
+  `expect()` receiver by its class name, so every `expect(page)` /
+  `expect(locator)` assertion fails through Eir's wrappers (verified on
+  1.40.0). 1.60.0 switched to a field Eir forwards and is fully green. If
+  you are on Playwright < 1.60, 1.0.0 did not work for you either; upgrade
+  Playwright.
+- **`zod` floor raised to `^4.6.7`** (the only runtime dependency) — clears
+  GHSA-mrhx-c7xc-m3w5 (memory exhaustion on oversized input, `< 4.6.6`).
+  Exposure was limited to the opt-in Gemini fallback's response validation.
+
+### Compatibility
+
+Tested at runtime (unit + real-browser acceptance + e2e suite) on 1.60.0
+and on every Playwright release since 1.0.0: 1.61.1, 1.62.0, 1.62.1,
+1.63.0, 1.64.0, 1.64.1, 1.65.0, 1.65.1. Built and typechecked against
+1.65.1.
+CI now runs this matrix on every push and checks `@playwright/test@latest`
+weekly (`.github/workflows/playwright-compat.yml`), replacing the single
+pinned version 1.0.0's CI actually exercised.
+
 ## 1.0.0
 
 A closure release: every item `0.3.0`'s own known-limitations list carried
@@ -105,7 +151,8 @@ has structurally enforced since Phase 2.
   `_selector`) so `expect()` assertions work through the wrappers. CI
   against the pinned `@playwright/test` peer range is the ongoing
   tripwire for a future Playwright version renaming or restructuring any
-  of them.
+  of them. *(1.0.1 note: that CI only ever ran one pinned version; see
+  1.0.1 above for the real matrix.)*
 - The Gemini fallback has a real, measured free-tier reliability ceiling
   (~23% of invocation attempts got a real model response across this
   project's own comparison runs) — shipped disabled by default on that
