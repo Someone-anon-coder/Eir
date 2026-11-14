@@ -30,7 +30,9 @@ implement Playwright's real `Page`/`Locator` types.
    `playwright.config.ts` — otherwise a broken selector takes a full test
    timeout to diagnose instead of a fast, bounded one.
 2. Wire the reporter: `reporter: [["list"], ["playwright-eir/reporter"]]`.
-3. Run your suite green once so a `.eir/routes/*.json` calibration
+3. Wire the teardown that writes the baseline:
+   `globalTeardown: "playwright-eir/globalTeardown"`.
+4. Run your suite green once so a `.eir/routes/*.json` calibration
    baseline exists — there's nothing to match against on a selector's
    first run.
 

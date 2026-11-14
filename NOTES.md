@@ -689,6 +689,27 @@ One entry per working session. Short. This is a trail, not a report — future-y
   `CHANGELOG.md`/`README.md`): fingerprint schema v2, the first item
   that would need a major version bump.
 
+### 2026-11-14 — Post-1.0, agent skills
+- Did: added three Agent Skills under `skills/` (`playwright-eir` for
+  adopters, `eir-benchmark` and `eir-development` for this repo), a
+  `.claude-plugin/` plugin + marketplace manifest, and `AGENTS.md`.
+  README gains an agent section and a missing `globalTeardown`
+  prerequisite (also in the npm README — reaches npm only on next
+  publish). Docs only; no engine, benchmark, or CI code changed.
+- Found while verifying the skills' commands: `pnpm --filter <pkg> test
+  -- <name>` does not filter (runs everything) — `exec vitest run
+  <name>` does; every e2e run this session reproduced RISK-010's
+  post-condition flip in `dashboard__requests__new.postconditions.json`
+  (restored, not committed); `pnpm bench` rewrites committed
+  `results/`/`baseline.*` unconditionally (restored). All three are
+  written into the skills as side-effect warnings.
+- Blocked/open: the skills' vendored-ci-action steps and fork→upstream
+  comment behavior are reasoned from code, not exercised; stated as such
+  in `skills/playwright-eir/references/ci.md`.
+- CI: local lint/typecheck/565 unit tests/21 e2e green; PR CI pending.
+- Next: once merged, verify `/plugin install` and `npx skills add`
+  against the real GitHub repo.
+
 ---
 
 ## 6. Changelog to Governing Documents
@@ -721,6 +742,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 ### 2026-07-17 — CLAUDE.md — §9 repository map corrected (A6, 1.0.0 closure)
 **Triggered by:** FULL_UNDERSTANDING.md §13 #1 (audit finding, 2026-07-16) — `.eir/` was listed at the repo root; the real, only committed store lives at `packages/demo-app/.eir/` (`packages/benchmark/.eir/` is a separate, deliberately gitignored one). `README.md`'s own repository map already had this right; only `CLAUDE.md` had drifted.
 **Change:** §9's repository map line changed from `.eir/` to `packages/demo-app/.eir/`, moved next to the `packages/demo-app/` line it belongs under.
+
+### 2026-11-14 — CLAUDE.md — §9 repository map lists the agent skills
+**Triggered by:** direct decision (Aayush: make the project usable as skills by AI agents)
+**Change:** §9's repository map gains three lines: `skills/` (the three Agent Skills, with a keep-in-step reminder against README, commands, and report/store formats), `AGENTS.md` (pointer for non-Claude agents), and `.claude-plugin/` (plugin + marketplace manifest). No rule changed.
 
 ---
 

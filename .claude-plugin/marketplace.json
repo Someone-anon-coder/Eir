@@ -1,0 +1,13 @@
+{
+  "name": "eir",
+  "owner": {
+    "name": "Aayush Choudhary"
+  },
+  "plugins": [
+    {
+      "name": "playwright-eir",
+      "source": "./",
+      "description": "Agent skills for playwright-eir, the self-healing locator engine for Playwright: set it up and act on its reports in any Playwright project, and run the benchmark, tests, PR process, and release procedure in the Eir repository."
+    }
+  ]
+}
