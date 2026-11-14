@@ -1,4 +1,4 @@
-import { test as base } from "@playwright/test";
+import { test as base, type Page } from "@playwright/test";
 import { DEFAULT_EIR_CONFIG, type EirConfig } from "./config.js";
 import { EirPage } from "./eirPage.js";
 import { buildFallbackRunner } from "./fallback/runFallback.js";
@@ -19,6 +19,14 @@ import { writeShard } from "./store/shardWriter.js";
  * `Page`. `EirPage implements Page`, so it is structurally assignable
  * anywhere a `Page` is expected (POM constructors typed `Page`, `expect()`,
  * etc.) — no cast needed at this call site.
+ *
+ * The fixture is *declared* as Playwright's own `Page`, not `EirPage`, so
+ * the published `.d.ts` never references the wrapper class. An adopter's
+ * `page` is then typed by whatever Playwright version *they* installed,
+ * and `skipLibCheck: false` projects don't inherit a type mismatch from
+ * the Playwright version this package was built against (1.0.0 broke on
+ * 1.65 that way; a 1.65-built `EirPage` breaks on 1.61). `use(new
+ * EirPage(...))` below still checks `EirPage` against `Page` at build time.
  *
  * `eirStore`/`eirPostConditionStore` are worker-scoped: one instance per
  * Playwright worker, shared by every test that worker runs, mirroring
@@ -50,7 +58,7 @@ import { writeShard } from "./store/shardWriter.js";
  * zero-footprint for every real user.
  */
 export const test = base.extend<
-  { page: EirPage; eirMatchLog: MatchLog; eirPolicyLog: PolicyLog; eirConfig: EirConfig },
+  { page: Page; eirMatchLog: MatchLog; eirPolicyLog: PolicyLog; eirConfig: EirConfig },
   {
     eirStore: FingerprintStore;
     eirPostConditionStore: PostConditionStore;
