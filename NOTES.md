@@ -732,6 +732,12 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Open: drop `minimumReleaseAgeExclude` from `pnpm-workspace.yaml` once 1.65.1 is past pnpm's 24h window. Publish of 1.0.1 awaits Aayush's go + OTP.
 - CI: local lint/typecheck/unit/e2e green; PR CI pending.
 
+### 2026-11-14 — 1.0.1 published
+- Did: `playwright-eir@1.0.1` published to npm by Aayush (OTP) from merged `main` (`4748bb1`); annotated tag `v1.0.1` pushed; GitHub release created with the results table + CHANGELOG section. Release path: #38 (fix) → #39 (bump, which merged into #38's branch before GitHub retargeted it) → #40 (carried #39's four files to `main` unchanged).
+- Verified: `npm view playwright-eir@1.0.1` → shasum `4277a33c70eb95dbaa115d14f33d83e03b85ca55`, 291 files, `latest` = 1.0.1. Identical to the pre-publish `npm pack --dry-run` from `main` and to the pre-merge preview. Gates on `main` before publish: lint/typecheck clean, 566 unit tests, both CI workflows green on `4748bb1`. First run of the compat workflow's `latest` job (manual dispatch) passed.
+- Hit during release: `npm whoami` returned 401 (stale token); Aayush re-ran `npm login`, credentials not touched by the agent. Stacked-PR lesson: merge the base PR, wait for GitHub to retarget the stacked one to `main`, then merge it.
+- Open: remove `minimumReleaseAgeExclude` from `pnpm-workspace.yaml` after 2026-11-14 21:12 UTC (1.65.1's 24h pnpm window).
+
 ---
 
 ## 6. Changelog to Governing Documents
