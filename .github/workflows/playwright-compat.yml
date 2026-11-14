@@ -1,0 +1,102 @@
+name: Playwright compatibility
+
+# Why this exists (1.0.1): playwright-eir wraps Page/Locator with explicit
+# typed classes (Blueprint Q3 — no Proxy), so every Playwright release that
+# adds a Page/Locator member needs a matching forward. 1.0.0 shipped against
+# 1.61.1 and the lockfile kept CI on that one version, so 1.63/1.64's new
+# members (`within`, `visible`, `getByRef`, ...) went unnoticed for months:
+# they compiled for adopters and threw `is not a function` at runtime.
+#
+# Two jobs:
+# - `supported`: the *built* package (compiled against the pinned
+#   devDependency) runs its unit + real-browser suites and the demo-app e2e
+#   suite against each listed Playwright version at runtime. Typecheck is
+#   deliberately not run here — the source is written against the pinned
+#   version's types, and adopter-facing type compatibility is handled by
+#   the fixture being declared as Playwright's own `Page` (see fixture.ts).
+# - `latest`: the tripwire. Weekly, builds and typechecks the engine
+#   against `@playwright/test@latest`. `EirPage implements Page` /
+#   `EirLocator implements Locator` make a new upstream member a compile
+#   error, so a new Playwright release surfaces here within a week, not
+#   when an adopter hits it. (RISK-003's undocumented internals are covered
+#   by the runtime suites in the same job.)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  supported:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The peer-range floor (1.60.0: the first release whose expect()
+        # identifies a Locator/Page by `_apiName`, which Eir forwards; every
+        # release before checks `constructor.name`, which a wrapper class
+        # can't pass, RISK-013), the 1.0.0 baseline, and the latest patch of
+        # every minor since. Keep the pinned devDependency's version last.
+        playwright: ["1.60.0", "1.61.1", "1.62.1", "1.63.0", "1.64.1", "1.65.1"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Build against the pinned types first — this is the artifact that ships.
+      - run: pnpm --filter playwright-eir build
+
+      - name: Swap the runtime to Playwright ${{ matrix.playwright }}
+        run: |
+          pnpm -r update "@playwright/test@${{ matrix.playwright }}"
+          pnpm --filter demo-app exec playwright --version
+
+      - run: pnpm --filter demo-app exec playwright install --with-deps chromium
+
+      - run: pnpm --filter playwright-eir test
+
+      - run: pnpm --filter demo-app e2e
+
+  latest:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Move every workspace package to @playwright/test@latest
+        run: |
+          pnpm -r update "@playwright/test@latest"
+          pnpm --filter demo-app exec playwright --version
+
+      # Fails on any Page/Locator member Eir doesn't forward yet.
+      - run: pnpm --filter playwright-eir typecheck
+
+      - run: pnpm --filter playwright-eir build
+
+      - run: pnpm --filter demo-app exec playwright install --with-deps chromium
+
+      - run: pnpm --filter playwright-eir test
+
+      - run: pnpm --filter demo-app e2e

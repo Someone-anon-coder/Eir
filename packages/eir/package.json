@@ -42,7 +42,7 @@
     "node": ">=22.13"
   },
   "peerDependencies": {
-    "@playwright/test": ">=1.40"
+    "@playwright/test": ">=1.60"
   },
   "publishConfig": {
     "access": "public"
