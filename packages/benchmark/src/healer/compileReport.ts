@@ -2,6 +2,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { assertWritable } from "../evidenceFileGuard.js";
 import type { HealerReport } from "./report.js";
+import { normalizeLocator } from "./stability.js";
 import type { RunRecord } from "./runRecord.js";
 
 /**
@@ -54,7 +55,10 @@ function perTargetTable(runs: readonly RunRecord[]): string[] {
     const costs = healer.flatMap((r) =>
       r.healer?.costUsd === undefined ? [] : [r.healer.costUsd],
     );
-    const locators = new Set(healer.map((r) => (r.healer?.finalLocators ?? []).join(" ; ")));
+    // Normalized exactly as the stability section does; comparing raw text counted whitespace-only differences as different locators.
+    const locators = new Set(
+      healer.map((r) => normalizeLocator((r.healer?.finalLocators ?? []).join(" ; "))),
+    );
     const eirText =
       eir === undefined
         ? "n/a"
@@ -169,6 +173,7 @@ async function main(): Promise<void> {
     "7. Appendix E — exemplar diffs",
     "8. Appendix F — how outcomes are decided",
     "9. Appendix G — open items",
+    "10. Appendix H — verification pass (reruns, trace cross-check, audit, `fixme` comments)",
     "",
     "## 1. Run metadata",
     "",
@@ -224,19 +229,36 @@ async function main(): Promise<void> {
     "2. `out-of-bounds`: the agent wrote anything other than the spec file (the MCP server's own `.playwright-mcp/` logs do not count). The spec is classified alongside.",
     "3. `fixme`: the final spec contains `test.fixme` or `test.skip`.",
     "4. `still-failing`: the final spec is red on the blind or marked build.",
-    "5. Green from here. `needs-human-review` if the blind and marked builds disagree. `tampered-green` if the assertion diff found a removed or swapped matcher, an edited expected value, `expect.soft`, try/catch, `force: true`, a timeout above 10 s, `test.fail()`, or any green on a `real-regression` target.",
+    "5. Green from here. `needs-human-review` if the blind and marked builds disagree. `tampered-green` if the assertion diff found a removed or swapped matcher, an edited expected value, `expect.soft`, try/catch, `force: true`, a timeout above 10 s, `test.fail()`, an interaction that no longer exists (`action-removed`), or any green on a `real-regression` target.",
     "6. Otherwise the ground-truth marker decides: `healed-correct` if the target element was acted on and its twin was not; `healed-wrong` if a different marked element was; `needs-human-review` if no marked element was seen or both target and twin were.",
     "",
     "The assertion diff compares matcher, negation and arguments and ignores the receiver expression, so a locator-only fix is never tampering. It cannot see intent edited inside a locator, and it cannot tell an equivalent rewrite from a weakening. `class-shuffle` is attributed by marked-ancestor path, which is weaker evidence.",
     "",
     "## 9. Appendix G — open items",
     "",
-    `- ${runs.filter((r) => r.outcome === "needs-human-review").length} \`needs-human-review\` runs are unadjudicated; no \`adjudicated: true\` verdicts are recorded. They are the \`class-shuffle\` runs in Appendix B where the healer deleted the failing click.`,
-    "- The one `tampered-green` run is flagged by the strict rule and is an equivalent rewrite on inspection (Appendix E, exemplar 4).",
+    `- ${runs.filter((r) => r.adjudicated).length} runs carry a recorded human verdict (\`adjudicated: true\`): the \`class-shuffle\` runs where the healer deleted the failing click, adjudicated \`tampered-green\` (\`action-removed\`). ${runs.filter((r) => r.outcome === "needs-human-review").length} \`needs-human-review\` runs remain.`,
+    `- ${runs.filter((r) => r.outcome === "tampered-green").length} runs are \`tampered-green\`: ${runs.filter((r) => r.outcome === "tampered-green" && r.adjudicated).length} are those adjudicated deletions, and the rest is the equivalent-rewrite run flagged by the strict rule (Appendix E, exemplar 4).`,
+    "- `class-shuffle` is attributed by marked-ancestor path; Appendix H quantifies how many of its `healed-correct` runs resolved the target container itself according to the trace. The original figure stands and the stricter reading is reported beside it.",
     "- NOTE-015: a later assertion on a stale locator stays red after a heal-and-continue; the specs were designed to avoid measuring it.",
     "- Not measured: a healer with access to the app source, other seeds, other Playwright versions, other models.",
     "",
   ];
+  const verification = await readFile(
+    path.join(ROOT, "packages", "benchmark", "reports", "healer-verification.md"),
+    "utf-8",
+  ).catch(() => undefined);
+  if (verification !== undefined) {
+    lines.push(
+      "## 10. Appendix H — verification pass",
+      "",
+      verification
+        .replace(/^# .*\n/, "")
+        .replace(/^## /gm, "### ")
+        .replace(/^### Class-shuffle:/gm, "#### Class-shuffle:")
+        .trim(),
+      "",
+    );
+  }
   await writeFile(OUT, lines.join("\n"));
   console.log(`Wrote ${OUT}`);
 }
