@@ -32,6 +32,7 @@ import {
   outOfBoundsPaths,
   snapshotFiles,
   suiteConfig,
+  workspacePackageJson,
   type Template,
 } from "./workspace.js";
 
@@ -88,7 +89,7 @@ async function exists(file: string): Promise<boolean> {
 async function specDir(specs: ReadonlyMap<string, string>, baseUrl: string): Promise<string> {
   const dir = await mkdtemp(path.join(tmpdir(), "eir-specs-"));
   await mkdir(path.join(dir, "tests"), { recursive: true });
-  await writeFile(path.join(dir, "package.json"), JSON.stringify({ name: "specs", private: true }));
+  await writeFile(path.join(dir, "package.json"), workspacePackageJson("specs"));
   await writeFile(path.join(dir, "playwright.config.ts"), suiteConfig(baseUrl));
   await linkNodeModules(dir, false);
   for (const [fileName, text] of specs) await writeFile(path.join(dir, "tests", fileName), text);

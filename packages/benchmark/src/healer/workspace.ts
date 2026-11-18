@@ -30,6 +30,11 @@ export function locatePlaywright(): PlaywrightLocation {
   return { testPackageDir, playwrightDir, version };
 }
 
+/** `"type": "module"` is a documented prerequisite of playwright-eir (ESM-only), so every workspace has it, keeping both tools' projects identical. */
+export function workspacePackageJson(name: string): string {
+  return JSON.stringify({ name, private: true, type: "module" });
+}
+
 /** The suite config both tools see: the benchmark's own bounds (see playwright.config.ts there). */
 export function suiteConfig(baseURL: string, extra: { readonly eir?: boolean } = {}): string {
   return `import { defineConfig } from '@playwright/test';
@@ -58,8 +63,11 @@ export async function linkNodeModules(dir: string, withEir: boolean): Promise<vo
   await symlink(pw.playwrightDir, path.join(dir, "node_modules", "playwright"));
   await symlink("../playwright/cli.js", path.join(dir, "node_modules", ".bin", "playwright"));
   if (withEir) {
-    const eir = realpathSync(require.resolve("playwright-eir/package.json"));
-    await symlink(path.dirname(eir), path.join(dir, "node_modules", "playwright-eir"));
+    // The exports map deliberately hides package.json, so resolve the workspace link itself.
+    const eirDir = realpathSync(
+      new URL("../../node_modules/playwright-eir", import.meta.url).pathname,
+    );
+    await symlink(eirDir, path.join(dir, "node_modules", "playwright-eir"));
   }
 }
 
@@ -102,10 +110,7 @@ export async function ensureTemplate(): Promise<Template> {
     // not generated yet
   }
   await mkdir(path.join(TEMPLATE_DIR, "tests"), { recursive: true });
-  await writeFile(
-    path.join(TEMPLATE_DIR, "package.json"),
-    JSON.stringify({ name: "healer-template", private: true }),
-  );
+  await writeFile(path.join(TEMPLATE_DIR, "package.json"), workspacePackageJson("healer-template"));
   await writeFile(
     path.join(TEMPLATE_DIR, "playwright.config.ts"),
     suiteConfig("http://localhost:0"),
@@ -130,10 +135,7 @@ export async function createHealerWorkspace(
     await mkdir(path.dirname(path.join(dir, rel)), { recursive: true });
     await cp(path.join(template.dir, rel), path.join(dir, rel), { recursive: true });
   }
-  await writeFile(
-    path.join(dir, "package.json"),
-    JSON.stringify({ name: "healer-workspace", private: true }),
-  );
+  await writeFile(path.join(dir, "package.json"), workspacePackageJson("healer-workspace"));
   await writeFile(path.join(dir, "playwright.config.ts"), suiteConfig(baseURL));
   await linkNodeModules(dir, false);
   await writeFile(path.join(dir, "tests", specFileName), specText);

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { runPlaywright } from "./playwrightRun.js";
 import type { Collector } from "./ward.js";
-import { linkNodeModules, suiteConfig } from "./workspace.js";
+import { linkNodeModules, suiteConfig, workspacePackageJson } from "./workspace.js";
 
 export interface JudgeUrls {
   readonly blind: string;
@@ -32,10 +32,7 @@ export async function judgeSpec(
   const dir = await mkdtemp(path.join(tmpdir(), "eir-judge-"));
   try {
     await mkdir(path.join(dir, "tests"), { recursive: true });
-    await writeFile(
-      path.join(dir, "package.json"),
-      JSON.stringify({ name: "judge", private: true }),
-    );
+    await writeFile(path.join(dir, "package.json"), workspacePackageJson("judge"));
     await writeFile(path.join(dir, "tests", specFileName), specText);
     await linkNodeModules(dir, false);
     const file = path.join("tests", specFileName);

@@ -7,7 +7,7 @@ import { mapEirPolicy } from "./eirPolicy.js";
 import { runPlaywright } from "./playwrightRun.js";
 import type { Expectation } from "./specDraft.js";
 import type { Collector } from "./ward.js";
-import { HEALER_ROOT, linkNodeModules, suiteConfig } from "./workspace.js";
+import { HEALER_ROOT, linkNodeModules, suiteConfig, workspacePackageJson } from "./workspace.js";
 
 /** The one-line import swap an adopter makes. */
 export function swapToEir(specText: string): string {
@@ -37,10 +37,7 @@ export async function prepareEirStore(
 ): Promise<string[]> {
   await rm(classDir, { recursive: true, force: true });
   await mkdir(path.join(classDir, "tests"), { recursive: true });
-  await writeFile(
-    path.join(classDir, "package.json"),
-    JSON.stringify({ name: "eir-store", private: true }),
-  );
+  await writeFile(path.join(classDir, "package.json"), workspacePackageJson("eir-store"));
   await writeFile(
     path.join(classDir, "playwright.config.ts"),
     suiteConfig(controlUrl, { eir: true }),
@@ -49,6 +46,11 @@ export async function prepareEirStore(
   for (const spec of specs)
     await writeFile(path.join(classDir, "tests", spec.fileName), swapToEir(spec.text));
   const run = await runPlaywright(classDir, []);
+  if (!run.reportParsed || run.results.length === 0) {
+    throw new Error(
+      "Eir control run produced no readable results; refusing to continue with an empty store",
+    );
+  }
   return run.results.filter((r) => r.status !== "expected").map((r) => r.title);
 }
 
@@ -74,10 +76,7 @@ export async function runEirOnce(
   const dir = await mkdtemp(path.join(tmpdir(), "eir-run-"));
   try {
     await mkdir(path.join(dir, "tests"), { recursive: true });
-    await writeFile(
-      path.join(dir, "package.json"),
-      JSON.stringify({ name: "eir-run", private: true }),
-    );
+    await writeFile(path.join(dir, "package.json"), workspacePackageJson("eir-run"));
     await writeFile(path.join(dir, "playwright.config.ts"), suiteConfig(markedUrl, { eir: true }));
     await writeFile(path.join(dir, "tests", spec.fileName), swapToEir(spec.text));
     await cp(path.join(classDir, ".eir"), path.join(dir, ".eir"), { recursive: true });
