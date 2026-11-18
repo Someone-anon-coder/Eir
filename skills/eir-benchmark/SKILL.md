@@ -41,6 +41,7 @@ error. Check with `lsof -i :5173` before a run whose result matters.
 | `pnpm --filter benchmark bench:hybrid --seed 42`                        | Heuristics vs. the Gemini fallback. Needs `GEMINI_API_KEY` in the environment, makes real API calls, and is subject to free-tier rate limits. Run only when asked. |
 | `pnpm --filter benchmark mutation-payload --class <class> --seed 42`    | Prints the mutation as JSON without running anything.                                                                                                              |
 | `pnpm --filter benchmark bench:healer --class <class> --seed 42`        | Healer comparison: Playwright 1.65.1's healer agent (real Claude Code runs) vs Eir, same breakages. **Spends Claude quota**; see below. Resumable.                 |
+| `pnpm --filter benchmark bench:healer-compile`                          | Compiles the analysis and every per-target result into one document, `docs/healer-comparison-full-report.md`. Same overwrite guard.                                 |
 | `pnpm --filter benchmark bench:healer-report`                           | Builds `reports/healer-comparison.{json,md}` from the per-run records. Refuses to overwrite without `--force`.                                                     |
 
 Classes: `id-rename`, `text-change`, `tag-swap`, `class-shuffle`,

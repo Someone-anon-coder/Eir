@@ -12,7 +12,8 @@
     "bench:hybrid": "tsx src/hybridComparisonCli.ts",
     "bench:score-distribution": "tsx src/scoreDistributionCli.ts",
     "mutation-payload": "tsx src/printMutationPayload.ts",
-    "bench:healer-report": "tsx src/healer/reportCli.ts"
+    "bench:healer-report": "tsx src/healer/reportCli.ts",
+    "bench:healer-compile": "tsx src/healer/compileReport.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

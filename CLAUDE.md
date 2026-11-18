@@ -124,6 +124,7 @@ pnpm bench:all                # full table (Phase 4+)
 pnpm --filter benchmark bench:healer --class <c> --seed 42 [--runs 3] [--tool healer|eir|both] [--max-cost <usd>]  # healer comparison; real Claude runs, uses quota
 pnpm --filter benchmark bench:healer --all --seed 42     # all 10 classes (resumable)
 pnpm --filter benchmark bench:healer-report              # writes reports/healer-comparison.{json,md}; guarded, never --force over existing evidence without Aayush's yes
+pnpm --filter benchmark bench:healer-compile             # compiles analysis + all data into docs/healer-comparison-full-report.md; guarded the same way
 ```
 If a command's shape must change, update this file in the same commit.
 
