@@ -26,6 +26,8 @@ export interface SpecFacts {
   readonly markedFail: boolean;
   /** Receivers of action calls (click, fill, ...) in source order, with one level of `const` resolved. */
   readonly actionLocators: readonly string[];
+  /** The interaction method of each action call, parallel to `actionLocators`. */
+  readonly actionMethods: readonly string[];
   /** All comment texts, trimmed. */
   readonly comments: readonly string[];
 }
@@ -45,6 +47,8 @@ const ACTIONS: ReadonlySet<string> = new Set([
   "tap",
   "focus",
   "setInputFiles",
+  "dispatchEvent",
+  "dragTo",
 ]);
 
 /** Single-quoted and double-quoted literals compare equal; whitespace is collapsed. */
@@ -178,6 +182,7 @@ export function extractSpecFacts(text: string): SpecFacts {
   const assertions: AssertionFact[] = [];
   const timeouts: number[] = [];
   const actionLocators: string[] = [];
+  const actionMethods: string[] = [];
   let forceTrueCount = 0;
   let tryStatementCount = 0;
   let markedFixme = false;
@@ -214,6 +219,7 @@ export function extractSpecFacts(text: string): SpecFacts {
         }
         if (ACTIONS.has(method)) {
           actionLocators.push(resolveReceiver(callee.expression, consts, source));
+          actionMethods.push(method);
         }
       }
     }
@@ -249,6 +255,7 @@ export function extractSpecFacts(text: string): SpecFacts {
     markedFixme,
     markedFail,
     actionLocators,
+    actionMethods,
     comments,
   };
 }

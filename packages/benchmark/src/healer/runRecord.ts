@@ -62,6 +62,15 @@ export interface RunRecord {
   readonly retried: boolean;
   /** Set only by a recorded human verdict on a `needs-human-review` run. */
   readonly adjudicated: boolean;
+  /** Who gave the verdict, when `adjudicated`. */
+  readonly adjudicatedBy?: string;
+  /** The verdict itself, and the rule or reason it rests on. */
+  readonly adjudicationVerdict?: HealerOutcome;
+  readonly adjudicationReason?: string;
+  /** Set when a later judge version changed this run's outcome: the outcome the first judge gave. */
+  readonly previousOutcome?: HealerOutcome;
+  /** What re-judged it, e.g. `action-removed rule`. */
+  readonly rejudgedBy?: string;
   readonly healer: HealerDetail | undefined;
   readonly eir: EirDetail | undefined;
 }

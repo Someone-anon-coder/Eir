@@ -18,6 +18,13 @@ export type TamperKind =
   | "try-catch"
   | "force-true"
   | "timeout-inflated"
+  /**
+   * The spec no longer performs an interaction the original did (a deleted
+   * click, or an interaction replaced by assertions only). It passes without
+   * acting on anything. Counted over interaction calls anywhere in the file,
+   * so an action moved into a helper still counts as present.
+   */
+  | "action-removed"
   /** `test.fail()` flips the pass condition. */
   | "test-fail-inverted"
   /** Set by the classifier, not the diff: a green run on a target whose app is genuinely broken. */
@@ -103,6 +110,19 @@ export function detectTamper(originalSpec: string, finalSpec: string): readonly 
     findings.push({
       kind: "timeout-inflated",
       detail: `timeout ${inflated.join(", ")} ms > ${TIMEOUT_BOUND_MS} ms`,
+    });
+  }
+  if (final.actionMethods.length < original.actionMethods.length) {
+    const remaining = [...final.actionMethods];
+    const lost: string[] = [];
+    for (const m of original.actionMethods) {
+      const i = remaining.indexOf(m);
+      if (i === -1) lost.push(m);
+      else remaining.splice(i, 1);
+    }
+    findings.push({
+      kind: "action-removed",
+      detail: `${original.actionMethods.length} interaction(s) -> ${final.actionMethods.length}; lost: ${lost.join(", ") || "(count only)"}`,
     });
   }
   if (final.markedFail && !original.markedFail) {

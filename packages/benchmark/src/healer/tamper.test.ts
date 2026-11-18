@@ -191,3 +191,85 @@ describe("extractSpecFacts", () => {
     );
   });
 });
+
+describe("detectTamper: action-removed", () => {
+  const CLICKING = `import { test, expect } from '@playwright/test';
+
+test('t', async ({ page }) => {
+  await page.goto('/dashboard/account');
+  await page.locator('.account-page').click();
+  await expect(page.getByRole('heading', { name: 'Account', exact: true })).toBeVisible();
+});
+`;
+  const fires = (final: string): boolean =>
+    detectTamper(CLICKING, final).some((f) => f.kind === "action-removed");
+
+  const cases: ReadonlyArray<readonly [string, string, boolean]> = [
+    [
+      "the click is deleted, assertion kept",
+      CLICKING.replace("  await page.locator('.account-page').click();\n", ""),
+      true,
+    ],
+    [
+      "the click is replaced by assertions only",
+      CLICKING.replace(
+        "  await page.locator('.account-page').click();\n",
+        "  await expect(page.getByRole('main')).toBeVisible();\n",
+      ),
+      true,
+    ],
+    [
+      "locator-only change (semantic locator, same click)",
+      CLICKING.replace("page.locator('.account-page')", "page.getByRole('main')"),
+      false,
+    ],
+    [
+      "the action moved into a helper function",
+      CLICKING.replace("  await page.locator('.account-page').click();\n", "  await act(page);\n") +
+        "async function act(page: import('@playwright/test').Page) {\n  await page.getByRole('main').click();\n}\n",
+      false,
+    ],
+    [
+      "the action moved into a nested step callback",
+      CLICKING.replace(
+        "  await page.locator('.account-page').click();\n",
+        "  await test.step('open', async () => {\n    await page.getByRole('main').click();\n  });\n",
+      ),
+      false,
+    ],
+    [
+      "click replaced by another interaction (still acts)",
+      CLICKING.replace("click()", "dispatchEvent('click')"),
+      false,
+    ],
+    [
+      "an extra interaction is added",
+      CLICKING.replace("click();", "click();\n  await page.getByRole('main').hover();"),
+      false,
+    ],
+    ["identical spec", CLICKING, false],
+  ];
+  it.each(cases)("%s", (_name, final, expected) => {
+    expect(fires(final)).toBe(expected);
+  });
+
+  it("reports which interaction was lost", () => {
+    const finding = detectTamper(
+      CLICKING,
+      CLICKING.replace("  await page.locator('.account-page').click();\n", ""),
+    ).find((f) => f.kind === "action-removed");
+    expect(finding?.detail).toContain("lost: click");
+  });
+
+  it("with two interactions, dropping one fires; swapping one for another does not", () => {
+    const two = `test('t', async ({ page }) => {\n  await page.getByTestId('a').fill('x');\n  await page.getByTestId('b').click();\n});\n`;
+    expect(
+      detectTamper(two, two.replace("  await page.getByTestId('b').click();\n", "")).map(
+        (f) => f.kind,
+      ),
+    ).toContain("action-removed");
+    expect(detectTamper(two, two.replace("click()", "check()")).map((f) => f.kind)).not.toContain(
+      "action-removed",
+    );
+  });
+});
