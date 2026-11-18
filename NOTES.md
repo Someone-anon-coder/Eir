@@ -441,6 +441,8 @@ Things that could derail a phase or the schedule, tracked so they're managed ins
 
 **C4 disposition (1.0.0 closure, 2026-07-17):** confirmed accepted at 1.0, not revisited — `docs/acceptance-sweep.md`'s Phase 9 re-verification (fresh 1-worker/4-worker reference-suite runs) reproduced this exact non-determinism independent of worker count, confirming the diagnosis (timing-related render noise, not a merge/corruption bug) and that it never touches fingerprint identity data. The safe-direction-only guarantee (can only make verification more conservative, never less safe) is the reason this ships as an accepted 1.0 limitation rather than a blocker; candidate fixes remain exactly as stated above, unimplemented, for if it ever proves disruptive in practice.
 
+**Scope update (2026-11-18):** wider than "one entry". Six back-to-back reference-suite runs (3 on react-router 7.18.1, 3 on 7.18.5, identical pattern on both) flipped 1–2 entries per run, all on `dashboard__requests__new.postconditions.json`: `getByTestId("wizard-next")` every run, plus `getByRole("button", {name: "Back"})` or `getByLabel("Resource")`. Same mechanism and the same safe direction (a stored `dom-count-change` flipping to `none`); still confined to the wizard route. Stance unchanged.
+
 ### RISK-011 — `classifyFailureSpecies` misses zero-match when no `actionTimeout` is configured
 **Status:** MITIGATED — fully, including the general engine gap (Phase 9, 2026-07-16; previously mitigated only for this repo's own reference suite)
 **Raised:** 2026-07-12, during Phase 7, while generating real `eir-report.json` data for the PR-comment mockup
