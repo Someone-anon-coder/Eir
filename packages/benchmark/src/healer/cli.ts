@@ -3,6 +3,7 @@ import path from "node:path";
 import { BudgetGuard } from "./budget.js";
 import { runClassComparison, runDir } from "./orchestrate.js";
 import type { Tool } from "./resume.js";
+import type { SpecVariant } from "./specDrafts.js";
 import type { RunRecord } from "./runRecord.js";
 import { HEALER_CLASSES, isHealerClass, type HealerClass } from "./specDraft.js";
 
@@ -17,6 +18,8 @@ interface Args {
   readonly wallTimeoutMs: number;
   readonly targets: readonly string[] | undefined;
   readonly eirRepeat: boolean;
+  readonly dataset: string | undefined;
+  readonly variant: SpecVariant | undefined;
 }
 
 function need(argv: readonly string[], i: number, flag: string): string {
@@ -43,6 +46,8 @@ export function parseArgs(argv: readonly string[]): Args {
   let wallTimeoutMs = 10 * 60_000;
   let targets: string[] | undefined;
   let eirRepeat = false;
+  let dataset: string | undefined;
+  let variant: SpecVariant | undefined;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
@@ -84,6 +89,15 @@ export function parseArgs(argv: readonly string[]): Args {
       case "--targets":
         targets = need(argv, i++, arg).split(",");
         break;
+      case "--dataset":
+        dataset = need(argv, i++, arg);
+        break;
+      case "--variant": {
+        const v = need(argv, i++, arg);
+        if (v !== "anchored") throw new Error(`--variant must be: anchored — got: ${v}`);
+        variant = v;
+        break;
+      }
       case "--eir-repeat":
         eirRepeat = true;
         break;
@@ -103,6 +117,8 @@ export function parseArgs(argv: readonly string[]): Args {
     wallTimeoutMs,
     targets,
     eirRepeat,
+    dataset,
+    variant,
   };
 }
 
@@ -154,6 +170,8 @@ async function main(): Promise<void> {
         wallTimeoutMs: args.wallTimeoutMs,
         budget,
         targetFilter: args.targets,
+        ...(args.dataset === undefined ? {} : { dataset: args.dataset }),
+        ...(args.variant === undefined ? {} : { variant: args.variant }),
         log,
       });
       log(
@@ -164,7 +182,7 @@ async function main(): Promise<void> {
       console.error(`[${mutationClass}] ${(error as Error).message}`);
       process.exitCode = 1;
     }
-    printSummary(mutationClass, await readRecords(runDir(mutationClass, args.seed)));
+    printSummary(mutationClass, await readRecords(runDir(mutationClass, args.seed, args.dataset)));
   }
   console.log(`\nCLI-reported healer spend this invocation: $${budget.totalUsd.toFixed(4)}`);
 }

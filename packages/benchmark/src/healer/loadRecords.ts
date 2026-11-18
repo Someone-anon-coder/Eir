@@ -26,11 +26,21 @@ async function readDir(dir: string, tool: "healer" | "eir"): Promise<RunRecord[]
  * aggregate; the source class is kept in `sourceClass`.
  */
 export async function loadRecords(seed: number): Promise<RunRecord[]> {
+  return loadWithSuffix(seed, "");
+}
+
+/** Loads a separate dataset (e.g. `verification`, `verification-anchored`), written beside but never mixed into the main one. */
+export async function loadDataset(seed: number, dataset: string): Promise<RunRecord[]> {
+  return loadWithSuffix(seed, `-${dataset}`);
+}
+
+async function loadWithSuffix(seed: number, suffix: string): Promise<RunRecord[]> {
   const root = path.join(HEALER_ROOT, "runs");
   const out: RunRecord[] = [];
   for (const entry of (await readdir(root)).sort()) {
-    const match = /^(.*)-seed(\d+)$/.exec(entry);
-    if (match?.[1] === undefined || Number(match[2]) !== seed) continue;
+    const match = /^(.*)-seed(\d+)(-.+)?$/.exec(entry);
+    if (match?.[1] === undefined || Number(match[2]) !== seed || (match[3] ?? "") !== suffix)
+      continue;
     const runClass = match[1];
     for (const tool of ["healer", "eir"] as const) {
       for (const r of await readDir(path.join(root, entry), tool)) {

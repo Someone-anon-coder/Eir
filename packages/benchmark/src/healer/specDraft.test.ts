@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { materializeSpec, specFileName, type SpecDraft } from "./specDraft.js";
-import { SPEC_DRAFTS, draftFor } from "./specDrafts.js";
+import { SPEC_DRAFTS, anchoredDraft, draftFor } from "./specDrafts.js";
 import { ALL_MUTATION_TARGETS } from "../targets.js";
 import { extractSpecFacts, normalizeText } from "./specFacts.js";
+import { detectTamper } from "./tamper.js";
 
 const sessionDraft: SpecDraft = {
   targetId: "id-rename.account.openDeleteButton",
@@ -100,4 +101,39 @@ describe("spec drafts", () => {
       }
     },
   );
+});
+
+describe("anchored variant", () => {
+  const positional = SPEC_DRAFTS.filter((d) => anchoredDraft(d) !== undefined);
+
+  it("exists only for the four positional rowOrder targets", () => {
+    expect(positional.map((d) => d.targetId).sort()).toEqual([
+      "sibling-reorder.devices.active.rowOrder.row1",
+      "sibling-reorder.devices.active.rowOrder.row2",
+      "sibling-reorder.devices.archived.rowOrder.row1",
+      "sibling-reorder.devices.archived.rowOrder.row2",
+    ]);
+  });
+
+  it.each(positional.map((d) => [d.targetId, d] as const))(
+    "%s: keeps the action and every assertion matcher, adds only an identity anchor",
+    (_id, draft) => {
+      const anchored = anchoredDraft(draft);
+      if (anchored === undefined) throw new Error("expected a variant");
+      const before = extractSpecFacts(materializeSpec(draft));
+      const after = extractSpecFacts(materializeSpec(anchored));
+      expect(after.actionLocators).toEqual(before.actionLocators);
+      // Every original assertion survives unchanged; exactly one is added.
+      expect(after.assertions.slice(1)).toEqual(before.assertions);
+      expect(after.assertions).toHaveLength(before.assertions.length + 1);
+      // The harness's own tamper diff sees nothing wrong with the variant.
+      expect(detectTamper(materializeSpec(draft), materializeSpec(anchored))).toEqual([]);
+    },
+  );
+
+  it("draftFor with no variant returns the original, byte for byte", () => {
+    expect(draftFor("sibling-reorder.devices.active.rowOrder.row2")).toBe(
+      SPEC_DRAFTS.find((d) => d.targetId === "sibling-reorder.devices.active.rowOrder.row2"),
+    );
+  });
 });

@@ -427,6 +427,60 @@ export const SPEC_DRAFTS: readonly SpecDraft[] = [
   ...FLOW_CHANGE,
 ];
 
-export function draftFor(targetId: string): SpecDraft | undefined {
-  return SPEC_DRAFTS.find((d) => d.targetId === targetId);
+/** `anchored`: the original spec plus an identity anchor for a row it picks only by position. */
+export type SpecVariant = "anchored";
+
+interface RowIdentity {
+  readonly table: string;
+  readonly device: string;
+  readonly owner: string;
+}
+
+/** The row each positional `rowOrder` target means, by what it is (device and owner) rather than where it sits. */
+const POSITIONAL_ROW_IDENTITY: Readonly<Record<string, RowIdentity>> = {
+  "sibling-reorder.devices.active.rowOrder.row1": {
+    table: "table-active-devices",
+    device: "Front Desk Tablet",
+    owner: "A. Ramirez",
+  },
+  "sibling-reorder.devices.active.rowOrder.row2": {
+    table: "table-active-devices",
+    device: "Warehouse Scanner",
+    owner: "K. Nguyen",
+  },
+  "sibling-reorder.devices.archived.rowOrder.row1": {
+    table: "table-archived-devices",
+    device: "Front Desk Tablet",
+    owner: "A. Ramirez",
+  },
+  "sibling-reorder.devices.archived.rowOrder.row2": {
+    table: "table-archived-devices",
+    device: "Legacy Barcode Scanner",
+    owner: "K. Nguyen",
+  },
+};
+
+/**
+ * Adds an identity anchor and nothing else: a comment and one new assertion
+ * that the named device belongs to the named owner. It holds before and after
+ * a reorder (a row's identity does not move with its position), and the
+ * action and every existing assertion matcher are untouched.
+ */
+export function anchoredDraft(draft: SpecDraft): SpecDraft | undefined {
+  const row = POSITIONAL_ROW_IDENTITY[draft.targetId];
+  if (row === undefined) return undefined;
+  return {
+    ...draft,
+    body: [
+      `// The row under test is the ${row.device} (owner ${row.owner}), wherever it sits in the table.`,
+      `await expect(page.getByTestId('${row.table}').locator('tr', { hasText: '${row.device}' }).locator('td:nth-child(2)')).toHaveText('${row.owner}');`,
+      ...draft.body,
+    ],
+  };
+}
+
+export function draftFor(targetId: string, variant?: SpecVariant): SpecDraft | undefined {
+  const base = SPEC_DRAFTS.find((d) => d.targetId === targetId);
+  if (base === undefined || variant === undefined) return base;
+  return anchoredDraft(base) ?? base;
 }

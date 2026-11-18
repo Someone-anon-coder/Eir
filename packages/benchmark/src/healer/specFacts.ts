@@ -10,8 +10,13 @@ export interface AssertionFact {
   readonly matcher: string;
   readonly negated: boolean;
   readonly soft: boolean;
-  /** Normalized argument text. The receiver is deliberately absent: a locator fix changes it legitimately. */
+  /** Normalized argument text. The receiver is deliberately not part of this: a locator fix changes it legitimately. */
   readonly args: readonly string[];
+  /**
+   * The expression `expect(...)` was given, one level of `const` resolved. Kept for audits only; the tamper
+   * diff ignores it, which is why an edit to intent *inside* a locator is invisible to it.
+   */
+  readonly receiver: string;
 }
 
 export interface SpecFacts {
@@ -142,7 +147,11 @@ function propertyNameText(name: ts.PropertyName): string | undefined {
 }
 
 /** `expect(x).not.toHaveValue(...)`, `expect.soft(x).toBe(...)`, `await expect(...)...` */
-function asAssertion(call: ts.CallExpression, source: ts.SourceFile): AssertionFact | undefined {
+function asAssertion(
+  call: ts.CallExpression,
+  source: ts.SourceFile,
+  consts: ReadonlyMap<string, ts.Expression>,
+): AssertionFact | undefined {
   const callee = call.expression;
   if (!ts.isPropertyAccessExpression(callee)) return undefined;
   const matcher = callee.name.text;
@@ -167,7 +176,14 @@ function asAssertion(call: ts.CallExpression, source: ts.SourceFile): AssertionF
     head.expression.text === "expect" &&
     head.name.text === "poll";
   if (!isExpect && !isSoft && !isPoll) return undefined;
-  return { matcher, negated, soft: isSoft, args: call.arguments.map((arg) => textOf(arg, source)) };
+  const subject = target.arguments[0];
+  return {
+    matcher,
+    negated,
+    soft: isSoft,
+    args: call.arguments.map((arg) => textOf(arg, source)),
+    receiver: subject === undefined ? "" : resolveReceiver(subject, consts, source),
+  };
 }
 
 export function extractSpecFacts(text: string): SpecFacts {
@@ -203,7 +219,7 @@ export function extractSpecFacts(text: string): SpecFacts {
     if (ts.isShorthandPropertyAssignment(node) && node.name.text === "force") forceTrueCount++;
 
     if (ts.isCallExpression(node)) {
-      const assertion = asAssertion(node, source);
+      const assertion = asAssertion(node, source, consts);
       if (assertion !== undefined) assertions.push(assertion);
 
       const callee = node.expression;

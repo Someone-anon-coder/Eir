@@ -14,7 +14,7 @@ import { planRuns, runFilePath, type RunKey, type Tool } from "./resume.js";
 import type { EirDetail, HealerDetail, RunRecord } from "./runRecord.js";
 import { materializeSpec, specFileName, type HealerClass, type SpecDraft } from "./specDraft.js";
 import { extractSpecFacts } from "./specFacts.js";
-import { draftFor } from "./specDrafts.js";
+import { draftFor, type SpecVariant } from "./specDrafts.js";
 import { detectTamper } from "./tamper.js";
 import {
   assertPortsFree,
@@ -40,6 +40,10 @@ import {
 const MAX_CONSECUTIVE_INFRA = 3;
 
 export interface ClassRunOptions {
+  /** A separate dataset key: records go to `<class>-seed<n>-<dataset>/`, which the main report never loads. */
+  readonly dataset?: string;
+  /** Run a corrected spec variant (see `specDrafts.ts`); only meaningful with a `dataset`. */
+  readonly variant?: SpecVariant;
   readonly mutationClass: HealerClass;
   readonly seed: number;
   readonly healerRuns: number;
@@ -76,7 +80,7 @@ export function resolveClass(mutationClass: HealerClass, seed: number): ClassRes
   throw new Error(`Unknown class: ${mutationClass}`);
 }
 
-export function runDir(mutationClass: string, seed: number): string {
+export function runDir(mutationClass: string, seed: number, dataset?: string): string {
   return path.join(HEALER_ROOT, "runs", `${mutationClass}-seed${seed}`);
 }
 
@@ -180,12 +184,12 @@ async function healerOnce(
   );
   const safe = fileName.replace(/\.spec\.ts$/, "");
   const transcriptFile = path.join(
-    runDir(options.mutationClass, seed),
+    runDir(options.mutationClass, seed, options.dataset),
     "transcripts",
     `${safe}.run${key.run}.jsonl`,
   );
   const finalSpecFile = path.join(
-    runDir(options.mutationClass, seed),
+    runDir(options.mutationClass, seed, options.dataset),
     "final-specs",
     `${safe}.run${key.run}.spec.ts`,
   );
@@ -322,7 +326,7 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
   const drafts: SpecDraft[] = [];
   const missing: string[] = [];
   for (const id of targetIds) {
-    const d = draftFor(id);
+    const d = draftFor(id, options.variant);
     if (d === undefined) missing.push(id);
     else drafts.push(d);
   }
@@ -332,6 +336,17 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
     );
   }
 
+  if (drafts.length === 0) {
+    log(`[${mutationClass}] no requested targets in this class; skipping`);
+    return {
+      mutationClass,
+      targets: 0,
+      mutationIneffective: [],
+      ran: 0,
+      skipped: 0,
+      stoppedForBudget: false,
+    };
+  }
   await assertPortsFree([PORTS.blind, PORTS.marked, PORTS.control, PORTS.collector]);
   const collector = await startCollector(PORTS.collector);
   const handles: WardHandle[] = [];
@@ -369,7 +384,7 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
     log(
       `[${mutationClass}] ${effective.length} mutation-effective, ${ineffective.size} mutation-ineffective (excluded)`,
     );
-    const outDir = runDir(mutationClass, seed);
+    const outDir = runDir(mutationClass, seed, options.dataset);
     await mkdir(outDir, { recursive: true });
     await writeFile(
       path.join(outDir, "proof.json"),
@@ -406,7 +421,7 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
     const prompt = await readHealPrompt();
     const env: Env = { template, blind, marked, collector, prompt };
     const needsEir = pending.some((k) => k.tool === "eir");
-    const eirKey = `${mutationClass}-seed${seed}`;
+    const eirKey = `${mutationClass}-seed${seed}${options.dataset === undefined ? "" : `-${options.dataset}`}`;
     if (needsEir) {
       const failed = await prepareEirStore(
         eirClassDir(eirKey),

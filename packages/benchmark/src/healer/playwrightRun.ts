@@ -32,11 +32,12 @@ export function runPlaywright(
   files: readonly string[],
   env: Readonly<Record<string, string>> = {},
   timeoutMs = 180_000,
+  extraArgs: readonly string[] = [],
 ): Promise<PlaywrightRun> {
   return new Promise((resolve) => {
     const child = spawn(
       path.join(cwd, "node_modules", ".bin", "playwright"),
-      ["test", ...files, "--reporter=json"],
+      ["test", ...files, "--reporter=json", ...extraArgs],
       {
         cwd,
         env: { ...process.env, ...env },

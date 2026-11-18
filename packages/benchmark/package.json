@@ -14,7 +14,9 @@
     "mutation-payload": "tsx src/printMutationPayload.ts",
     "bench:healer-report": "tsx src/healer/reportCli.ts",
     "bench:healer-compile": "tsx src/healer/compileReport.ts",
-    "bench:healer-rejudge": "tsx src/healer/rejudgeCli.ts"
+    "bench:healer-rejudge": "tsx src/healer/rejudgeCli.ts",
+    "bench:healer-trace-check": "tsx src/healer/traceCheckCli.ts",
+    "bench:healer-evidence": "tsx src/healer/evidenceCli.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

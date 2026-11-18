@@ -165,8 +165,14 @@ describe("detectTamper: every tamper pattern is caught", () => {
 describe("extractSpecFacts", () => {
   it("reads matcher, negation, softness and args, ignoring the receiver", () => {
     const facts = extractSpecFacts("await expect.soft(x).not.toHaveText(/a/, { timeout: 1 });");
-    expect(facts.assertions).toEqual([
-      { matcher: "toHaveText", negated: true, soft: true, args: ["/a/", "{ timeout: 1 }"] },
+    expect(facts.assertions).toMatchObject([
+      {
+        matcher: "toHaveText",
+        negated: true,
+        soft: true,
+        args: ["/a/", "{ timeout: 1 }"],
+        receiver: "x",
+      },
     ]);
   });
 
@@ -270,6 +276,27 @@ test('t', async ({ page }) => {
     ).toContain("action-removed");
     expect(detectTamper(two, two.replace("click()", "check()")).map((f) => f.kind)).not.toContain(
       "action-removed",
+    );
+  });
+});
+
+describe("extractSpecFacts: assertion receivers", () => {
+  it("resolves a const receiver one level", () => {
+    const facts = extractSpecFacts(
+      "const row = page.getByTestId('t').locator('tr', { hasText: 'A' });\nawait expect(row.getByRole('textbox')).toBeVisible();",
+    );
+    expect(facts.assertions[0]?.receiver).toBe(
+      `page.getByTestId("t").locator("tr", { hasText: "A" }).getByRole("textbox")`,
+    );
+  });
+
+  it("a receiver-only edit is invisible to the tamper diff (the documented blind spot)", () => {
+    const a =
+      "await expect(page.getByTestId('t').locator('tr', { hasText: 'K. Nguyen' })).toBeVisible();";
+    const b = a.replace("K. Nguyen", "A. Ramirez");
+    expect(detectTamper(a, b)).toEqual([]);
+    expect(extractSpecFacts(a).assertions[0]?.receiver).not.toBe(
+      extractSpecFacts(b).assertions[0]?.receiver,
     );
   });
 });
