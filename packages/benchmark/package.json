@@ -17,7 +17,8 @@
     "bench:healer-rejudge": "tsx src/healer/rejudgeCli.ts",
     "bench:healer-trace-check": "tsx src/healer/traceCheckCli.ts",
     "bench:healer-evidence": "tsx src/healer/evidenceCli.ts",
-    "bench:healer-verification": "tsx src/healer/verificationCli.ts"
+    "bench:healer-verification": "tsx src/healer/verificationCli.ts",
+    "bench:healer-eir-trace": "tsx src/healer/eirTraceCli.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

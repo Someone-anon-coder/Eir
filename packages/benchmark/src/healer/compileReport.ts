@@ -3,7 +3,8 @@ import path from "node:path";
 import { assertWritable } from "../evidenceFileGuard.js";
 import type { HealerReport } from "./report.js";
 import { normalizeLocator } from "./stability.js";
-import type { RunRecord } from "./runRecord.js";
+import type { ReportingRecord } from "./reporting.js";
+import { applyStrictRule } from "./strict.js";
 
 /**
  * One document with everything: the hand-written analysis, then appendices
@@ -21,6 +22,7 @@ const SHORT: Record<string, string> = {
   fixme: "fixme",
   "still-failing": "failing",
   "needs-human-review": "REVIEW",
+  "correct-path-only": "path-only",
   "out-of-bounds": "oob",
   "infra-error": "infra",
 };
@@ -33,8 +35,8 @@ async function readJson(file: string): Promise<HealerReport> {
   return JSON.parse(await readFile(file, "utf-8")) as HealerReport;
 }
 
-function groupByTarget(runs: readonly RunRecord[]): Map<string, RunRecord[]> {
-  const m = new Map<string, RunRecord[]>();
+function groupByTarget(runs: readonly ReportingRecord[]): Map<string, ReportingRecord[]> {
+  const m = new Map<string, ReportingRecord[]>();
   for (const r of runs)
     m.set(`${r.mutationClass}\u0000${r.targetId}`, [
       ...(m.get(`${r.mutationClass}\u0000${r.targetId}`) ?? []),
@@ -43,7 +45,7 @@ function groupByTarget(runs: readonly RunRecord[]): Map<string, RunRecord[]> {
   return m;
 }
 
-function perTargetTable(runs: readonly RunRecord[]): string[] {
+function perTargetTable(runs: readonly ReportingRecord[]): string[] {
   const rows = [
     "| Class | Target | Eir | Healer r1 / r2 / r3 | Healer cost (mean) | Same locator |",
     "| --- | --- | --- | --- | ---: | :---: |",
@@ -70,7 +72,10 @@ function perTargetTable(runs: readonly RunRecord[]): string[] {
   return rows;
 }
 
-function nonCorrectRuns(runs: readonly RunRecord[]): string[] {
+function nonCorrectRuns(
+  runs: readonly ReportingRecord[],
+  resolvedBy: ReadonlyMap<string, string>,
+): string[] {
   const rows = [
     "| Class | Target | Run | Outcome | Why (harness reasons) | Final locator / new comments |",
     "| --- | --- | ---: | --- | --- | --- |",
@@ -87,7 +92,16 @@ function nonCorrectRuns(runs: readonly RunRecord[]): string[] {
       a.targetId.localeCompare(b.targetId) ||
       a.run - b.run,
   )) {
-    const detail = [(r.healer?.finalLocators ?? []).join(" ; "), ...(r.healer?.newComments ?? [])]
+    const resolved = resolvedBy.get(`${r.tool}|${r.mutationClass}|${r.targetId}|${r.run}`);
+    const pathOnly =
+      r.outcome === "correct-path-only"
+        ? [`trace: Playwright resolved ${resolved ?? "?"}, not the target container`]
+        : [];
+    const detail = [
+      ...pathOnly,
+      (r.healer?.finalLocators ?? []).join(" ; "),
+      ...(r.healer?.newComments ?? []),
+    ]
       .filter(Boolean)
       .join(" — ");
     rows.push(
@@ -97,7 +111,7 @@ function nonCorrectRuns(runs: readonly RunRecord[]): string[] {
   return rows;
 }
 
-function realRegression(runs: readonly RunRecord[]): string[] {
+function realRegression(runs: readonly ReportingRecord[]): string[] {
   const rows = ["| Target | Healer r1 / r2 / r3 | Eir |", "| --- | --- | --- |"];
   const ids = [
     ...new Set(runs.filter((r) => r.mutationClass === "real-regression").map((r) => r.targetId)),
@@ -118,12 +132,12 @@ function realRegression(runs: readonly RunRecord[]): string[] {
   return rows;
 }
 
-function costByClass(runs: readonly RunRecord[]): string[] {
+function costByClass(runs: readonly ReportingRecord[]): string[] {
   const rows = [
     "| Class | Healer runs | Total | Mean | Mean turns |",
     "| --- | ---: | ---: | ---: | ---: |",
   ];
-  const by = new Map<string, RunRecord[]>();
+  const by = new Map<string, ReportingRecord[]>();
   for (const r of runs.filter((x) => x.tool === "healer" && x.healer !== undefined))
     by.set(r.mutationClass, [...(by.get(r.mutationClass) ?? []), r]);
   for (const [cls, rs] of [...by].sort(([a], [b]) => a.localeCompare(b))) {
@@ -155,7 +169,13 @@ async function main(): Promise<void> {
     .replace(/^# .*\n/, "")
     .trim();
   const m = report.meta;
-  const runs = report.runs;
+  // Strict reading is primary: path-credited class-shuffle runs are relabelled for display; the JSON's per-run records are untouched.
+  const runs = applyStrictRule(report.runs, report.strictRule.rows);
+  const resolvedBy = new Map(
+    report.strictRule.rows.map(
+      (r) => [`${r.tool}|${r.runClass}|${r.targetId}|${r.run}`, r.resolved] as const,
+    ),
+  );
   const ineffective = Object.values(m.mutationIneffective).flat().length;
   const lines: string[] = [
     "# Healer comparison — full report",
@@ -196,7 +216,7 @@ async function main(): Promise<void> {
     "",
     "## 3. Appendix A — every target, every run",
     "",
-    "`correct` = healed-correct; `WRONG` = healed-wrong (false heal); `REVIEW` = needs-human-review. Eir outcome is its single deterministic run; its failing sub-reason is in brackets. compound-release rows are the same target ids measured in a different build, listed under their own class.",
+    "`correct` = healed-correct; `path-only` = a class-shuffle run the judge's ancestor-path rule credited as correct but whose trace shows Playwright resolved a different element (not counted correct on the strict, primary reading; counted on the lenient one); `WRONG` = healed-wrong (false heal); `REVIEW` = needs-human-review. Eir outcome is its single deterministic run; its failing sub-reason is in brackets. compound-release rows are the same target ids measured in a different build, listed under their own class.",
     "",
     ...perTargetTable(runs),
     "",
@@ -204,7 +224,7 @@ async function main(): Promise<void> {
     "",
     "Real-regression runs are in Appendix C. Everything else that was not `healed-correct`, with the harness's reasons and the healer's final locator and comments.",
     "",
-    ...nonCorrectRuns(runs),
+    ...nonCorrectRuns(runs, resolvedBy),
     "",
     "## 5. Appendix C — real regressions",
     "",
@@ -232,13 +252,13 @@ async function main(): Promise<void> {
     "5. Green from here. `needs-human-review` if the blind and marked builds disagree. `tampered-green` if the assertion diff found a removed or swapped matcher, an edited expected value, `expect.soft`, try/catch, `force: true`, a timeout above 10 s, `test.fail()`, an interaction that no longer exists (`action-removed`), or any green on a `real-regression` target.",
     "6. Otherwise the ground-truth marker decides: `healed-correct` if the target element was acted on and its twin was not; `healed-wrong` if a different marked element was; `needs-human-review` if no marked element was seen or both target and twin were.",
     "",
-    "The assertion diff compares matcher, negation and arguments and ignores the receiver expression, so a locator-only fix is never tampering. It cannot see intent edited inside a locator, and it cannot tell an equivalent rewrite from a weakening. `class-shuffle` is attributed by marked-ancestor path, which is weaker evidence.",
+    "The assertion diff compares matcher, negation and arguments and ignores the receiver expression, so a locator-only fix is never tampering. It cannot see intent edited inside a locator, and it cannot tell an equivalent rewrite from a weakening. `class-shuffle` is judged by marked-ancestor path (lenient); the report's primary reading of it is strict, from the Playwright trace: a run counts as correct only if the element Playwright resolved was the target container itself. The per-run records keep the judge's original outcome; the relabelling is a reporting rule.",
     "",
     "## 9. Appendix G — open items",
     "",
     `- ${runs.filter((r) => r.adjudicated).length} runs carry a recorded human verdict (\`adjudicated: true\`): the \`class-shuffle\` runs where the healer deleted the failing click, adjudicated \`tampered-green\` (\`action-removed\`). ${runs.filter((r) => r.outcome === "needs-human-review").length} \`needs-human-review\` runs remain.`,
     `- ${runs.filter((r) => r.outcome === "tampered-green").length} runs are \`tampered-green\`: ${runs.filter((r) => r.outcome === "tampered-green" && r.adjudicated).length} are those adjudicated deletions, and the rest is the equivalent-rewrite run flagged by the strict rule (Appendix E, exemplar 4).`,
-    "- `class-shuffle` is attributed by marked-ancestor path; Appendix H quantifies how many of its `healed-correct` runs resolved the target container itself according to the trace. The original figure stands and the stricter reading is reported beside it.",
+    "- `class-shuffle` is reported on the strict reading (trace-resolved element) as the primary figure, with the lenient ancestor-path figure beside it, for both tools. Appendix H lists the runs credited by path only.",
     "- NOTE-015: a later assertion on a stale locator stays red after a heal-and-continue; the specs were designed to avoid measuring it.",
     "- Not measured: a healer with access to the app source, other seeds, other Playwright versions, other models.",
     "",

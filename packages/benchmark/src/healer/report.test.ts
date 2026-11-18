@@ -156,3 +156,103 @@ describe("renderMarkdown", () => {
     expect(md).toContain("Complementarity matrix");
   });
 });
+
+describe("strict reading of class-shuffle", () => {
+  const T = "class-shuffle.devices.pageClassName";
+  const CS = (tool: Tool, run: number, outcome: HealerOutcome = "healed-correct"): RunRecord =>
+    rec(tool, T, run, outcome, "class-shuffle");
+  const records = [CS("healer", 1), CS("healer", 2), CS("healer", 3), CS("eir", 1)];
+  const strictRows = [
+    {
+      tool: "healer" as const,
+      runClass: "class-shuffle",
+      targetId: T,
+      run: 1,
+      resolved: "devices.pageClassName",
+      resolvedIsTarget: true,
+    },
+    {
+      tool: "healer" as const,
+      runClass: "class-shuffle",
+      targetId: T,
+      run: 2,
+      resolved: "unmarked MAIN",
+      resolvedIsTarget: false,
+    },
+    {
+      tool: "healer" as const,
+      runClass: "class-shuffle",
+      targetId: T,
+      run: 3,
+      resolved: "unmarked MAIN",
+      resolvedIsTarget: false,
+    },
+    {
+      tool: "eir" as const,
+      runClass: "class-shuffle",
+      targetId: T,
+      run: 1,
+      resolved: "devices.pageClassName",
+      resolvedIsTarget: true,
+    },
+  ];
+  const report = buildReport(records, META, strictRows);
+  const healer = report.perClass.find(
+    (a) => a.tool === "healer" && a.mutationClass === "class-shuffle",
+  );
+
+  it("counts strict as the primary healed-correct and keeps the path-only credit separate", () => {
+    expect(healer?.counts["healed-correct"]).toBe(1);
+    expect(healer?.counts["correct-path-only"]).toBe(2);
+    expect(healer?.runs).toBe(3);
+  });
+
+  it("applies the same rule to Eir", () => {
+    const eir = report.perClass.find(
+      (a) => a.tool === "eir" && a.mutationClass === "class-shuffle",
+    );
+    expect(eir?.counts["healed-correct"]).toBe(1);
+    expect(eir?.counts["correct-path-only"]).toBe(0);
+  });
+
+  it("reports lenient beside strict, for the class and overall", () => {
+    const row = report.strictRule.lenientVsStrict.find(
+      (a) => a.tool === "healer" && a.mutationClass === "class-shuffle",
+    );
+    expect(row).toMatchObject({ strictCorrect: 1, lenientCorrect: 3, runs: 3 });
+    const all = report.strictRule.lenientVsStrict.find(
+      (a) => a.tool === "healer" && a.mutationClass === "all",
+    );
+    expect(all).toMatchObject({ strictCorrect: 1, lenientCorrect: 3 });
+  });
+
+  it("leaves the per-run records exactly as the judge wrote them", () => {
+    expect(report.runs.map((r) => r.outcome)).toEqual([
+      "healed-correct",
+      "healed-correct",
+      "healed-correct",
+      "healed-correct",
+    ]);
+  });
+
+  it("the complementarity matrix uses the strict label (per-target majority)", () => {
+    // 2 of the 3 healer runs are path-only, so the strict majority for this target is path-only.
+    expect(report.matrix).toContainEqual({
+      eir: "healed-correct",
+      healer: "correct-path-only",
+      targets: [T],
+    });
+  });
+
+  it("renders strict first and lenient beside it, and lists the path-only runs with what Playwright resolved", () => {
+    const md = renderMarkdown(report);
+    expect(md).toContain("healed-correct (strict, primary)");
+    expect(md).toContain("healed-correct (lenient)");
+    expect(md).toContain("| class-shuffle | healer | 3 | 33.3% (1) | 100.0% (3) | 66.7% (2) |");
+    expect(md).toContain("| healer | class-shuffle.devices.pageClassName | 2 | unmarked MAIN |");
+  });
+
+  it("a path-credited run without trace evidence is an error, not a silent lenient count", () => {
+    expect(() => buildReport(records, META, strictRows.slice(1))).toThrow(/No trace evidence/);
+  });
+});
