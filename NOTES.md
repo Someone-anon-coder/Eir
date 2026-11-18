@@ -741,6 +741,22 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Open: remove `minimumReleaseAgeExclude` from `pnpm-workspace.yaml` after 2026-11-14 21:12 UTC (1.65.1's 24h pnpm window).
 - Resolved 2026-11-18: exclusion removed; `pnpm install --frozen-lockfile` verified clean without it from a fresh store, lockfile unchanged.
 
+### 2026-11-18 — Post-1.0, healer comparison (branch `bench-healer-comparison-2026-11-18`)
+Understanding Gate retired for post-1.0 (2026-11-14). Phase tracking lives here, not in the approach doc.
+
+- Step 0 (baseline re-verify) done: fresh `pnpm i`, engine build, `pnpm bench:all` on `main` after PR #43 (React Router). `git diff baseline.md` empty; the only diffs in `results/` and `baseline.json` were `generatedAt` lines (0 other changed lines). Restored. Baseline unshifted.
+- Step 2 (smoke experiment) done: one hand-written broken spec (`id-rename` on `provisioning.requesterNameInput`, single-target payload), one headless healer run against Ward on port 5301. Findings, all measured from the stream:
+  - Claude Code CLI 2.1.318; Playwright 1.65.1. `init-agents --loop=claude` writes `.claude/agents/playwright-test-healer.md` (not `.agent.md`; `.agent.md` is the name inside the Playwright package), `.mcp.json` (server `playwright-test`, command `npx playwright run-test-mcp-server`), `tests/seed.spec.ts`, `specs/README.md`. It does not write the heal prompt; the prompt text lives in `playwright/lib/agents/playwright-test-heal.prompt.md` and is the single line "Run all my tests and fix the failing ones."
+  - Working invocation: `claude -p "<heal prompt>" --agent playwright-test-healer --permission-mode acceptEdits --allowedTools "mcp__playwright-test__*" --strict-mcp-config --mcp-config .mcp.json --setting-sources project --no-session-persistence --output-format stream-json --verbose --max-budget-usd <n>`. Exit 0, 14 stream lines, 43 s wall time, API time 9.8 s.
+  - **No `--max-turns` flag exists in 2.1.318.** The turn cap must be enforced by the harness (count `assistant` stream events, kill the process group at the cap). `--max-budget-usd` exists and is used as a per-run cost backstop.
+  - The agent file's `tools:` list is honoured: the init event lists only Read, Edit, Write, Glob, Grep and the 9 MCP tools (no Bash, no Skill). MCP status `connected`.
+  - Model: the `sonnet` alias resolved to `claude-sonnet-5-5` (init event and every assistant event). `modelUsage` in the result also lists one small `claude-haiku-5-5` call (about $0.0001) folded into `total_cost_usd`; the harness records both.
+  - Reported by the CLI: `total_cost_usd` (0.0492923 here), `num_turns` (5), `duration_ms`/`duration_api_ms`, `usage` (input, output, cache read/create tokens), `modelUsage` per model, `terminal_reason`, `stop_reason`, `permission_denials`. Not reported: a single "total input tokens" number; input tokens are split into uncached, cache-read and cache-creation and the harness reports them separately.
+  - Edit confinement: only `tests/provisioning.spec.ts` changed (locator `getByTestId('provisioning-requester-name')` to `getByLabel('Requester Name')`, assertions unchanged). Playwright creates `test-results/` in the workspace; the out-of-bounds check must ignore it.
+  - Isolation: no `~/.claude/CLAUDE.md` exists; auto-memory is keyed by cwd so my repo memory is not loaded in a temp workspace. The init event does list this machine's registered skills, but the agent's tool list excludes `Skill`, so they are unreachable.
+  - `pkill -f` against a pattern also present in the invoking command kills the caller's shell; stop servers by PID from `lsof -t -i :<port>`.
+- Parked for this phase (none implemented): none yet.
+
 ---
 
 ## 6. Changelog to Governing Documents
