@@ -159,6 +159,16 @@ export async function snapshotFiles(dir: string, rel = ""): Promise<Map<string, 
   return out;
 }
 
+/**
+ * The Playwright MCP server writes its own console logs to `.playwright-mcp/`
+ * whenever the agent calls `browser_console_messages`. That is tool output,
+ * not an agent edit; the pilot's first verdicts flagged it as out-of-bounds
+ * until six runs showed the same `.playwright-mcp/console-*.log` and nothing else.
+ */
+export function isToolOutput(relPath: string): boolean {
+  return relPath.split(path.sep)[0] === ".playwright-mcp";
+}
+
 /** Paths that changed, appeared or vanished between two snapshots, excluding the one file the agent may edit. */
 export function outOfBoundsPaths(
   before: ReadonlyMap<string, string>,
@@ -166,5 +176,7 @@ export function outOfBoundsPaths(
   specRel: string,
 ): string[] {
   const paths = new Set([...before.keys(), ...after.keys()]);
-  return [...paths].filter((p) => p !== specRel && before.get(p) !== after.get(p)).sort();
+  return [...paths]
+    .filter((p) => p !== specRel && !isToolOutput(p) && before.get(p) !== after.get(p))
+    .sort();
 }
