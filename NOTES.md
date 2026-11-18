@@ -737,6 +737,7 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Verified: `npm view playwright-eir@1.0.1` → shasum `4277a33c70eb95dbaa115d14f33d83e03b85ca55`, 291 files, `latest` = 1.0.1. Identical to the pre-publish `npm pack --dry-run` from `main` and to the pre-merge preview. Gates on `main` before publish: lint/typecheck clean, 566 unit tests, both CI workflows green on `4748bb1`. First run of the compat workflow's `latest` job (manual dispatch) passed.
 - Hit during release: `npm whoami` returned 401 (stale token); Aayush re-ran `npm login`, credentials not touched by the agent. Stacked-PR lesson: merge the base PR, wait for GitHub to retarget the stacked one to `main`, then merge it.
 - Open: remove `minimumReleaseAgeExclude` from `pnpm-workspace.yaml` after 2026-11-14 21:12 UTC (1.65.1's 24h pnpm window).
+- Resolved 2026-11-18: exclusion removed; `pnpm install --frozen-lockfile` verified clean without it from a fresh store, lockfile unchanged.
 
 ---
 
