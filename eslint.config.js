@@ -5,7 +5,9 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/coverage/**", "**/node_modules/**", "ts-scratch/**"],
+    // `.healer/` is gitignored scratch for the healer comparison; it holds
+    // Playwright-generated files (the agents' `seed.spec.ts`) we must not edit.
+    ignores: ["**/dist/**", "**/coverage/**", "**/node_modules/**", "ts-scratch/**", "**/.healer/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
