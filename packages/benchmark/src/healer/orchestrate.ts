@@ -81,7 +81,8 @@ export function resolveClass(mutationClass: HealerClass, seed: number): ClassRes
 }
 
 export function runDir(mutationClass: string, seed: number, dataset?: string): string {
-  return path.join(HEALER_ROOT, "runs", `${mutationClass}-seed${seed}`);
+  const suffix = dataset === undefined ? "" : `-${dataset}`;
+  return path.join(HEALER_ROOT, "runs", `${mutationClass}-seed${seed}${suffix}`);
 }
 
 /** A finished run. An infra-error record does not count: it is excluded from rates and is re-run on resume. */
