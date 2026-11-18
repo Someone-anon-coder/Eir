@@ -42,6 +42,7 @@ error. Check with `lsof -i :5173` before a run whose result matters.
 | `pnpm --filter benchmark mutation-payload --class <class> --seed 42`    | Prints the mutation as JSON without running anything.                                                                                                              |
 | `pnpm --filter benchmark bench:healer --class <class> --seed 42`        | Healer comparison: Playwright 1.65.1's healer agent (real Claude Code runs) vs Eir, same breakages. **Spends Claude quota**; see below. Resumable.                 |
 | `pnpm --filter benchmark bench:healer-verification`                     | Writes `reports/healer-verification.{json,md}` (reruns, trace cross-check, spec audit, `fixme` comments) from the separate verification dataset. Same guard.       |
+| `pnpm --filter benchmark bench:healer-eir-trace --class <c>`            | Replays Eir's `healed-correct` runs in heal mode with tracing and records which element the retry resolved. Needed for the strict `class-shuffle` reading.         |
 | `pnpm --filter benchmark bench:healer-rejudge`                          | Re-judges saved healer runs with the current rules. No API calls. Backs up the originals once to `.healer/runs-original-v1/`.                                      |
 | `pnpm --filter benchmark bench:healer-compile`                          | Compiles the analysis and every per-target result into one document, `docs/healer-comparison-full-report.md`. Same overwrite guard.                                |
 | `pnpm --filter benchmark bench:healer-report`                           | Builds `reports/healer-comparison.{json,md}` from the per-run records. Refuses to overwrite without `--force`.                                                     |
@@ -319,4 +320,11 @@ Reading outcomes: `healed-correct`, `healed-wrong` (false heal),
 inflated timeout, or any green on a real regression), `fixme`, `still-failing`,
 `out-of-bounds` (edited anything but the spec; `.playwright-mcp/` tool logs
 don't count), `infra-error` (excluded from rates), `needs-human-review`.
-`class-shuffle` is judged by marked-ancestor path, which is weaker evidence.
+`class-shuffle` is judged by marked-ancestor path (lenient). Its primary
+figure, for both tools, is the strict reading: a run counts correct only if the
+Playwright trace shows the element it resolved was the target container itself;
+the lenient figure sits beside it. Reports relabel path-credited runs
+`correct-path-only` at report time (the per-run records are unchanged), and a
+path-credited run with no trace evidence is an error, never a silent lenient
+count. The trace evidence comes from `bench:healer-trace-check` (healer) and
+`bench:healer-eir-trace` (Eir) and must exist before `bench:healer-report`.

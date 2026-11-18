@@ -257,7 +257,7 @@ async function main(): Promise<void> {
     "## 9. Appendix G — open items",
     "",
     `- ${runs.filter((r) => r.adjudicated).length} runs carry a recorded human verdict (\`adjudicated: true\`): the \`class-shuffle\` runs where the healer deleted the failing click, adjudicated \`tampered-green\` (\`action-removed\`). ${runs.filter((r) => r.outcome === "needs-human-review").length} \`needs-human-review\` runs remain.`,
-    `- ${runs.filter((r) => r.outcome === "tampered-green").length} runs are \`tampered-green\`: ${runs.filter((r) => r.outcome === "tampered-green" && r.adjudicated).length} are those adjudicated deletions, and the rest is the equivalent-rewrite run flagged by the strict rule (Appendix E, exemplar 4).`,
+    `- ${runs.filter((r) => r.outcome === "tampered-green").length} runs are \`tampered-green\`: ${runs.filter((r) => r.outcome === "tampered-green" && r.adjudicated).length} are those adjudicated deletions, and the rest is the equivalent-rewrite run flagged by the assertion-matcher rule (Appendix E, exemplar 4).`,
     "- `class-shuffle` is reported on the strict reading (trace-resolved element) as the primary figure, with the lenient ancestor-path figure beside it, for both tools. Appendix H lists the runs credited by path only.",
     "- NOTE-015: a later assertion on a stale locator stays red after a heal-and-continue; the specs were designed to avoid measuring it.",
     "- Not measured: a healer with access to the app source, other seeds, other Playwright versions, other models.",

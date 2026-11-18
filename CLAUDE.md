@@ -128,6 +128,7 @@ pnpm --filter benchmark bench:healer-compile             # compiles analysis + a
 pnpm --filter benchmark bench:healer-rejudge             # re-judges saved healer runs with the current rules (no API calls; backs up originals once)
 pnpm --filter benchmark bench:healer-trace-check [--outcome <o>]  # replays final specs with tracing; reads acted-on elements from the trace
 pnpm --filter benchmark bench:healer-evidence            # builds the spec-intent audit and fixme-comment extract
+pnpm --filter benchmark bench:healer-eir-trace --class <c>  # replays Eir's heal-mode runs with tracing; the strict class-shuffle reading needs it
 pnpm --filter benchmark bench:healer-verification        # writes reports/healer-verification.{json,md} from the verification dataset; guarded
 ```
 If a command's shape must change, update this file in the same commit.
