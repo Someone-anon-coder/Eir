@@ -4,6 +4,7 @@ import { assertWritable } from "../evidenceFileGuard.js";
 import { loadRecords } from "./loadRecords.js";
 import { buildReport, renderMarkdown } from "./report.js";
 import { buildMeta } from "./reportMeta.js";
+import { loadStrictRows } from "./strictEvidence.js";
 
 const REPORTS_DIR = new URL("../../reports", import.meta.url).pathname;
 
@@ -21,7 +22,7 @@ async function main(): Promise<void> {
   await assertWritable(jsonPath, force);
   await assertWritable(mdPath, force);
 
-  const report = buildReport(records, await buildMeta(records, seed, 3));
+  const report = buildReport(records, await buildMeta(records, seed, 3), await loadStrictRows());
   await mkdir(REPORTS_DIR, { recursive: true });
   await writeFile(jsonPath, JSON.stringify(report, null, 2) + "\n");
   await writeFile(mdPath, renderMarkdown(report));

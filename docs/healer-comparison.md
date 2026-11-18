@@ -93,19 +93,30 @@ Per run; `infra-error` runs would be excluded (there were **0**, and 0 retries).
 Counts sit beside every percentage in the generated report; this table is the
 same data.
 
-| Class                       | Healer runs |  Healer correct | Healer wrong element | Healer tamper-flagged | Healer `fixme` | Healer needs review | Eir (targets) correct | Eir wrong |
-| --------------------------- | ----------: | --------------: | -------------------: | --------------------: | -------------: | ------------------: | --------------------: | --------: |
-| id-rename                   |          24 |              24 |                    0 |                     0 |              0 |                   0 |                6 of 8 |         0 |
-| text-change                 |          24 |              24 |                    0 |                     0 |              0 |                   0 |                7 of 8 |         0 |
-| tag-swap                    |          24 |              21 |                    0 |                     0 |              3 |                   0 |                7 of 8 |         0 |
-| class-shuffle               |          24 |              19 |                    0 |                     5 |              0 |                   0 |                2 of 8 |         0 |
-| sibling-reorder             |          24 |              17 |                **7** |                     0 |              0 |                   0 |                0 of 8 |         0 |
-| wrapper-inject              |          24 |              24 |                    0 |                     0 |              0 |                   0 |                8 of 8 |         0 |
-| near-duplicate-sibling-swap |          24 |              24 |                    0 |                     0 |              0 |                   0 |                2 of 8 |         0 |
-| compound-release            |          72 |              64 |                **7** |                     1 |              0 |                   0 |              10 of 24 |         0 |
-| real-regression             |          21 |               0 |                    0 |                     0 |             21 |                   0 |                0 of 7 |         0 |
-| flow-change                 |          15 |              15 |                    0 |                     0 |              0 |                   0 |                0 of 5 |         0 |
-| **All**                     |     **276** | **232 (84.1%)** |        **14 (5.1%)** |          **6 (2.2%)** |  **24 (8.7%)** |               **0** |          **42 of 92** |     **0** |
+| Class                       | Healer runs | Healer correct, **strict** (primary) | Healer correct, lenient | Healer wrong element | Healer tamper-flagged | Healer `fixme` | Healer needs review | Eir (targets) correct, strict = lenient | Eir wrong |
+| --------------------------- | ----------: | -----------------------------------: | ----------------------: | -------------------: | --------------------: | -------------: | ------------------: | --------------------------------------: | --------: |
+| id-rename                   |          24 |                                   24 |                      24 |                    0 |                     0 |              0 |                   0 |                                  6 of 8 |         0 |
+| text-change                 |          24 |                                   24 |                      24 |                    0 |                     0 |              0 |                   0 |                                  7 of 8 |         0 |
+| tag-swap                    |          24 |                                   21 |                      21 |                    0 |                     0 |              3 |                   0 |                                  7 of 8 |         0 |
+| class-shuffle               |          24 |                                **6** |                      19 |                    0 |                     5 |              0 |                   0 |                                  2 of 8 |         0 |
+| sibling-reorder             |          24 |                                   17 |                      17 |                **7** |                     0 |              0 |                   0 |                                  0 of 8 |         0 |
+| wrapper-inject              |          24 |                                   24 |                      24 |                    0 |                     0 |              0 |                   0 |                                  8 of 8 |         0 |
+| near-duplicate-sibling-swap |          24 |                                   24 |                      24 |                    0 |                     0 |              0 |                   0 |                                  2 of 8 |         0 |
+| compound-release            |          72 |                                   64 |                      64 |                **7** |                     1 |              0 |                   0 |                                10 of 24 |         0 |
+| real-regression             |          21 |                                    0 |                       0 |                    0 |                     0 |             21 |                   0 |                                  0 of 7 |         0 |
+| flow-change                 |          15 |                                   15 |                      15 |                    0 |                     0 |              0 |                   0 |                                  0 of 5 |         0 |
+| **All**                     |     **276** |                      **219 (79.3%)** |             232 (84.1%) |        **14 (5.1%)** |          **6 (2.2%)** |  **24 (8.7%)** |               **0** |                            **42 of 92** |     **0** |
+
+**`class-shuffle` is on the strict reading, which is the primary figure for both
+tools.** The judge's first rule credited a click whose marked-ancestor path
+contained the target container (lenient). The strict rule asks what the
+Playwright trace shows was resolved, and counts a run correct only if that was
+the target container itself. The healer's overall figure is **219 of 276 (79.3%)
+strict** and 232 of 276 (84.1%) lenient: the 13 runs between them (all
+`class-shuffle`) resolved a card's `<h2>` or the outer `<main>`. Eir's
+`class-shuffle` figure is the same on both readings (its two heals were
+trace-checked: the retry resolved the target container). This is a reporting
+rule; the per-run records keep the judge's original outcomes.
 
 `Healer tamper-flagged` is `tampered-green`: 5 of the 6 are the `class-shuffle`
 runs where the healer deleted the failing click (rule `action-removed`,
@@ -123,25 +134,27 @@ first runs: 24 `suggest-only`, 21 `no-attempt`, 4 `drift-suspected`, 1
 ### 1. Recovery
 
 On this benchmark the healer recovers more than Eir everywhere Eir is limited
-by design, and Eir recovers nothing the healer misses:
+by design except `class-shuffle`, where the two are level on the strict reading
+(25% each), and Eir recovers nothing the healer's majority misses:
 
 - **Complementarity matrix, per target** (Eir result x healer majority of 3
-  runs, 92 targets): Eir correct and healer correct on **42**; Eir not healed
-  and healer correct on **36**; Eir not healed and healer `fixme` on **8**
-  (7 real regressions plus one tag-swap, below); Eir not healed and healer
-  wrong-element on **5**; Eir not healed and healer `tampered-green` on **1**
-  (`class-shuffle.nav.layoutClassName`, deleted click).
+  runs, 92 targets, strict reading): Eir correct and healer correct on **42**;
+  Eir not healed and healer correct on **31**; Eir not healed and healer
+  `correct-path-only` on **5** (`class-shuffle`: the healer's majority resolved
+  a different element than the target container); Eir not healed and healer
+  `fixme` on **8** (7 real regressions plus one tag-swap, below); Eir not healed
+  and healer wrong-element on **5**; Eir not healed and healer `tampered-green`
+  on **1** (`class-shuffle.nav.layoutClassName`, deleted click).
   There is no target where Eir healed and the healer's majority failed.
 - **Eir's known weak spots, tested directly:**
-  `class-shuffle` healer 19 of 24 correct by the judge's ancestor-path rule
-  (Eir 2 of 8; the other 5 runs deleted the failing click). **Read that 19 with
-  the Verification pass:** by the element Playwright actually resolved, only
-  6 of those 19 hit the target container itself.
+  `class-shuffle` healer **6 of 24 correct on the strict reading** (19 lenient;
+  13 further runs resolved a different element, and 5 deleted the failing
+  click), Eir **2 of 8 on both readings**. On this class the tools are level.
   `near-duplicate-sibling-swap` healer 24 of 24
   (Eir 2 of 8); `sibling-reorder` healer 17 of 24 correct but 7 wrong-element
   (Eir 0 of 8, all misses); `compound-release` healer 64 of 72 (Eir 10 of 24).
-  The healer recovers most of them. The `sibling-reorder` recovery is the one
-  with a safety cost, below.
+  The healer recovers most of those, but not `class-shuffle`. The
+  `sibling-reorder` recovery is the one with a safety cost, below.
 - **`flow-change`** (structural changes beyond Eir's design scope): healer 15
   of 15, Eir 0 of 5. This class existed to test complementarity honestly, and
   the healer handles it.
@@ -196,10 +209,11 @@ Both tools kept the test from going falsely green on all 7 `real-regression`
 targets.
 
 - **Healer: `fixme` on 21 of 21 runs.** Every run left the assertion alone and
-  marked the test `fixme`; I read one run's comment per target and each names
-  the actual symptom (for example "clicking Confirm Delete does nothing: the
-  dialog stays open"). I did not read all 21. One run's comment also names the
-  neighbouring regression, because all 7 regressions are live in one build.
+  marked the test `fixme`. All 24 `fixme` comments (these 21 plus the 3
+  `tag-swap` runs below) name the injected bug (checked by Aayush against
+  Appendix H of the full report), for example "clicking Confirm Delete does
+  nothing: the dialog stays open". One run's comment also names the neighbouring
+  regression, because all 7 regressions are live in one build.
   [Exemplar](healer-comparison/03-fixme.md).
 - **Eir: `still-failing` on 7 of 7**, no heal attempt: the selectors still
   resolve, so Eir has nothing to heal. Red stays red.
@@ -296,13 +310,17 @@ markers, never a target, decoy or other element key. Six are a build-version
 difference (those near-duplicate runs were judged on a marked build from before
 container markers existed). The other six are the `class-shuffle` leniency:
 
-- **`class-shuffle` is a judge artifact in the other direction.** Of the 19
-  runs counted `healed-correct`, **6** resolved the target container and **13**
+- **`class-shuffle` is a judge artifact in the other direction, and the strict
+  reading is now the primary figure.** Of the 19 healer runs the ancestor-path
+  rule counted `healed-correct`, **6** resolved the target container and **13**
   resolved something else (the card's `<h2>` heading, or the outer `<main>`)
   and were credited only because the click's ancestor path included the target.
-  The original figure (19 of 24) stands as published, with the stricter reading
-  (6 of 24) beside it. Eir's `class-shuffle` heals (2 of 8) were judged by the
-  same rule and have not been trace-checked.
+  The healer's `class-shuffle` figure is therefore **6 of 24 strict** (19
+  lenient). Eir's two `class-shuffle` heals were replayed the same way (heal
+  mode, from a pristine copy of the control store, tracing on): in both, the
+  retry resolved the target container (`devices.active.table` and
+  `devices.archived.table`), so Eir is **2 of 8 on both readings**. On the strict
+  reading the two tools are level on this class.
 
 ### Spec-intent audit of the 14 false heals
 
@@ -331,15 +349,18 @@ per-run table is in the verification report.
 
 ### What changes in the headline
 
-|                                                            | Figure                                                                                           |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| False heals, original dataset                              | **14 of 276 runs (5.1%)**. This is the published headline and is not replaced.                   |
-| Of those, on specs that identify the row only by position  | 7. An identity anchor removed them (0 of 15), so they are as much a spec defect as a healer one. |
-| Of those, on specs with an unambiguous row                 | 7 (2.5% of the 276). They reproduce (14 of 20 on rerun).                                         |
-| False greens (wrong element or tampered), original dataset | 20: the 14, plus 5 deleted-click runs, plus 1 benign equivalent rewrite.                         |
+|                                                            | Figure                                                                                                                                                |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| False heals, original dataset                              | **14 of 276 runs (5.1%)**. This is the published headline and is not replaced.                                                                        |
+| Of those, on specs that identify the row only by position  | 7. An identity anchor removed them (0 of 15), so they are as much a spec defect as a healer one.                                                      |
+| Of those, on specs with an unambiguous row                 | 7 (2.5% of the 276). They reproduce (14 of 20 on rerun).                                                                                              |
+| False greens (wrong element or tampered), original dataset | 20: the 14, plus 5 deleted-click runs, plus 1 benign equivalent rewrite.                                                                              |
+| Healer correct, overall                                    | **219 of 276 (79.3%) strict, primary**; 232 of 276 (84.1%) lenient. The 13 runs between them are `class-shuffle` runs credited only by ancestor path. |
+| Healer correct, `class-shuffle`                            | **6 of 24 strict, primary**; 19 of 24 lenient. Eir: 2 of 8 on both readings.                                                                          |
 
 No false heal was a judge artifact (14 of 14 trace agreement). The
-`class-shuffle` recovery figure is the one judge-leniency result.
+`class-shuffle` recovery figure was the one judge-leniency result, and its
+primary reading is now the strict one.
 
 ## What these results do not show
 
@@ -364,14 +385,15 @@ These are the threats to validity, and they cut both ways.
   NOTE-015), while the healer rewrites every occurrence. The first version of
   these specs showed exactly that and I changed the specs; real suites that
   assert on the acting locator would score Eir lower than this table.
-- **`class-shuffle` is weaker evidence, and the Verification pass quantifies
-  it.** The original probes click a container, which does nothing observable,
-  so post-conditions only check the page is intact. These targets are
-  attributed by marked-ancestor _path_, which credits a fix that resolves a
-  descendant (a card's heading) or an outer ancestor (`<main>`) as long as the
-  click's path includes the target. Read from the trace, only 6 of the 19
-  `healed-correct` class-shuffle runs resolved the target container itself.
-  Both readings are reported; the original is not replaced.
+- **`class-shuffle` is weaker evidence, which is why its primary figure is the
+  strict one.** The original probes click a container, which does nothing
+  observable, so post-conditions only check the page is intact. The judge's
+  first rule attributed these by marked-ancestor _path_, which credits a fix
+  that resolves a descendant (a card's heading) or an outer ancestor (`<main>`)
+  as long as the click's path includes the target. Reports now lead with the
+  strict reading (the element Playwright resolved, from the trace) and show the
+  lenient one beside it, for both tools. Even strict, a container click proves
+  little about whether the healer understood the page.
 - **`sibling-reorder` select targets** are judged on the chosen value: the
   marker can only say the select changed. The unchanged assertion carries the
   correctness there.
@@ -394,10 +416,11 @@ These are the threats to validity, and they cut both ways.
 ## The honest verdict
 
 **The tools are complementary, and the data supports that framing, with a
-sharper edge than expected.** The healer recovers far more than Eir (84% of
-runs correct vs Eir's 46% of targets), including most of the classes Eir is
-weak at and all of `flow-change`; the `class-shuffle` part of that rests on a
-lenient attribution rule (see the Verification pass). It never weakened an
+sharper edge than expected.** The healer recovers far more than Eir (79.3% of
+runs correct on the strict reading, 84.1% lenient, vs Eir's 46% of targets),
+including most of the classes Eir is weak at and all of `flow-change`. The
+exception is `class-shuffle`, where on the strict reading the healer (6 of 24)
+and Eir (2 of 8) are level at 25%. It never weakened an
 assertion (0 genuine of 276), and it marked real regressions `fixme` instead of
 forcing them green. That is better behaviour than its instructions suggest.
 One qualification: in 5 `class-shuffle` runs it deleted the failing step
@@ -437,8 +460,9 @@ sibling-reorder, near-duplicate), now with a measured alternative.
 - They compose: Eir suggests deterministically and for free; the healer
   handles the structural changes Eir was never built for.
 - Review a healer's `fixme` as a bug report. The 24 `fixme` runs cover 8
-  targets (7 real regressions and the behaviour-breaking tag swap); I read one
-  comment per target and each named a real symptom, but I did not read all 24.
+  targets (7 real regressions and the behaviour-breaking tag swap); all 24
+  comments name the injected bug (checked by Aayush against Appendix H of the
+  full report).
 
 ## Reproducing
 

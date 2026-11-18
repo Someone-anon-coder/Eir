@@ -225,23 +225,25 @@ target, in a workspace isolated from the app source) against Eir on the same 92
 seeded breakages: the eight classes above plus two added as a counterweight,
 `real-regression` (genuine app bugs) and `flow-change` (structural UI changes).
 
-- **Recovery:** the healer got 232 of 276 runs (84%) correct; Eir healed 42 of
-  92 targets (46%). The healer recovers `near-duplicate-sibling-swap`, most of
-  `sibling-reorder`, and all of `flow-change`, and Eir healed no target the
-  healer's majority missed. `class-shuffle` is the exception to read carefully:
-  the healer's 19 of 24 rests on a lenient judging rule (by the element
-  Playwright resolved, 6 of those 19), and in 5 further runs it deleted the
-  failing click.
+- **Recovery:** the healer got 219 of 276 runs (79.3%) correct on the strict
+  reading and 232 (84.1%) on the lenient one; Eir healed 42 of 92 targets (46%).
+  The healer recovers `near-duplicate-sibling-swap`, most of `sibling-reorder`,
+  and all of `flow-change`, and Eir healed no target the healer's majority
+  missed. `class-shuffle` is the exception, and it is reported strict first: by
+  the element Playwright actually resolved, the healer got 6 of 24 and Eir 2 of
+  8 (25% each). The lenient 19 of 24 also credits runs that resolved a card's
+  heading or the outer `<main>`; 5 more healer runs deleted the failing click.
 - **Safety:** the healer produced **14 false heals in 276 runs (5.1%)**, all where
   position matters (`sibling-reorder`). Eir produced **0 in 108 runs**, at the
   price of 100% misses on that class. A verification pass (reruns, a trace-based
   check of the judge) found 7 of the 14 come from specs that pick their row only
   by position (an identity anchor removed them, 0 of 15) and 7 reproduce on
   unambiguous specs. No assertion was genuinely weakened (one run was flagged by
-  a strict rule and is benign on inspection); 5 runs deleted the failing step.
+  the assertion-matcher rule and is benign on inspection); 5 runs deleted the failing step.
 - **Real regressions:** both tools stayed red; the healer marked all 21 runs
-  `test.fixme` with a comment (the comments are quoted next to the injected bugs
-  in the full report, for review).
+  `test.fixme`; all 24 `fixme` comments (21 here plus 3 on a tag swap that broke
+  behaviour) name the injected bug (checked by Aayush against Appendix H of the
+  full report).
 - **Cost:** $8.78 CLI-reported for 276 runs (median $0.028 per run); Eir makes
   zero API calls.
 

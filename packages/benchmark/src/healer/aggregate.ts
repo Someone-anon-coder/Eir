@@ -1,10 +1,10 @@
-import { FALSE_GREEN_OUTCOMES, HEALER_OUTCOMES, type HealerOutcome } from "./classify.js";
+import { FALSE_GREEN_OUTCOMES } from "./classify.js";
+import { REPORT_OUTCOMES, type ReportOutcome, type ReportingRecord } from "./reporting.js";
 import type { Tool } from "./resume.js";
-import type { RunRecord } from "./runRecord.js";
 import { computeStability, majorityOutcome, type Stability } from "./stability.js";
 
 /** infra-error runs are excluded from every rate and reported as a count. */
-export type OutcomeCounts = Readonly<Record<HealerOutcome, number>>;
+export type OutcomeCounts = Readonly<Record<ReportOutcome, number>>;
 
 export interface ToolClassAggregate {
   readonly tool: Tool;
@@ -44,8 +44,8 @@ export interface MatrixCell {
   readonly targets: readonly string[];
 }
 
-function zeroCounts(): Record<HealerOutcome, number> {
-  return Object.fromEntries(HEALER_OUTCOMES.map((o) => [o, 0])) as Record<HealerOutcome, number>;
+function zeroCounts(): Record<ReportOutcome, number> {
+  return Object.fromEntries(REPORT_OUTCOMES.map((o) => [o, 0])) as Record<ReportOutcome, number>;
 }
 
 /** Nearest-rank percentile; the sample is small, so no interpolation pretends to precision it lacks. */
@@ -57,7 +57,7 @@ export function percentile(values: readonly number[], p: number): number | undef
 }
 
 export function aggregateToolClass(
-  records: readonly RunRecord[],
+  records: readonly ReportingRecord[],
   tool: Tool,
   mutationClass: string,
 ): ToolClassAggregate {
@@ -70,7 +70,7 @@ export function aggregateToolClass(
   }
   const runs = mine.length - infraErrors;
   const rates = zeroCounts();
-  for (const o of HEALER_OUTCOMES) rates[o] = runs === 0 ? 0 : counts[o] / runs;
+  for (const o of REPORT_OUTCOMES) rates[o] = runs === 0 ? 0 : counts[o] / runs;
   return {
     tool,
     mutationClass,
@@ -83,7 +83,7 @@ export function aggregateToolClass(
   };
 }
 
-export function costStats(records: readonly RunRecord[]): CostStats {
+export function costStats(records: readonly ReportingRecord[]): CostStats {
   const healer = records.filter(
     (r) => r.tool === "healer" && r.healer !== undefined && r.outcome !== "infra-error",
   );
@@ -101,13 +101,13 @@ export function costStats(records: readonly RunRecord[]): CostStats {
   };
 }
 
-function healerRunsFor(records: readonly RunRecord[], targetId: string): RunRecord[] {
+function healerRunsFor(records: readonly ReportingRecord[], targetId: string): ReportingRecord[] {
   return records.filter(
     (r) => r.tool === "healer" && r.targetId === targetId && r.outcome !== "infra-error",
   );
 }
 
-export function targetStabilities(records: readonly RunRecord[]): TargetStability[] {
+export function targetStabilities(records: readonly ReportingRecord[]): TargetStability[] {
   const ids = [
     ...new Set(records.filter((r) => r.tool === "healer").map((r) => r.targetId)),
   ].sort();
@@ -133,7 +133,7 @@ export function targetStabilities(records: readonly RunRecord[]): TargetStabilit
 }
 
 /** Eir's result (its first run; it is deterministic) crossed with the healer's majority result, per target. */
-export function complementarityMatrix(records: readonly RunRecord[]): MatrixCell[] {
+export function complementarityMatrix(records: readonly ReportingRecord[]): MatrixCell[] {
   const cells = new Map<string, string[]>();
   const stabilities = new Map(
     targetStabilities(records).map((t) => [t.targetId, t.majority] as const),
@@ -158,7 +158,7 @@ export function complementarityMatrix(records: readonly RunRecord[]): MatrixCell
 }
 
 /** Do an Eir repeat's outcomes match run 1's, target by target? */
-export function eirRepeatIdentical(records: readonly RunRecord[]): {
+export function eirRepeatIdentical(records: readonly ReportingRecord[]): {
   readonly compared: number;
   readonly identical: number;
 } {

@@ -2,7 +2,7 @@
 
 Target `sibling-reorder.devices.row.dev-2.actionsOrder` (sibling-reorder), healer run 1. Trimmed from `.healer/runs` (the full transcripts are not committed).
 
-Outcome `healed-wrong`. The original spec edits K. Nguyen's row in the _active_ table. The healer's comment says K. Nguyen's device lives in the archived table, re-pointed the action at that row, and rewrote the post-condition's locator to match, so the test went green on the wrong element (`devices.row.dev-10.edit` instead of `devices.row.dev-2.edit`). No assertion matcher or argument changed, so the assertion diff alone cannot see this; only the ground-truth marker caught it. Likely cause (a hypothesis, not checked in the transcript): the failing test's own first click had already removed the active row during debugging.
+Outcome `healed-wrong`. The original spec edits K. Nguyen's row in the _active_ table. The healer's comment says K. Nguyen's device lives in the archived table, re-pointed the action at that row, and rewrote the post-condition's locator to match, so the test went green on the wrong element (`devices.row.dev-10.edit` instead of `devices.row.dev-2.edit`). No assertion matcher or argument changed, so the assertion diff alone cannot see this; only the ground-truth marker caught it. Cause, confirmed (see [Appendix H §4 of the full report](../healer-comparison-full-report.md)): after the reorder the first action button in that row is Remove, so the failing test's own first click deleted the active row before the healer's debugger paused. The healer's first page evidence showed the row missing (in all 7 `actionsOrder` false-heal transcripts), and a page reload restores it.
 
 ```diff
 --- original

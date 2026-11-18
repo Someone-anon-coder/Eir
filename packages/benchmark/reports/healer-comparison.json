@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-18T12:12:17.999Z",
+    "generatedAt": "2026-11-18T13:57:04.333Z",
     "playwrightVersion": "1.65.1",
     "claudeCodeVersions": ["2.1.318"],
     "modelIds": ["claude-sonnet-5-5"],
@@ -47,7 +47,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 1,
@@ -57,7 +58,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -75,7 +77,8 @@
         "still-failing": 4,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.75,
@@ -85,7 +88,8 @@
         "still-failing": 0.25,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -103,7 +107,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 1,
@@ -113,7 +118,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -131,7 +137,8 @@
         "still-failing": 1,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.875,
@@ -141,7 +148,8 @@
         "still-failing": 0.125,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -159,7 +167,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.875,
@@ -169,7 +178,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -187,7 +197,8 @@
         "still-failing": 1,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.875,
@@ -197,7 +208,8 @@
         "still-failing": 0.125,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -208,24 +220,26 @@
       "runs": 24,
       "infraErrors": 0,
       "counts": {
-        "healed-correct": 19,
+        "healed-correct": 6,
         "healed-wrong": 0,
         "tampered-green": 5,
         "fixme": 0,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 13
       },
       "rates": {
-        "healed-correct": 0.7916666666666666,
+        "healed-correct": 0.25,
         "healed-wrong": 0,
         "tampered-green": 0.20833333333333334,
         "fixme": 0,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0.5416666666666666
       },
       "falseGreens": 5
     },
@@ -243,7 +257,8 @@
         "still-failing": 6,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.25,
@@ -253,7 +268,8 @@
         "still-failing": 0.75,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -271,7 +287,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.7083333333333334,
@@ -281,7 +298,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 7
     },
@@ -299,7 +317,8 @@
         "still-failing": 8,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0,
@@ -309,7 +328,8 @@
         "still-failing": 1,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -327,7 +347,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 1,
@@ -337,7 +358,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -355,7 +377,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 1,
@@ -365,7 +388,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -383,7 +407,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 1,
@@ -393,7 +418,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -411,7 +437,8 @@
         "still-failing": 12,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.25,
@@ -421,7 +448,8 @@
         "still-failing": 0.75,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -439,7 +467,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.8888888888888888,
@@ -449,7 +478,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 8
     },
@@ -467,7 +497,8 @@
         "still-failing": 14,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.4166666666666667,
@@ -477,7 +508,8 @@
         "still-failing": 0.5833333333333334,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -495,7 +527,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0,
@@ -505,7 +538,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -523,7 +557,8 @@
         "still-failing": 7,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0,
@@ -533,7 +568,8 @@
         "still-failing": 1,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -551,7 +587,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 1,
@@ -561,7 +598,8 @@
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     },
@@ -579,7 +617,8 @@
         "still-failing": 5,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0,
@@ -589,7 +628,8 @@
         "still-failing": 1,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     }
@@ -602,24 +642,26 @@
       "runs": 276,
       "infraErrors": 0,
       "counts": {
-        "healed-correct": 232,
+        "healed-correct": 219,
         "healed-wrong": 14,
         "tampered-green": 6,
         "fixme": 24,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 13
       },
       "rates": {
-        "healed-correct": 0.8405797101449275,
+        "healed-correct": 0.7934782608695652,
         "healed-wrong": 0.050724637681159424,
         "tampered-green": 0.021739130434782608,
         "fixme": 0.08695652173913043,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0.04710144927536232
       },
       "falseGreens": 20
     },
@@ -637,7 +679,8 @@
         "still-failing": 58,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "rates": {
         "healed-correct": 0.46296296296296297,
@@ -647,7 +690,8 @@
         "still-failing": 0.5370370370370371,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0
+        "needs-human-review": 0,
+        "correct-path-only": 0
       },
       "falseGreens": 0
     }
@@ -665,12 +709,12 @@
   "stability": [
     {
       "targetId": "class-shuffle.account.pageClassName",
-      "majority": "healed-correct",
+      "majority": "correct-path-only",
       "stability": {
         "runs": 3,
         "outcomesMatch": false,
         "locatorsMatch": false,
-        "distinctOutcomes": ["healed-correct", "tampered-green"],
+        "distinctOutcomes": ["correct-path-only", "tampered-green"],
         "distinctLocators": [
           "(none)",
           "page.getByRole(\"heading\", { name: \"Account\", exact: true })",
@@ -680,12 +724,12 @@
     },
     {
       "targetId": "class-shuffle.devices.active.card",
-      "majority": "healed-correct",
+      "majority": "correct-path-only",
       "stability": {
         "runs": 3,
         "outcomesMatch": true,
         "locatorsMatch": true,
-        "distinctOutcomes": ["healed-correct"],
+        "distinctOutcomes": ["correct-path-only"],
         "distinctLocators": [
           "page.getByRole(\"heading\", { name: \"Active Devices\", exact: true })"
         ]
@@ -707,12 +751,12 @@
     },
     {
       "targetId": "class-shuffle.devices.archived.card",
-      "majority": "healed-correct",
+      "majority": "correct-path-only",
       "stability": {
         "runs": 3,
         "outcomesMatch": true,
         "locatorsMatch": true,
-        "distinctOutcomes": ["healed-correct"],
+        "distinctOutcomes": ["correct-path-only"],
         "distinctLocators": [
           "page.getByRole(\"heading\", { name: \"Archived Devices\", exact: true })"
         ]
@@ -731,12 +775,12 @@
     },
     {
       "targetId": "class-shuffle.devices.pageClassName",
-      "majority": "healed-correct",
+      "majority": "correct-path-only",
       "stability": {
         "runs": 3,
         "outcomesMatch": true,
         "locatorsMatch": true,
-        "distinctOutcomes": ["healed-correct"],
+        "distinctOutcomes": ["correct-path-only"],
         "distinctLocators": ["page.getByRole(\"main\")"]
       }
     },
@@ -753,12 +797,12 @@
     },
     {
       "targetId": "class-shuffle.provisioning.pageClassName",
-      "majority": "healed-correct",
+      "majority": "correct-path-only",
       "stability": {
         "runs": 3,
         "outcomesMatch": false,
         "locatorsMatch": false,
-        "distinctOutcomes": ["healed-correct", "tampered-green"],
+        "distinctOutcomes": ["correct-path-only", "tampered-green"],
         "distinctLocators": ["(none)", "page.getByRole(\"main\")"]
       }
     },
@@ -1884,6 +1928,17 @@
     },
     {
       "eir": "still-failing",
+      "healer": "correct-path-only",
+      "targets": [
+        "class-shuffle.account.pageClassName",
+        "class-shuffle.devices.active.card",
+        "class-shuffle.devices.archived.card",
+        "class-shuffle.devices.pageClassName",
+        "class-shuffle.provisioning.pageClassName"
+      ]
+    },
+    {
+      "eir": "still-failing",
       "healer": "fixme",
       "targets": [
         "real-regression.account.confirmDoesNothing",
@@ -1900,11 +1955,6 @@
       "eir": "still-failing",
       "healer": "healed-correct",
       "targets": [
-        "class-shuffle.account.pageClassName",
-        "class-shuffle.devices.active.card",
-        "class-shuffle.devices.archived.card",
-        "class-shuffle.devices.pageClassName",
-        "class-shuffle.provisioning.pageClassName",
         "compound-release/id-rename.account.openDeleteButton",
         "compound-release/id-rename.login.usernameInput",
         "compound-release/id-rename.login.usernameInputId",
@@ -1958,6 +2008,209 @@
   "eirRepeat": {
     "compared": 16,
     "identical": 16
+  },
+  "strictRule": {
+    "description": "For class-shuffle (judged by marked-ancestor path), a `healed-correct` run counts as correct (strict, primary) only if the Playwright trace shows the element it resolved was the target container itself; otherwise it is `correct-path-only`, which the lenient reading still counts as correct.",
+    "rows": [
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.account.pageClassName",
+        "run": 2,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.account.pageClassName",
+        "run": 3,
+        "resolved": "unmarked MAIN",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.card",
+        "run": 1,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.card",
+        "run": 2,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.card",
+        "run": 3,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.table",
+        "run": 1,
+        "resolved": "devices.active.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.table",
+        "run": 2,
+        "resolved": "devices.active.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.table",
+        "run": 3,
+        "resolved": "devices.active.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.card",
+        "run": 1,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.card",
+        "run": 2,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.card",
+        "run": 3,
+        "resolved": "unmarked H2",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.table",
+        "run": 1,
+        "resolved": "devices.archived.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.table",
+        "run": 2,
+        "resolved": "devices.archived.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.table",
+        "run": 3,
+        "resolved": "devices.archived.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.pageClassName",
+        "run": 1,
+        "resolved": "unmarked MAIN",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.pageClassName",
+        "run": 2,
+        "resolved": "unmarked MAIN",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.pageClassName",
+        "run": 3,
+        "resolved": "unmarked MAIN",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.provisioning.pageClassName",
+        "run": 1,
+        "resolved": "unmarked MAIN",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "healer",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.provisioning.pageClassName",
+        "run": 3,
+        "resolved": "unmarked MAIN",
+        "resolvedIsTarget": false
+      },
+      {
+        "tool": "eir",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.active.table",
+        "run": 1,
+        "resolved": "devices.active.table",
+        "resolvedIsTarget": true
+      },
+      {
+        "tool": "eir",
+        "runClass": "class-shuffle",
+        "targetId": "class-shuffle.devices.archived.table",
+        "run": 1,
+        "resolved": "devices.archived.table",
+        "resolvedIsTarget": true
+      }
+    ],
+    "lenientVsStrict": [
+      {
+        "tool": "healer",
+        "mutationClass": "class-shuffle",
+        "runs": 24,
+        "strictCorrect": 6,
+        "lenientCorrect": 19
+      },
+      {
+        "tool": "eir",
+        "mutationClass": "class-shuffle",
+        "runs": 8,
+        "strictCorrect": 2,
+        "lenientCorrect": 2
+      },
+      {
+        "tool": "healer",
+        "mutationClass": "all",
+        "runs": 276,
+        "strictCorrect": 219,
+        "lenientCorrect": 232
+      },
+      {
+        "tool": "eir",
+        "mutationClass": "all",
+        "runs": 108,
+        "strictCorrect": 50,
+        "lenientCorrect": 50
+      }
+    ]
   },
   "runs": [
     {
