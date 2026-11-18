@@ -154,6 +154,34 @@ describe("renderVerificationMarkdown", () => {
   });
 });
 
+describe("verification markdown tables stay well-formed", () => {
+  it("escapes a pipe inside a cell, so the destructive-experiment table keeps its columns", () => {
+    const md = renderVerificationMarkdown(
+      buildVerificationReport({
+        ...INPUT,
+        experiment: {
+          build: "b",
+          results: [
+            {
+              owner: "K. Nguyen",
+              freshLoadActiveRows: 1,
+              actionButtonOrder: "Remove | Edit",
+              afterOriginalFirstClickActiveRows: 0,
+              archivedRowsWithOwner: 1,
+              afterReloadActiveRows: 1,
+            },
+          ],
+        },
+      }),
+    );
+    const row = md.split("\n").find((l) => l.startsWith("| K. Nguyen |"));
+    expect(row).toBeDefined();
+    // 6 columns means 7 unescaped pipes.
+    expect((row ?? "").replace(/\\\|/g, "").split("|").length - 1).toBe(7);
+    expect(row).toContain("Remove \\| Edit");
+  });
+});
+
 describe("renderFixmeAppendix", () => {
   const lines = renderFixmeAppendix(INPUT.fixme).join("\n");
   it("quotes comments verbatim, beside the injected bug and its source", () => {

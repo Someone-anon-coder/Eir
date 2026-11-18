@@ -103,6 +103,37 @@ describe("summarizeFalseHeals", () => {
       rerunRuns: 5,
       anchoredWrong: 0,
       anchoredRuns: 5,
+      onWrongTargets: {
+        targets: 1,
+        originalWrong: 2,
+        originalRuns: 3,
+        rerunWrong: 2,
+        rerunRuns: 5,
+      },
+    });
+  });
+});
+
+describe("summarizeFalseHeals: restriction to targets that had a false heal", () => {
+  it("leaves out targets with no original false heal, so they cannot dilute the rate", () => {
+    const original = [
+      rec("healer", "bad", 1, "healed-wrong"),
+      rec("healer", "bad", 2, "healed-correct"),
+      rec("healer", "fine", 1, "healed-correct"),
+      rec("healer", "fine", 2, "healed-correct"),
+    ];
+    const rerun = [
+      rec("healer", "bad", 1, "healed-wrong"),
+      rec("healer", "fine", 1, "healed-correct"),
+    ];
+    const s = summarizeFalseHeals(compareReruns(original, rerun, []));
+    expect(s.originalRuns).toBe(4);
+    expect(s.onWrongTargets).toEqual({
+      targets: 1,
+      originalWrong: 1,
+      originalRuns: 2,
+      rerunWrong: 1,
+      rerunRuns: 1,
     });
   });
 });

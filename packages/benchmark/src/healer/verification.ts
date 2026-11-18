@@ -95,11 +95,22 @@ export interface FalseHealSummary {
   readonly rerunRuns: number;
   readonly anchoredWrong: number;
   readonly anchoredRuns: number;
+  /** The same figures restricted to targets that had at least one false heal in the original dataset. */
+  readonly onWrongTargets: {
+    readonly targets: number;
+    readonly originalWrong: number;
+    readonly originalRuns: number;
+    readonly rerunWrong: number;
+    readonly rerunRuns: number;
+  };
 }
 
 export function summarizeFalseHeals(rows: readonly TargetVerification[]): FalseHealSummary {
-  const sum = (pick: (r: TargetVerification) => number): number =>
-    rows.reduce((a, r) => a + pick(r), 0);
+  const sum = (
+    pick: (r: TargetVerification) => number,
+    from: readonly TargetVerification[] = rows,
+  ): number => from.reduce((a, r) => a + pick(r), 0);
+  const wrongTargets = rows.filter((r) => (r.original["healed-wrong"] ?? 0) > 0);
   return {
     originalWrong: sum((r) => r.original["healed-wrong"] ?? 0),
     originalRuns: sum((r) => r.originalRuns),
@@ -107,6 +118,13 @@ export function summarizeFalseHeals(rows: readonly TargetVerification[]): FalseH
     rerunRuns: sum((r) => r.rerunRuns),
     anchoredWrong: sum((r) => r.anchored?.["healed-wrong"] ?? 0),
     anchoredRuns: sum((r) => r.anchoredRuns),
+    onWrongTargets: {
+      targets: wrongTargets.length,
+      originalWrong: sum((r) => r.original["healed-wrong"] ?? 0, wrongTargets),
+      originalRuns: sum((r) => r.originalRuns, wrongTargets),
+      rerunWrong: sum((r) => r.rerun["healed-wrong"] ?? 0, wrongTargets),
+      rerunRuns: sum((r) => r.rerunRuns, wrongTargets),
+    },
   };
 }
 

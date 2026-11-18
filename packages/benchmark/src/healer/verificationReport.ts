@@ -120,7 +120,11 @@ export function renderVerificationMarkdown(r: VerificationReport): string {
     "",
     "## 1. Rerun results next to the originals",
     "",
-    `False-heal runs over the compared targets: **original ${rate(fh.originalWrong, fh.originalRuns)}**, **rerun ${rate(fh.rerunWrong, fh.rerunRuns)}**, anchored variant ${rate(fh.anchoredWrong, fh.anchoredRuns)} (the anchored runs cover only the position-only targets, so they are not comparable to the other two as a whole).`,
+    `False-heal runs over all ${r.targets.length} rerun targets: **original ${rate(fh.originalWrong, fh.originalRuns)}**, **rerun ${rate(fh.rerunWrong, fh.rerunRuns)}**.`,
+    "",
+    `Restricted to the ${fh.onWrongTargets.targets} targets that had a false heal in the original dataset (the all-target figure is diluted by targets that never had one): **original ${rate(fh.onWrongTargets.originalWrong, fh.onWrongTargets.originalRuns)}**, **rerun ${rate(fh.onWrongTargets.rerunWrong, fh.onWrongTargets.rerunRuns)}**.`,
+    "",
+    `Anchored variant (an identity anchor added to the three position-only targets; the action and every existing assertion matcher unchanged): **${rate(fh.anchoredWrong, fh.anchoredRuns)}** false heals. It covers only those targets, so compare it with the same targets' rows below, not with the figures above.`,
     "",
     "| Class run | Target | Original healer (3 runs) | Rerun healer (5 runs) | Anchored variant healer (5 runs) | Eir original | Eir rerun | Eir reproduces | Eir anchored |",
     "| --- | --- | --- | --- | --- | --- | --- | :---: | --- |",
@@ -163,11 +167,11 @@ export function renderVerificationMarkdown(r: VerificationReport): string {
     "",
     "`position only` = the original action picks its row by `nth-child` with no row text. The anchor columns say where text the healer anchored on came from: in the original spec as test data, in the page's data, or both. `Receiver changed` = the healer changed the expression an assertion is evaluated on, which is the documented blind spot of the assertion diff.",
     "",
-    "| Class run | Target | Run | Original action identifies row by | Anchor text (in spec / in page data) | Receiver changed | Ground-truth element | Element hit |",
+    "| Class run | Target | Run | Original action identifies row by | Anchor text the healer used | Receiver changed | Ground-truth element | Element hit |",
     "| --- | --- | ---: | --- | --- | :---: | --- | --- |",
     ...r.audit.map(
       (a) =>
-        `| ${a.runClass} | ${cell(a.targetId)} | ${a.run} | ${a.originalActionIdentity} | ${a.anchors.length === 0 ? "(none extracted)" : a.anchors.map((x) => `${cell(x.text)} (${x.inOriginalSpec ? "spec" : "not in spec"} / ${x.inPageData ? "page" : "not in page"})`).join("; ")} | ${a.receiver.changed ? "yes" : "no"} | ${a.groundTruthElement} | ${a.actedOn.join(", ")} |`,
+        `| ${a.runClass} | ${cell(a.targetId)} | ${a.run} | ${a.originalActionIdentity} | ${a.anchors.length === 0 ? "(none extracted)" : a.anchors.map((x) => `${cell(x.text)} [in spec: ${x.inOriginalSpec ? "yes" : "no"}; in page data: ${x.inPageData ? "yes" : "no"}]`).join("; ")} | ${a.receiver.changed ? "yes" : "no"} | ${a.groundTruthElement} | ${a.actedOn.join(", ")} |`,
     ),
     "",
     "## 4. Destructive-debugging hypothesis",
@@ -178,7 +182,7 @@ export function renderVerificationMarkdown(r: VerificationReport): string {
     "| --- | ---: | --- | ---: | ---: | ---: |",
     ...(r.experiment?.results ?? []).map(
       (e) =>
-        `| ${e.owner} | ${e.freshLoadActiveRows} | ${e.actionButtonOrder} | ${e.afterOriginalFirstClickActiveRows} | ${e.archivedRowsWithOwner} | ${e.afterReloadActiveRows} |`,
+        `| ${e.owner} | ${e.freshLoadActiveRows} | ${cell(e.actionButtonOrder)} | ${e.afterOriginalFirstClickActiveRows} | ${e.archivedRowsWithOwner} | ${e.afterReloadActiveRows} |`,
     ),
     "",
     "What the healer's first page evidence showed, for the 7 `actionsOrder` false heals (is the intended row in the Active table?):",
