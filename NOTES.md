@@ -814,6 +814,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 **Triggered by:** direct decision (Aayush: make the project usable as skills by AI agents)
 **Change:** §9's repository map gains three lines: `skills/` (the three Agent Skills, with a keep-in-step reminder against README, commands, and report/store formats), `AGENTS.md` (pointer for non-Claude agents), and `.claude-plugin/` (plugin + marketplace manifest). No rule changed.
 
+### 2026-11-18 — CLAUDE.md — §9 lists the healer-comparison commands
+**Triggered by:** the healer comparison task (post-1.0), which says to update §9 in the same PR.
+**Change:** §9's canonical commands gain `bench:healer` (one class and `--all`) and `bench:healer-report`, with a note that the runs use real Claude quota and that the report is guarded against overwrite. No rule changed.
+
 ---
 
 *This file has no end state — it grows for the life of the project. If it gets unwieldy, split by section into `notes/parked.md`, `notes/log.md`, `notes/risks.md` and leave a pointer here; don't let size become a reason to stop maintaining it.*
