@@ -45,7 +45,10 @@ export interface RunRecord {
   readonly schema: 1;
   readonly tool: Tool;
   readonly targetId: string;
+  /** The class of the run the record belongs to (the loader sets it from the run directory). */
   readonly mutationClass: string;
+  /** compound-release only: the underlying source class of the target. */
+  readonly sourceClass?: string;
   readonly run: number;
   readonly seed: number;
   readonly expectation: "heal" | "stay-red";
