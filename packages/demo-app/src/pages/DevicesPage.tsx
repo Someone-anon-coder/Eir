@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { domProfile } from "../domProfile";
 import { DeviceTable, type DeviceRow, type EditingState } from "../components/DeviceTable";
-import { overrideAttr } from "../mutation/overrides";
+import { isFlowChanged, isRegressed, overrideAttr } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 type TableKey = "active" | "archived";
 type SortDirection = "none" | "asc" | "desc";
@@ -100,6 +101,7 @@ export function DevicesPage() {
   const [editing, setEditing] = useState<{ table: TableKey; id: string; draft: string } | null>(
     null,
   );
+  const [pendingRemove, setPendingRemove] = useState<{ table: TableKey; id: string } | null>(null);
 
   const activeRows = useMemo(
     () => sortRows(tables.active, sortDir.active),
@@ -129,6 +131,11 @@ export function DevicesPage() {
   function handleSaveEdit() {
     if (!editing) return;
     const { table, id, draft } = editing;
+    // real-regression `devices.saveIgnoresEdit`: Save closes edit mode but drops the edit.
+    if (isRegressed("devices.saveIgnoresEdit")) {
+      setEditing(null);
+      return;
+    }
     setTables((prev) => ({
       ...prev,
       [table]: prev[table].map((row) => (row.id === id ? { ...row, name: draft } : row)),
@@ -137,6 +144,14 @@ export function DevicesPage() {
   }
 
   function handleRemove(table: TableKey, id: string) {
+    // real-regression `devices.removeKeepsRow`: the row is never removed.
+    if (isRegressed("devices.removeKeepsRow")) return;
+    // flow-change `devices.removeConfirm`: removal needs a second, explicit confirmation.
+    if (isFlowChanged("devices.removeConfirm") && pendingRemove === null) {
+      setPendingRemove({ table, id });
+      return;
+    }
+    setPendingRemove(null);
     setTables((prev) => ({ ...prev, [table]: prev[table].filter((row) => row.id !== id) }));
   }
 
@@ -146,7 +161,19 @@ export function DevicesPage() {
   }
 
   return (
-    <div className={overrideAttr("devices.pageClassName", "devices-page")}>
+    <div className={overrideAttr("devices.pageClassName", "devices-page")} {...gt("devices.pageClassName")}>
+      {pendingRemove !== null && (
+        <div role="alertdialog" aria-label="Confirm removal">
+          <p>Remove this device?</p>
+          <button
+            type="button"
+            data-testid="device-remove-confirm"
+            onClick={() => handleRemove(pendingRemove.table, pendingRemove.id)}
+          >
+            Confirm Remove
+          </button>
+        </div>
+      )}
       <DeviceTable
         heading="Active Devices"
         headingTestId={domProfile.devices.active.heading}

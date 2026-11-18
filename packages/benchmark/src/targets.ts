@@ -16,6 +16,9 @@ export interface OverridePayload {
   readonly tags?: Readonly<Record<string, "button" | "a">>;
   readonly wrap?: readonly string[];
   readonly order?: Readonly<Record<string, readonly number[]>>;
+  /** `real-regression` / `flow-change` (healer comparison): see demo-app's `MutationPayload`. */
+  readonly regress?: readonly string[];
+  readonly flow?: readonly string[];
 }
 
 export type Interaction = (page: Page) => Promise<void>;

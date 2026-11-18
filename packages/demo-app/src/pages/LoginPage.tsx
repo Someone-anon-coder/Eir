@@ -2,6 +2,8 @@ import { type SubmitEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { domProfile } from "../domProfile";
 import { signIn } from "../auth";
+import { isRegressed } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -11,7 +13,9 @@ export function LoginPage() {
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (username.trim() === "" || password.trim() === "") {
+    // real-regression `login.acceptsEmptyPassword`: the password check is skipped.
+    const passwordMissing = password.trim() === "" && !isRegressed("login.acceptsEmptyPassword");
+    if (username.trim() === "" || passwordMissing) {
       setError("Username and password are required.");
       return;
     }
@@ -27,6 +31,7 @@ export function LoginPage() {
         <input
           id={domProfile.login.usernameInputId}
           data-testid={domProfile.login.usernameInput}
+          {...gt("login.usernameInput")}
           value={username}
           onChange={(event) => setUsername(event.target.value)}
         />
@@ -35,6 +40,7 @@ export function LoginPage() {
           id={domProfile.login.passwordInputId}
           type="password"
           data-testid={domProfile.login.passwordInput}
+          {...gt("login.passwordInput")}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />

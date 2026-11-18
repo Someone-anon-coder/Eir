@@ -1,7 +1,15 @@
 import { useState, type ReactNode } from "react";
 import { domProfile } from "../domProfile";
 import { Modal } from "../components/Modal";
-import { isWrapped, overrideAttr, overrideTag, overrideText } from "../mutation/overrides";
+import {
+  isFlowChanged,
+  isRegressed,
+  isWrapped,
+  overrideAttr,
+  overrideTag,
+  overrideText,
+} from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 function wrapIfMutated(mutationKey: string, node: ReactNode): ReactNode {
   return isWrapped(mutationKey) ? <div>{node}</div> : node;
@@ -10,8 +18,11 @@ function wrapIfMutated(mutationKey: string, node: ReactNode): ReactNode {
 export function AccountPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleConfirm() {
+    // real-regression `account.confirmDoesNothing`: the confirm click is swallowed.
+    if (isRegressed("account.confirmDoesNothing")) return;
     setDeleted(true);
     setDialogOpen(false);
   }
@@ -31,6 +42,7 @@ export function AccountPage() {
       <a
         href="#delete-account"
         data-testid={domProfile.account.openDeleteButton}
+        {...gt("account.openDeleteButton")}
         onClick={() => setDialogOpen(true)}
       >
         {openDeleteText}
@@ -39,6 +51,7 @@ export function AccountPage() {
       <button
         type="button"
         data-testid={domProfile.account.openDeleteButton}
+        {...gt("account.openDeleteButton")}
         onClick={() => setDialogOpen(true)}
       >
         {openDeleteText}
@@ -50,20 +63,46 @@ export function AccountPage() {
   const confirmTag = overrideTag("account.confirmButton.tag", "button");
   const confirmButton =
     confirmTag === "a" ? (
-      <a href="#confirm-delete" data-testid={domProfile.account.confirmButton} onClick={handleConfirm}>
+      <a
+        href="#confirm-delete"
+        data-testid={domProfile.account.confirmButton}
+        {...gt("account.confirmButton")}
+        onClick={handleConfirm}
+      >
         {confirmText}
       </a>
     ) : (
-      <button type="button" data-testid={domProfile.account.confirmButton} onClick={handleConfirm}>
+      <button
+        type="button"
+        data-testid={domProfile.account.confirmButton}
+        {...gt("account.confirmButton")}
+        onClick={handleConfirm}
+      >
         {confirmText}
       </button>
     );
 
   return (
-    <div className={overrideAttr("account.pageClassName", "account-page")}>
+    <div className={overrideAttr("account.pageClassName", "account-page")} {...gt("account.pageClassName")}>
       <h2>Account</h2>
       <p>Manage your Ward account. Deleting your account removes dashboard access.</p>
-      {wrapIfMutated("account.openDeleteButton", openDeleteButton)}
+      {isFlowChanged("account.deleteInOverflow") ? (
+        // flow-change `account.deleteInOverflow`: the action moves into an overflow menu.
+        <div>
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            data-testid="account-more-actions"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            More actions
+          </button>
+          {menuOpen && <div role="menu">{openDeleteButton}</div>}
+        </div>
+      ) : (
+        wrapIfMutated("account.openDeleteButton", openDeleteButton)
+      )}
 
       {dialogOpen && (
         <Modal
@@ -77,6 +116,7 @@ export function AccountPage() {
             <button
               type="button"
               data-testid={domProfile.account.cancelButton}
+              {...gt("account.cancelButton")}
               onClick={() => setDialogOpen(false)}
             >
               {cancelText}

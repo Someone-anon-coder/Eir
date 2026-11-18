@@ -18,6 +18,37 @@ pnpm --filter demo-app e2e       # run the vanilla-Playwright reference suite
 pnpm --filter demo-app typecheck
 ```
 
+## Opt-in flags for the healer comparison
+
+All additions are behind env flags. With none set, Ward renders exactly what
+it always did, and the seed-42 8-class baseline is byte-identical (also on a
+marked build, because Eir's fingerprint allow-list never reads `data-eir-gt`).
+
+| Flag                                        | Effect                                                                                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_EIR_GT_MARKERS=1`                     | Renders `data-eir-gt="<area.element>"` on every element any mutation targets. Judge-only: the healer always runs against the build with this off. |
+| `VITE_EIR_GT_COLLECTOR=<url>`               | With markers on, reports each click/input/change (the nearest marked element, plus the marked ancestor path) to the judge's local collector.      |
+| `payload.regress` (in `VITE_EIR_MUTATIONS`) | `real-regression`: genuine app bugs where every selector still resolves. Correct tool behaviour is red stays red.                                 |
+| `payload.flow` (in `VITE_EIR_MUTATIONS`)    | `flow-change`: structural UI changes beyond selector drift.                                                                                       |
+
+`real-regression` targets (7): `devices.saveIgnoresEdit` (Save closes edit mode
+but drops the edit), `provisioning.successBecomesError` (success banner reads
+as an error), `account.confirmDoesNothing`, `wizard.reviewShowsWrongValue`
+(review shows the title as "Requested By"), `wizard.submitDoesNothing`,
+`devices.removeKeepsRow`, `login.acceptsEmptyPassword`.
+
+`flow-change` targets (5): `account.deleteInOverflow` (Delete Account moves
+into a "More actions" menu), `provisioning.confirmStep` (extra confirmation
+after Submit), `wizard.termsStep` (extra terms step before review),
+`devices.removeConfirm` (Remove needs a confirm click), `nav.logoutInMenu`
+(Log Out moves into a user menu).
+
+These two classes were added as a counterweight: the original eight were
+designed by the same person as the matcher they measure. Selection runs
+through the benchmark's seeded PRNG; the pools are currently small enough that
+every target is live and the seed only fixes the order. Not part of
+`bench:all` or the committed baseline.
+
 ## Structure
 
 - `src/domProfile.ts` — single source of truth for every id / data-testid /

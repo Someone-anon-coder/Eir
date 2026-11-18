@@ -30,7 +30,16 @@ describe("parseMutationPayload", () => {
         tags: { "nav.logout": "a" },
         wrap: ["wizard.titleInput"],
         order: { "devices.active.rows": [1, 0] },
+        regress: [],
+        flow: [],
       },
+    },
+    { name: "wrong-shaped regress (non-string array)", raw: '{"regress":[1]}', expected: EMPTY_PAYLOAD },
+    { name: "wrong-shaped flow (not an array)", raw: '{"flow":"x"}', expected: EMPTY_PAYLOAD },
+    {
+      name: "regress and flow only",
+      raw: '{"regress":["account.confirmDoesNothing"],"flow":["account.deleteInOverflow"]}',
+      expected: { ...EMPTY_PAYLOAD, regress: ["account.confirmDoesNothing"], flow: ["account.deleteInOverflow"] },
     },
     { name: "valid partial payload (only attrs)", raw: '{"attrs":{"k":"v"}}', expected: { ...EMPTY_PAYLOAD, attrs: { k: "v" } } },
   ];

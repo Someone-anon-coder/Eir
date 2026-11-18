@@ -319,6 +319,23 @@ N/A — cheap, high-value doc fix, done this session.
 
 ---
 
+### NOTE-015 — After a heal-and-continue, a later assertion on the same stale locator still fails
+**Status:** PARKED
+**Raised:** 2026-11-18, while building the healer comparison harness (not a Phase item; post-1.0)
+**Target phase:** post-1.0 (documentation first; any behaviour change is a design decision for Aayush)
+**Blueprint touchpoint:** §7.6 (heal-and-continue retries the failing action); §6 non-goals (assertions are never healed)
+
+**The idea:**
+Observed live: a spec `field = page.getByTestId('x'); await field.fill(v); await expect(field).toHaveValue(v)` against a renamed testid. Eir heals the `fill` (the judge's collector saw the correct element receive the input) but the following `expect(field)` re-resolves the *stale* locator, finds nothing, and the test goes red. Heal-and-continue retries the one failing imperative action; it never rewrites the locator for later steps, and assertions are not heal-eligible. A suite that asserts through the same locator it acts through will therefore stay red under Eir even after a correct heal. The first Eir run of the healer comparison (before the specs were redesigned) showed exactly this: `id-rename.provisioning.requesterNameInput` came back `still-failing` where the committed baseline has it `healed-correct`.
+
+**Why it matters:**
+It is a real adopter-facing limit, independent of match quality, and it is the opposite of the healer's behaviour (which edits every occurrence in the file). The comparison's specs verify through an independent unmutated route to the element so the benchmark measures matching, not this effect, and the docs must say so rather than let a reader assume Eir handles the pattern.
+
+**Why not now:**
+Out of scope: this phase measures, it does not change Eir. A fix would touch heal semantics (remembering a healed locator for the rest of a test) and is a Blueprint-level decision.
+
+---
+
 ## 2. Open Questions Awaiting a Decision
 
 Things that must be decided before a specific point, but aren't proposals to build — thresholds, naming, config shape, etc. Lighter-weight than a Parked Item.
@@ -741,6 +758,37 @@ One entry per working session. Short. This is a trail, not a report — future-y
 - Open: remove `minimumReleaseAgeExclude` from `pnpm-workspace.yaml` after 2026-11-14 21:12 UTC (1.65.1's 24h pnpm window).
 - Resolved 2026-11-18: exclusion removed; `pnpm install --frozen-lockfile` verified clean without it from a fresh store, lockfile unchanged.
 
+### 2026-11-18 — Post-1.0, healer comparison (branch `bench-healer-comparison-2026-11-18`)
+Understanding Gate retired for post-1.0 (2026-11-14). Phase tracking lives here, not in the approach doc.
+
+- Step 0 (baseline re-verify) done: fresh `pnpm i`, engine build, `pnpm bench:all` on `main` after PR #43 (React Router). `git diff baseline.md` empty; the only diffs in `results/` and `baseline.json` were `generatedAt` lines (0 other changed lines). Restored. Baseline unshifted.
+- Step 2 (smoke experiment) done: one hand-written broken spec (`id-rename` on `provisioning.requesterNameInput`, single-target payload), one headless healer run against Ward on port 5301. Findings, all measured from the stream:
+  - Claude Code CLI 2.1.318; Playwright 1.65.1. `init-agents --loop=claude` writes `.claude/agents/playwright-test-healer.md` (not `.agent.md`; `.agent.md` is the name inside the Playwright package), `.mcp.json` (server `playwright-test`, command `npx playwright run-test-mcp-server`), `tests/seed.spec.ts`, `specs/README.md`. It does not write the heal prompt; the prompt text lives in `playwright/lib/agents/playwright-test-heal.prompt.md` and is the single line "Run all my tests and fix the failing ones."
+  - Working invocation: `claude -p "<heal prompt>" --agent playwright-test-healer --permission-mode acceptEdits --allowedTools "mcp__playwright-test__*" --strict-mcp-config --mcp-config .mcp.json --setting-sources project --no-session-persistence --output-format stream-json --verbose --max-budget-usd <n>`. Exit 0, 14 stream lines, 43 s wall time, API time 9.8 s.
+  - **No `--max-turns` flag exists in 2.1.318.** The turn cap must be enforced by the harness (count `assistant` stream events, kill the process group at the cap). `--max-budget-usd` exists and is used as a per-run cost backstop.
+  - The agent file's `tools:` list is honoured: the init event lists only Read, Edit, Write, Glob, Grep and the 9 MCP tools (no Bash, no Skill). MCP status `connected`.
+  - Model: the `sonnet` alias resolved to `claude-sonnet-5-5` (init event and every assistant event). `modelUsage` in the result also lists one small `claude-haiku-5-5` call (about $0.0001) folded into `total_cost_usd`; the harness records both.
+  - Reported by the CLI: `total_cost_usd` (0.0492923 here), `num_turns` (5), `duration_ms`/`duration_api_ms`, `usage` (input, output, cache read/create tokens), `modelUsage` per model, `terminal_reason`, `stop_reason`, `permission_denials`. Not reported: a single "total input tokens" number; input tokens are split into uncached, cache-read and cache-creation and the harness reports them separately.
+  - Edit confinement: only `tests/provisioning.spec.ts` changed (locator `getByTestId('provisioning-requester-name')` to `getByLabel('Requester Name')`, assertions unchanged). Playwright creates `test-results/` in the workspace; the out-of-bounds check must ignore it.
+  - Isolation: no `~/.claude/CLAUDE.md` exists; auto-memory is keyed by cwd so my repo memory is not loaded in a temp workspace. The init event does list this machine's registered skills, but the agent's tool list excludes `Skill`, so they are unreachable.
+  - `pkill -f` against a pattern also present in the invoking command kills the caller's shell; stop servers by PID from `lsof -t -i :<port>`.
+- Build (same day): Ward `VITE_EIR_GT_MARKERS` + `real-regression` (7) + `flow-change` (5), all opt-in; 8-class seed-42 baseline byte-identical on the branch both unflagged and on a marked build (`baseline.md` diff 0 lines, 0 non-timestamp lines in `results/`). Harness `bench:healer`, judge, tamper detector, classifiers, parser, resume, budget, aggregation, each unit-tested.
+- Pilot (`id-rename` + `near-duplicate-sibling-swap`, 3 healer runs and 1 Eir run per target, plus an Eir repeat), run 2026-11-18. Healer: 48 of 48 runs `healed-correct`, 0 wrong element, 0 tampering, 0 fixme, 0 infra errors; Sonnet 5.5, CLI 2.1.318, 5 to 15 turns, CLI-reported $1.5159 total (median $0.0253, p90 $0.0498). Eir (heal mode): id-rename 6/8 and near-dup 2/8 `healed-correct` (12/16 and 4/16 runs), 0 wrong heals, run 2 identical to run 1 on 16/16 targets. Matches the committed baseline.
+- Judge defects found by the pilot, both fixed with tests: (1) post-conditions that re-resolved the mutated locator kept Eir red after a correct heal (NOTE-015); specs now verify through an independent route. (2) the Playwright MCP server writes `.playwright-mcp/console-*.log` into the workspace; 6 runs were wrongly flagged `out-of-bounds` and were re-judged from their recorded spec outcome.
+- Full run done 2026-11-18 (92 targets, 276 healer runs, 0 infra errors, 0 retries; CLI-reported $8.78, about 1h50 wall). Healer: 232 correct, 14 `healed-wrong` (all `sibling-reorder`, 7 in the class and 7 in compound-release), 1 `tampered-green` flagged by the strict rule and benign on inspection, 24 `fixme` (21 real-regression plus the behaviour-breaking `tag-swap.provisioning.submitButton`), 5 `needs-human-review`. Eir: 42 of 92 targets healed, 0 wrong heals, repeat identical on 16/16. All 92 specs proven control-green and mutated-red. Report: `reports/healer-comparison.{json,md}`; analysis: `docs/healer-comparison.md`.
+- Verification pass (same day, branch `bench-healer-comparison-2026-11-18`; reports `reports/healer-verification.{json,md}`, analysis in `docs/healer-comparison.md`, everything compiled in `docs/healer-comparison-full-report.md`). The original 276-run dataset is the primary result and was not replaced; the one change to it is a re-judge, below.
+  - Locator-stability mismatch: the doc's 26 of 92 was right; the compiled report's Appendix A said 30 because it compared raw locator text and counted whitespace-only differences (`{name` vs `{ name`). Appendix A now normalizes like the stability section; both say 26.
+  - New tamper rule `action-removed` (10 table-driven tests). Re-judging all 276 saved runs, no API calls, changed exactly 5 outcomes: the `class-shuffle` runs left as `needs-human-review` became `tampered-green`. Aayush's verdict on those 5 (`tampered-green`, reason `action-removed`) is recorded with `adjudicated: true, adjudicatedBy: "Aayush"`. Original records backed up in `.healer/runs-original-v1/`; each changed record keeps `previousOutcome`. The regenerated main report was run with the one `--force` Aayush approved for `healer-comparison.*`; the compiled full report was recompiled twice inside that same regeneration pass (the second to fix a stale exemplar paragraph).
+  - Trace cross-check of the judge (Playwright trace, not the collector): 14 of 14 false heals agree. Negative control over the 232 `healed-correct` runs: 220 agree; the 12 that do not involve only container-marker keys (6 near-duplicate: older marked build without container markers; 6 class-shuffle: path leniency).
+  - Finding that cuts against an earlier claim: of the 19 `class-shuffle` runs counted `healed-correct` by ancestor path, only 6 resolved the target container itself (13 resolved a card `<h2>` or `<main>`). The published 19 of 24 stands; the stricter 6 of 24 is reported beside it.
+  - Spec-intent audit (14 false heals): the 7 `rowOrder.row2` runs come from specs that identify the row only by position (healer's anchor text came from the page, not the spec); the 7 `actionsOrder` runs come from specs that name row and table. The healer changed the assertion's receiver in all 14 (the documented blind spot).
+  - Destructive-debugging hypothesis: confirmed for `actionsOrder` (7 of 7 transcripts, plus a direct experiment: the spec's first click removes the row; reload restores it), refuted for `rowOrder.row2`.
+  - Reruns (separate dataset, 5 healer + 1 Eir per target, same versions and agent-file hash; CLI-reported $3.32): on the 7 false-heal targets 14 of 21 originally, 23 of 35 on rerun, so they reproduce. Identity-anchored variant of the 3 position-only targets: 0 of 15 false heals (original 7 of 9, rerun 9 of 15). Eir reproduced on 12 of 12 targets and is unchanged by the anchor. `tag-swap.provisioning.submitButton`: `fixme` 8 of 8. The flagged `resourceSelect` tamper: flagged 2 of 8 runs, both equivalent rewrites; genuine weakening still 0.
+  - False-heal headline: original 14 of 276 (5.1%), kept. 7 are on position-only specs (an anchor removes them), 7 on unambiguous specs (reproduce, 14 of 20 on rerun). No false heal was a judge artifact.
+  - All 24 `fixme` comments are extracted verbatim next to the injected bugs (verification report appendix, compiled report Appendix H); not judged, for Aayush to check.
+- Still open: (1) Aayush to check the 24 `fixme` comments against the injected bugs. (2) Decide how to headline `class-shuffle`: the published 19 of 24 (path rule) or the stricter 6 of 24; both are reported and neither replaces the other. (3) Eir's two `class-shuffle` heals were judged by the path rule and not trace-checked. (4) The anchor adds information as well as removing ambiguity, and covers 3 targets with n=15; a wider anchored run was not done. (5) Possible follow-ups, not started: same-repo healer run, other seeds, and a stricter `class-shuffle` attribution rule (changing the judge needs a decision, since it moves a published number).
+- Parked for this phase (none implemented): NOTE-015 (stale-locator assertion after a heal). Matcher ideas: none arose; this phase did not touch the matcher. Possible follow-ups, not started: a same-repo healer run (source visible), more seeds, an `action-removed` tamper rule.
+
 ---
 
 ## 6. Changelog to Governing Documents
@@ -777,6 +825,10 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 ### 2026-11-14 — CLAUDE.md — §9 repository map lists the agent skills
 **Triggered by:** direct decision (Aayush: make the project usable as skills by AI agents)
 **Change:** §9's repository map gains three lines: `skills/` (the three Agent Skills, with a keep-in-step reminder against README, commands, and report/store formats), `AGENTS.md` (pointer for non-Claude agents), and `.claude-plugin/` (plugin + marketplace manifest). No rule changed.
+
+### 2026-11-18 — CLAUDE.md — §9 lists the healer-comparison commands
+**Triggered by:** the healer comparison task (post-1.0), which says to update §9 in the same PR.
+**Change:** §9's canonical commands gain `bench:healer` (one class and `--all`), `bench:healer-report`, `bench:healer-compile`, `bench:healer-rejudge`, `bench:healer-trace-check`, `bench:healer-evidence` and `bench:healer-verification`, with a note that the runs use real Claude quota and that the report is guarded against overwrite. No rule changed.
 
 ---
 

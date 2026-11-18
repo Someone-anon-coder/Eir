@@ -1,4 +1,5 @@
 import { overrideOrder, overrideText } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 export interface DeviceRow {
   id: string;
@@ -62,9 +63,9 @@ export function DeviceTable({
   const orderedRows = overrideOrder(`devices.${mutationScope}.rowOrder`, rows);
 
   return (
-    <section className={cardClassName}>
+    <section className={cardClassName} {...gt(`devices.${mutationScope}.card`)}>
       <h2 data-testid={headingTestId}>{heading}</h2>
-      <table className={tableClassName} data-testid={tableTestId}>
+      <table className={tableClassName} data-testid={tableTestId} {...gt(`devices.${mutationScope}.table`)}>
         <thead>
           <tr>
             <th>
@@ -90,6 +91,7 @@ export function DeviceTable({
                 key="edit"
                 type="button"
                 data-testid={editActionTestId}
+                {...gt(`devices.row.${row.id}.edit`)}
                 onClick={() => onStartEdit(row)}
               >
                 {editText}
@@ -100,6 +102,7 @@ export function DeviceTable({
                 key="remove"
                 type="button"
                 data-testid={removeActionTestId}
+                {...gt(`devices.row.${row.id}.remove`)}
                 onClick={() => onRemove(row.id)}
               >
                 {removeText}
@@ -129,10 +132,18 @@ export function DeviceTable({
                 <td>
                   {isEditing ? (
                     <>
-                      <button type="button" onClick={onSaveEdit}>
+                      <button
+                        type="button"
+                        {...gt(`devices.row.${row.id}.save`)}
+                        onClick={onSaveEdit}
+                      >
                         {saveText}
                       </button>
-                      <button type="button" onClick={onCancelEdit}>
+                      <button
+                        type="button"
+                        {...gt(`devices.row.${row.id}.cancel`)}
+                        onClick={onCancelEdit}
+                      >
                         {cancelText}
                       </button>
                     </>

@@ -7,10 +7,17 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "bench": "tsx src/cli.ts",
+    "bench:healer": "tsx src/healer/cli.ts",
     "bench:heal-evidence": "tsx src/healEvidenceCli.ts",
     "bench:hybrid": "tsx src/hybridComparisonCli.ts",
     "bench:score-distribution": "tsx src/scoreDistributionCli.ts",
-    "mutation-payload": "tsx src/printMutationPayload.ts"
+    "mutation-payload": "tsx src/printMutationPayload.ts",
+    "bench:healer-report": "tsx src/healer/reportCli.ts",
+    "bench:healer-compile": "tsx src/healer/compileReport.ts",
+    "bench:healer-rejudge": "tsx src/healer/rejudgeCli.ts",
+    "bench:healer-trace-check": "tsx src/healer/traceCheckCli.ts",
+    "bench:healer-evidence": "tsx src/healer/evidenceCli.ts",
+    "bench:healer-verification": "tsx src/healer/verificationCli.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
