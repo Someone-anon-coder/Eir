@@ -36,6 +36,9 @@ import {
   type Template,
 } from "./workspace.js";
 
+/** Stop after this many infra errors in a row: a rate limit looks exactly like this, and spending retries on it helps no one. */
+const MAX_CONSECUTIVE_INFRA = 3;
+
 export interface ClassRunOptions {
   readonly mutationClass: HealerClass;
   readonly seed: number;
@@ -77,10 +80,15 @@ export function runDir(mutationClass: string, seed: number): string {
   return path.join(HEALER_ROOT, "runs", `${mutationClass}-seed${seed}`);
 }
 
+/** A finished run. An infra-error record does not count: it is excluded from rates and is re-run on resume. */
 async function exists(file: string): Promise<boolean> {
   try {
-    await readFile(file);
-    return true;
+    const parsed: unknown = JSON.parse(await readFile(file, "utf-8"));
+    return (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      Reflect.get(parsed, "outcome") !== "infra-error"
+    );
   } catch {
     return false;
   }
@@ -416,7 +424,14 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
 
     let ran = 0;
     let stoppedForBudget = false;
+    let consecutiveInfra = 0;
     for (const key of pending) {
+      if (consecutiveInfra >= MAX_CONSECUTIVE_INFRA) {
+        log(
+          `[circuit-breaker] ${consecutiveInfra} consecutive infra errors (rate limit or CLI failure?); stopping cleanly, resume later`,
+        );
+        break;
+      }
       if (options.budget.exceeded) {
         stoppedForBudget = true;
         log(
@@ -482,6 +497,7 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
           eir,
         };
       }
+      consecutiveInfra = record.outcome === "infra-error" ? consecutiveInfra + 1 : 0;
       const file = runFilePath(outDir, key);
       await mkdir(path.dirname(file), { recursive: true });
       await writeFile(file, JSON.stringify(record, null, 2));
