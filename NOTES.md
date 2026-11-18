@@ -319,6 +319,23 @@ N/A — cheap, high-value doc fix, done this session.
 
 ---
 
+### NOTE-015 — After a heal-and-continue, a later assertion on the same stale locator still fails
+**Status:** PARKED
+**Raised:** 2026-11-18, while building the healer comparison harness (not a Phase item; post-1.0)
+**Target phase:** post-1.0 (documentation first; any behaviour change is a design decision for Aayush)
+**Blueprint touchpoint:** §7.6 (heal-and-continue retries the failing action); §6 non-goals (assertions are never healed)
+
+**The idea:**
+Observed live: a spec `field = page.getByTestId('x'); await field.fill(v); await expect(field).toHaveValue(v)` against a renamed testid. Eir heals the `fill` (the judge's collector saw the correct element receive the input) but the following `expect(field)` re-resolves the *stale* locator, finds nothing, and the test goes red. Heal-and-continue retries the one failing imperative action; it never rewrites the locator for later steps, and assertions are not heal-eligible. A suite that asserts through the same locator it acts through will therefore stay red under Eir even after a correct heal. The first Eir run of the healer comparison (before the specs were redesigned) showed exactly this: `id-rename.provisioning.requesterNameInput` came back `still-failing` where the committed baseline has it `healed-correct`.
+
+**Why it matters:**
+It is a real adopter-facing limit, independent of match quality, and it is the opposite of the healer's behaviour (which edits every occurrence in the file). The comparison's specs verify through an independent unmutated route to the element so the benchmark measures matching, not this effect, and the docs must say so rather than let a reader assume Eir handles the pattern.
+
+**Why not now:**
+Out of scope: this phase measures, it does not change Eir. A fix would touch heal semantics (remembering a healed locator for the rest of a test) and is a Blueprint-level decision.
+
+---
+
 ## 2. Open Questions Awaiting a Decision
 
 Things that must be decided before a specific point, but aren't proposals to build — thresholds, naming, config shape, etc. Lighter-weight than a Parked Item.
