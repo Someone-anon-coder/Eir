@@ -63,6 +63,26 @@ export function buildReport(records: readonly RunRecord[], meta: ReportMeta): He
   };
 }
 
+function rejudgedSection(runs: readonly RunRecord[]): string[] {
+  const changed = runs.filter((r) => r.previousOutcome !== undefined || r.adjudicated);
+  if (changed.length === 0) return ["No run was re-judged or adjudicated."];
+  const rows = [
+    "Runs whose outcome a later judge version changed, or that carry a recorded human verdict. `previous` is what the first judge said.",
+    "",
+    "| Class | Target | Run | Previous | Now | Rule | Adjudicated |",
+    "| --- | --- | ---: | --- | --- | --- | --- |",
+  ];
+  for (const r of changed) {
+    const adj = r.adjudicated
+      ? `yes, by ${r.adjudicatedBy ?? "?"} (${r.adjudicationVerdict ?? r.outcome}: ${r.adjudicationReason ?? ""})`
+      : "no";
+    rows.push(
+      `| ${r.mutationClass} | ${r.targetId} | ${r.run} | ${r.previousOutcome ?? "(unchanged)"} | ${r.outcome} | ${r.rejudgedBy ?? "-"} | ${adj} |`,
+    );
+  }
+  return rows;
+}
+
 const pct = (n: number, d: number): string => (d === 0 ? "n/a" : `${((100 * n) / d).toFixed(1)}%`);
 const usd = (n: number | undefined): string => (n === undefined ? "n/a" : `$${n.toFixed(4)}`);
 const secs = (ms: number | undefined): string =>
@@ -142,6 +162,10 @@ export function renderMarkdown(report: HealerReport): string {
       (t) =>
         `| ${t.targetId} | ${t.majority} | ${t.stability.distinctOutcomes.join(", ")} | ${t.stability.locatorsMatch ? "yes" : "no"} |`,
     ),
+    "",
+    "## Re-judged and adjudicated runs",
+    "",
+    ...rejudgedSection(report.runs),
     "",
     "## Eir repeat",
     "",

@@ -128,6 +128,26 @@ describe("renderMarkdown", () => {
     expect(md).not.toMatch(/\d%(?! \()/);
   });
 
+  it("says when nothing was re-judged", () => {
+    expect(md).toContain("No run was re-judged or adjudicated.");
+  });
+
+  it("lists re-judged and adjudicated runs with the first judge's outcome", () => {
+    const adjudicated = {
+      ...rec("healer", "t9", 1, "tampered-green", "class-shuffle"),
+      previousOutcome: "needs-human-review" as const,
+      rejudgedBy: "action-removed rule",
+      adjudicated: true,
+      adjudicatedBy: "Aayush",
+      adjudicationVerdict: "tampered-green" as const,
+      adjudicationReason: "action-removed",
+    };
+    const text = renderMarkdown(buildReport([adjudicated], META));
+    expect(text).toContain(
+      "| class-shuffle | t9 | 1 | needs-human-review | tampered-green | action-removed rule | yes, by Aayush (tampered-green: action-removed) |",
+    );
+  });
+
   it("labels cost as CLI-reported", () => {
     expect(md).toContain("CLI-reported");
   });
