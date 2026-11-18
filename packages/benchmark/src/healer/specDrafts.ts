@@ -86,12 +86,19 @@ function nearDupRow(targetId: string, row: RowId, action: RowAction): SpecDraft 
   };
 }
 
+/**
+ * Acts through the frozen (soon-mutated) locator and verifies through a
+ * different, unmutated route to the same element. A post-condition that
+ * re-resolved the mutated locator would fail for both tools after a correct
+ * fix, and would test the assertion's locator rather than the action.
+ */
 function fillField(
   targetId: string,
   mutationClass: SpecDraft["mutationClass"],
   element: string,
   route: string,
-  locator: string,
+  actLocator: string,
+  verifyLocator: string,
   value: string,
   decoyElement?: string,
 ): SpecDraft {
@@ -103,9 +110,8 @@ function fillField(
     route,
     auth: "session",
     body: [
-      `const field = page.${locator};`,
-      `await field.fill('${value}');`,
-      `await expect(field).toHaveValue('${value}');`,
+      `await page.${actLocator}.fill('${value}');`,
+      `await expect(page.${verifyLocator}).toHaveValue('${value}');`,
     ],
     expectation: "heal",
   };
@@ -151,6 +157,7 @@ const ID_RENAME: readonly SpecDraft[] = [
     "provisioning.requesterNameInput",
     "/dashboard/provisioning",
     "getByTestId('provisioning-requester-name')",
+    "getByLabel('Requester Name')",
     "A. Ramirez",
   ),
   {
@@ -171,6 +178,7 @@ const ID_RENAME: readonly SpecDraft[] = [
     "wizard.titleInput",
     "/dashboard/requests/new",
     "getByTestId('wizard-title')",
+    "getByLabel('Request Title')",
     "Laptop request",
   ),
   fillField(
@@ -179,6 +187,7 @@ const ID_RENAME: readonly SpecDraft[] = [
     "wizard.requestedByInput",
     "/dashboard/requests/new",
     "getByTestId('wizard-requested-by')",
+    "getByLabel('Requested By')",
     "A. Ramirez",
   ),
   {
@@ -204,7 +213,12 @@ function tableRow(targetId: string, row: "dev-1" | "dev-9", twin: "dev-1" | "dev
     decoyElement: `devices.row.${twin}.remove`,
     route: DEVICES,
     auth: "session",
-    body: [rowLine(r), "await row.getByTestId('device-row-remove').click();", rowGone(r)],
+    body: [
+      rowLine(r),
+      "await row.getByTestId('device-row-remove').click();",
+      // Through the card heading, not the table testid this target mutates.
+      `await expect(page.locator('section', { has: page.getByRole('heading', { name: '${r.table === ACTIVE ? "Active" : "Archived"} Devices' }) }).getByRole('row', { name: /${r.owner}/ })).toHaveCount(0);`,
+    ],
     expectation: "heal",
   };
 }
@@ -248,6 +262,7 @@ const NEAR_DUP: readonly SpecDraft[] = [
     "wizard.titleInput",
     "/dashboard/requests/new",
     "getByLabel('Request Title')",
+    "getByTestId('wizard-title')",
     "New request",
     "wizard.requestedByInput",
   ),
@@ -257,6 +272,7 @@ const NEAR_DUP: readonly SpecDraft[] = [
     "wizard.requestedByInput",
     "/dashboard/requests/new",
     "getByLabel('Requested By')",
+    "getByTestId('wizard-requested-by')",
     "A. Ramirez",
     "wizard.titleInput",
   ),

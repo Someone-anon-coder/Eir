@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { materializeSpec, specFileName, type SpecDraft } from "./specDraft.js";
 import { SPEC_DRAFTS, draftFor } from "./specDrafts.js";
 import { ALL_MUTATION_TARGETS } from "../targets.js";
+import { extractSpecFacts, normalizeText } from "./specFacts.js";
 
 const sessionDraft: SpecDraft = {
   targetId: "id-rename.account.openDeleteButton",
@@ -83,4 +84,21 @@ describe("spec drafts", () => {
       expect(d.expectation).toBe(d.mutationClass === "real-regression" ? "stay-red" : "heal");
     }
   });
+
+  it.each(SPEC_DRAFTS.map((d) => [d.targetId, d] as const))(
+    "%s: no assertion re-resolves the locator the first action used",
+    (_id, draft) => {
+      const text = materializeSpec(draft);
+      const [actedThrough] = extractSpecFacts(text).actionLocators;
+      // Login specs act through a CSS id and assert on the URL; nothing to compare.
+      if (actedThrough === undefined) return;
+      const assertionLines = text
+        .split("\n")
+        .filter((line) => line.includes("expect("))
+        .map(normalizeText);
+      for (const line of assertionLines) {
+        expect(line).not.toContain(actedThrough);
+      }
+    },
+  );
 });
