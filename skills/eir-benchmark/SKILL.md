@@ -40,6 +40,8 @@ error. Check with `lsof -i :5173` before a run whose result matters.
 | `pnpm --filter benchmark bench:score-distribution --seed 42`            | Confidence and margin of every matched attempt, all classes.                                                                                                       |
 | `pnpm --filter benchmark bench:hybrid --seed 42`                        | Heuristics vs. the Gemini fallback. Needs `GEMINI_API_KEY` in the environment, makes real API calls, and is subject to free-tier rate limits. Run only when asked. |
 | `pnpm --filter benchmark mutation-payload --class <class> --seed 42`    | Prints the mutation as JSON without running anything.                                                                                                              |
+| `pnpm --filter benchmark bench:healer --class <class> --seed 42`        | Healer comparison: Playwright 1.65.1's healer agent (real Claude Code runs) vs Eir, same breakages. **Spends Claude quota**; see below. Resumable.                 |
+| `pnpm --filter benchmark bench:healer-report`                           | Builds `reports/healer-comparison.{json,md}` from the per-run records. Refuses to overwrite without `--force`.                                                     |
 
 Classes: `id-rename`, `text-change`, `tag-swap`, `class-shuffle`,
 `sibling-reorder`, `wrapper-inject`, `near-duplicate-sibling-swap`,
@@ -282,3 +284,36 @@ gh pr view <number> --json comments \
 A dogfood PR is never merged. When it has served its purpose it is closed
 unmerged and the branch is kept; ask before closing. PR #15 is the permanent
 public example and stays open.
+
+## The healer comparison (`bench:healer`)
+
+Measures Eir against Playwright's own healer agent on the same seeded
+breakages, over the eight classes plus `real-regression` and `flow-change`.
+Read `docs/healer-comparison.md` for method and results.
+
+**Cost warning.** Each healer run is a real `claude -p` session. One run is
+about 5 to 15 agent turns; the harness prints CLI-reported cost (never a
+computed price) and `--max-cost <usd>` stops cleanly when the sum reaches it.
+On a subscription the real constraint is the weekly usage allowance, not
+dollars. A full run is ~280 healer runs; check headroom first. A rate limit
+shows up as repeated `infra-error`; the harness stops after 3 in a row, and
+re-running resumes (infra-error records are re-run, others are skipped).
+
+What it writes, all under gitignored `packages/benchmark/.healer/`: run
+workspaces are in the OS temp dir (outside the repo), raw per-run JSON in
+`.healer/runs/<class>-seed<n>/<tool>/`, full agent transcripts, final specs,
+and a per-class Eir fingerprint store (never `packages/demo-app/.eir/`). The
+committed outputs are `reports/healer-comparison.{json,md}` and
+`docs/healer-comparison/`.
+
+Needs ports 5301, 5302, 5303 and 5310 free (5173 stays free for the standing
+benchmark). A stale server silently makes every mutation ineffective; the
+harness refuses to start if a port is taken and reads each server's baked-in
+env back before trusting it.
+
+Reading outcomes: `healed-correct`, `healed-wrong` (false heal),
+`tampered-green` (assertion weakened, expected value edited, force, try/catch,
+inflated timeout, or any green on a real regression), `fixme`, `still-failing`,
+`out-of-bounds` (edited anything but the spec; `.playwright-mcp/` tool logs
+don't count), `infra-error` (excluded from rates), `needs-human-review`.
+`class-shuffle` is judged by marked-ancestor path, which is weaker evidence.

@@ -121,6 +121,9 @@ pnpm --filter demo-app dev    # serve Ward
 pnpm --filter demo-app e2e    # reference suite
 pnpm bench --class <c> --seed <n>   # one benchmark class (Phase 4+)
 pnpm bench:all                # full table (Phase 4+)
+pnpm --filter benchmark bench:healer --class <c> --seed 42 [--runs 3] [--tool healer|eir|both] [--max-cost <usd>]  # healer comparison; real Claude runs, uses quota
+pnpm --filter benchmark bench:healer --all --seed 42     # all 10 classes (resumable)
+pnpm --filter benchmark bench:healer-report              # writes reports/healer-comparison.{json,md}; guarded, never --force over existing evidence without Aayush's yes
 ```
 If a command's shape must change, update this file in the same commit.
 
