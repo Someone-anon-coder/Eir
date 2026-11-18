@@ -35,3 +35,8 @@ eir-report/
 # see probes/probe.spec.ts), but they're synthetic per-run captures, not a
 # calibrated baseline worth preserving — unlike demo-app's `.eir/routes/`.
 packages/benchmark/.eir/
+
+# Healer comparison scratch: agent-definition template, per-class Eir stores,
+# raw per-run records, full agent transcripts and final specs. The committed
+# outputs are reports/healer-comparison.{json,md} and docs/healer-comparison/.
+packages/benchmark/.healer/
