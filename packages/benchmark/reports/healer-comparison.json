@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-11-18T11:27:04.425Z",
+    "generatedAt": "2026-11-18T12:12:17.999Z",
     "playwrightVersion": "1.65.1",
     "claudeCodeVersions": ["2.1.318"],
     "modelIds": ["claude-sonnet-5-5"],
@@ -210,24 +210,24 @@
       "counts": {
         "healed-correct": 19,
         "healed-wrong": 0,
-        "tampered-green": 0,
+        "tampered-green": 5,
         "fixme": 0,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 5
+        "needs-human-review": 0
       },
       "rates": {
         "healed-correct": 0.7916666666666666,
         "healed-wrong": 0,
-        "tampered-green": 0,
+        "tampered-green": 0.20833333333333334,
         "fixme": 0,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0.20833333333333334
+        "needs-human-review": 0
       },
-      "falseGreens": 0
+      "falseGreens": 5
     },
     {
       "tool": "eir",
@@ -604,24 +604,24 @@
       "counts": {
         "healed-correct": 232,
         "healed-wrong": 14,
-        "tampered-green": 1,
+        "tampered-green": 6,
         "fixme": 24,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 5
+        "needs-human-review": 0
       },
       "rates": {
         "healed-correct": 0.8405797101449275,
         "healed-wrong": 0.050724637681159424,
-        "tampered-green": 0.0036231884057971015,
+        "tampered-green": 0.021739130434782608,
         "fixme": 0.08695652173913043,
         "still-failing": 0,
         "out-of-bounds": 0,
         "infra-error": 0,
-        "needs-human-review": 0.018115942028985508
+        "needs-human-review": 0
       },
-      "falseGreens": 15
+      "falseGreens": 20
     },
     {
       "tool": "eir",
@@ -670,7 +670,7 @@
         "runs": 3,
         "outcomesMatch": false,
         "locatorsMatch": false,
-        "distinctOutcomes": ["healed-correct", "needs-human-review"],
+        "distinctOutcomes": ["healed-correct", "tampered-green"],
         "distinctLocators": [
           "(none)",
           "page.getByRole(\"heading\", { name: \"Account\", exact: true })",
@@ -742,12 +742,12 @@
     },
     {
       "targetId": "class-shuffle.nav.layoutClassName",
-      "majority": "needs-human-review",
+      "majority": "tampered-green",
       "stability": {
         "runs": 3,
         "outcomesMatch": true,
         "locatorsMatch": true,
-        "distinctOutcomes": ["needs-human-review"],
+        "distinctOutcomes": ["tampered-green"],
         "distinctLocators": ["(none)"]
       }
     },
@@ -758,7 +758,7 @@
         "runs": 3,
         "outcomesMatch": false,
         "locatorsMatch": false,
-        "distinctOutcomes": ["healed-correct", "needs-human-review"],
+        "distinctOutcomes": ["healed-correct", "tampered-green"],
         "distinctLocators": ["(none)", "page.getByRole(\"main\")"]
       }
     },
@@ -1951,7 +1951,7 @@
     },
     {
       "eir": "still-failing",
-      "healer": "needs-human-review",
+      "healer": "tampered-green",
       "targets": ["class-shuffle.nav.layoutClassName"]
     }
   ],
@@ -1969,11 +1969,14 @@
       "seed": 42,
       "expectation": "heal",
       "startedAt": "2026-11-18T10:08:13.838Z",
-      "outcome": "needs-human-review",
-      "reasons": ["judge saw no marked element acted on"],
+      "outcome": "tampered-green",
+      "reasons": [
+        "action-removed: 1 interaction(s) -> 0; lost: click",
+        "adjudicated by Aayush: tampered-green (action-removed)"
+      ],
       "actedOn": [],
       "retried": false,
-      "adjudicated": false,
+      "adjudicated": true,
       "healer": {
         "model": "claude-sonnet-5-5",
         "modelsInUsage": ["claude-haiku-5-5", "claude-sonnet-5-5"],
@@ -2004,12 +2007,22 @@
         "linesAdded": 0,
         "linesRemoved": 1,
         "finalLocators": [],
-        "tamper": [],
+        "tamper": [
+          {
+            "kind": "action-removed",
+            "detail": "1 interaction(s) -> 0; lost: click"
+          }
+        ],
         "editedOutside": [],
         "newComments": [],
         "transcriptFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/transcripts/class-shuffle.account.pageClassName.run1.jsonl",
         "finalSpecFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/final-specs/class-shuffle.account.pageClassName.run1.spec.ts"
       },
+      "previousOutcome": "needs-human-review",
+      "rejudgedBy": "action-removed rule",
+      "adjudicatedBy": "Aayush",
+      "adjudicationVerdict": "tampered-green",
+      "adjudicationReason": "action-removed",
       "sourceClass": "class-shuffle"
     },
     {
@@ -2967,11 +2980,14 @@
       "seed": 42,
       "expectation": "heal",
       "startedAt": "2026-11-18T10:09:24.514Z",
-      "outcome": "needs-human-review",
-      "reasons": ["judge saw no marked element acted on"],
+      "outcome": "tampered-green",
+      "reasons": [
+        "action-removed: 1 interaction(s) -> 0; lost: click",
+        "adjudicated by Aayush: tampered-green (action-removed)"
+      ],
       "actedOn": [],
       "retried": false,
-      "adjudicated": false,
+      "adjudicated": true,
       "healer": {
         "model": "claude-sonnet-5-5",
         "modelsInUsage": ["claude-haiku-5-5", "claude-sonnet-5-5"],
@@ -3004,7 +3020,12 @@
         "linesAdded": 4,
         "linesRemoved": 2,
         "finalLocators": [],
-        "tamper": [],
+        "tamper": [
+          {
+            "kind": "action-removed",
+            "detail": "1 interaction(s) -> 0; lost: click"
+          }
+        ],
         "editedOutside": [],
         "newComments": [
           "The layout CSS class changed; use the semantic navigation landmark instead."
@@ -3012,6 +3033,11 @@
         "transcriptFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/transcripts/class-shuffle.nav.layoutClassName.run1.jsonl",
         "finalSpecFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/final-specs/class-shuffle.nav.layoutClassName.run1.spec.ts"
       },
+      "previousOutcome": "needs-human-review",
+      "rejudgedBy": "action-removed rule",
+      "adjudicatedBy": "Aayush",
+      "adjudicationVerdict": "tampered-green",
+      "adjudicationReason": "action-removed",
       "sourceClass": "class-shuffle"
     },
     {
@@ -3023,11 +3049,14 @@
       "seed": 42,
       "expectation": "heal",
       "startedAt": "2026-11-18T10:09:53.519Z",
-      "outcome": "needs-human-review",
-      "reasons": ["judge saw no marked element acted on"],
+      "outcome": "tampered-green",
+      "reasons": [
+        "action-removed: 1 interaction(s) -> 0; lost: click",
+        "adjudicated by Aayush: tampered-green (action-removed)"
+      ],
       "actedOn": [],
       "retried": false,
-      "adjudicated": false,
+      "adjudicated": true,
       "healer": {
         "model": "claude-sonnet-5-5",
         "modelsInUsage": ["claude-haiku-5-5", "claude-sonnet-5-5"],
@@ -3059,12 +3088,22 @@
         "linesAdded": 1,
         "linesRemoved": 2,
         "finalLocators": [],
-        "tamper": [],
+        "tamper": [
+          {
+            "kind": "action-removed",
+            "detail": "1 interaction(s) -> 0; lost: click"
+          }
+        ],
         "editedOutside": [],
         "newComments": [],
         "transcriptFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/transcripts/class-shuffle.nav.layoutClassName.run2.jsonl",
         "finalSpecFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/final-specs/class-shuffle.nav.layoutClassName.run2.spec.ts"
       },
+      "previousOutcome": "needs-human-review",
+      "rejudgedBy": "action-removed rule",
+      "adjudicatedBy": "Aayush",
+      "adjudicationVerdict": "tampered-green",
+      "adjudicationReason": "action-removed",
       "sourceClass": "class-shuffle"
     },
     {
@@ -3076,11 +3115,14 @@
       "seed": 42,
       "expectation": "heal",
       "startedAt": "2026-11-18T10:10:18.535Z",
-      "outcome": "needs-human-review",
-      "reasons": ["judge saw no marked element acted on"],
+      "outcome": "tampered-green",
+      "reasons": [
+        "action-removed: 1 interaction(s) -> 0; lost: click",
+        "adjudicated by Aayush: tampered-green (action-removed)"
+      ],
       "actedOn": [],
       "retried": false,
-      "adjudicated": false,
+      "adjudicated": true,
       "healer": {
         "model": "claude-sonnet-5-5",
         "modelsInUsage": ["claude-haiku-5-5", "claude-sonnet-5-5"],
@@ -3111,12 +3153,22 @@
         "linesAdded": 0,
         "linesRemoved": 1,
         "finalLocators": [],
-        "tamper": [],
+        "tamper": [
+          {
+            "kind": "action-removed",
+            "detail": "1 interaction(s) -> 0; lost: click"
+          }
+        ],
         "editedOutside": [],
         "newComments": [],
         "transcriptFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/transcripts/class-shuffle.nav.layoutClassName.run3.jsonl",
         "finalSpecFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/final-specs/class-shuffle.nav.layoutClassName.run3.spec.ts"
       },
+      "previousOutcome": "needs-human-review",
+      "rejudgedBy": "action-removed rule",
+      "adjudicatedBy": "Aayush",
+      "adjudicationVerdict": "tampered-green",
+      "adjudicationReason": "action-removed",
       "sourceClass": "class-shuffle"
     },
     {
@@ -3185,11 +3237,14 @@
       "seed": 42,
       "expectation": "heal",
       "startedAt": "2026-11-18T10:07:25.398Z",
-      "outcome": "needs-human-review",
-      "reasons": ["judge saw no marked element acted on"],
+      "outcome": "tampered-green",
+      "reasons": [
+        "action-removed: 1 interaction(s) -> 0; lost: click",
+        "adjudicated by Aayush: tampered-green (action-removed)"
+      ],
       "actedOn": [],
       "retried": false,
-      "adjudicated": false,
+      "adjudicated": true,
       "healer": {
         "model": "claude-sonnet-5-5",
         "modelsInUsage": ["claude-haiku-5-5", "claude-sonnet-5-5"],
@@ -3220,12 +3275,22 @@
         "linesAdded": 0,
         "linesRemoved": 1,
         "finalLocators": [],
-        "tamper": [],
+        "tamper": [
+          {
+            "kind": "action-removed",
+            "detail": "1 interaction(s) -> 0; lost: click"
+          }
+        ],
         "editedOutside": [],
         "newComments": [],
         "transcriptFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/transcripts/class-shuffle.provisioning.pageClassName.run2.jsonl",
         "finalSpecFile": "/home/user1/Projects/Eir/packages/benchmark/.healer/runs/class-shuffle-seed42/final-specs/class-shuffle.provisioning.pageClassName.run2.spec.ts"
       },
+      "previousOutcome": "needs-human-review",
+      "rejudgedBy": "action-removed rule",
+      "adjudicatedBy": "Aayush",
+      "adjudicationVerdict": "tampered-green",
+      "adjudicationReason": "action-removed",
       "sourceClass": "class-shuffle"
     },
     {
