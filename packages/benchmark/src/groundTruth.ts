@@ -32,6 +32,8 @@ export function mergePayloads(payloads: readonly OverridePayload[]): OverridePay
   const tags: Record<string, "button" | "a"> = {};
   const wrapSet = new Set<string>();
   const order: Record<string, readonly number[]> = {};
+  const regressSet = new Set<string>();
+  const flowSet = new Set<string>();
 
   for (const payload of payloads) {
     if (payload.attrs !== undefined) Object.assign(attrs, payload.attrs);
@@ -39,9 +41,21 @@ export function mergePayloads(payloads: readonly OverridePayload[]): OverridePay
     if (payload.tags !== undefined) Object.assign(tags, payload.tags);
     if (payload.wrap !== undefined) for (const key of payload.wrap) wrapSet.add(key);
     if (payload.order !== undefined) Object.assign(order, payload.order);
+    if (payload.regress !== undefined) for (const key of payload.regress) regressSet.add(key);
+    if (payload.flow !== undefined) for (const key of payload.flow) flowSet.add(key);
   }
 
-  return { attrs, text, tags, wrap: [...wrapSet], order };
+  // `regress`/`flow` are emitted only when non-empty so every existing
+  // class's payload JSON (and so its seeded benchmark run) is unchanged.
+  return {
+    attrs,
+    text,
+    tags,
+    wrap: [...wrapSet],
+    order,
+    ...(regressSet.size > 0 ? { regress: [...regressSet] } : {}),
+    ...(flowSet.size > 0 ? { flow: [...flowSet] } : {}),
+  };
 }
 
 function groundTruthEntryFor(target: MutationTarget): GroundTruthEntry {

@@ -13,6 +13,11 @@ export default defineConfig({
   // into `import.meta.env` for client code.
   define: {
     "import.meta.env.VITE_EIR_MUTATIONS": JSON.stringify(process.env["VITE_EIR_MUTATIONS"] ?? ""),
+    // Judge-only ground-truth markers (healer comparison); both default to "" = off.
+    "import.meta.env.VITE_EIR_GT_MARKERS": JSON.stringify(process.env["VITE_EIR_GT_MARKERS"] ?? ""),
+    "import.meta.env.VITE_EIR_GT_COLLECTOR": JSON.stringify(
+      process.env["VITE_EIR_GT_COLLECTOR"] ?? "",
+    ),
   },
   server: {
     port: 5173,

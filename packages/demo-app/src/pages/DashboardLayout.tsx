@@ -1,7 +1,15 @@
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { domProfile } from "../domProfile";
 import { signOut } from "../auth";
-import { isWrapped, overrideAttr, overrideTag, overrideText } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
+import {
+  isFlowChanged,
+  isWrapped,
+  overrideAttr,
+  overrideTag,
+  overrideText,
+} from "../mutation/overrides";
 
 interface NavItemProps {
   mutationKey: string;
@@ -33,6 +41,7 @@ function NavItem({ mutationKey, to, testId, label }: NavItemProps) {
 
 export function DashboardLayout() {
   const navigate = useNavigate();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   function handleLogout() {
     signOut();
@@ -43,11 +52,21 @@ export function DashboardLayout() {
   const logoutTag = overrideTag("nav.logoutButton.tag", "button");
   const logoutButton =
     logoutTag === "a" ? (
-      <a href="#logout" data-testid={domProfile.nav.logoutButton} onClick={handleLogout}>
+      <a
+        href="#logout"
+        data-testid={domProfile.nav.logoutButton}
+        {...gt("nav.logoutButton")}
+        onClick={handleLogout}
+      >
         {logoutText}
       </a>
     ) : (
-      <button type="button" data-testid={domProfile.nav.logoutButton} onClick={handleLogout}>
+      <button
+        type="button"
+        data-testid={domProfile.nav.logoutButton}
+        {...gt("nav.logoutButton")}
+        onClick={handleLogout}
+      >
         {logoutText}
       </button>
     );
@@ -84,7 +103,23 @@ export function DashboardLayout() {
         testId={domProfile.nav.requestsLink}
         label="Access Requests"
       />
-      {logoutButton}
+      {isFlowChanged("nav.logoutInMenu") ? (
+        // flow-change `nav.logoutInMenu`: Log Out moves into a user menu.
+        <>
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={userMenuOpen}
+            data-testid="nav-user-menu"
+            onClick={() => setUserMenuOpen((open) => !open)}
+          >
+            User menu
+          </button>
+          {userMenuOpen && <div role="menu">{logoutButton}</div>}
+        </>
+      ) : (
+        logoutButton
+      )}
     </>
   );
 

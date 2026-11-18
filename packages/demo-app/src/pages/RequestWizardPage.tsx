@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { domProfile } from "../domProfile";
-import { isWrapped, overrideOrder, overrideText } from "../mutation/overrides";
+import { isFlowChanged, isRegressed, isWrapped, overrideOrder, overrideText } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 type Step = 1 | 2 | 3;
 
@@ -25,6 +26,7 @@ export function RequestWizardPage() {
   const [resource, setResource] = useState("Device Inventory");
   const [duration, setDuration] = useState("7 days");
   const [submitted, setSubmitted] = useState(false);
+  const [termsPending, setTermsPending] = useState(false);
 
   useEffect(() => {
     function handleHashChange() {
@@ -38,6 +40,8 @@ export function RequestWizardPage() {
   }, []);
 
   function handleSubmit() {
+    // real-regression `wizard.submitDoesNothing`: the final submit is swallowed.
+    if (isRegressed("wizard.submitDoesNothing")) return;
     setSubmitted(true);
   }
 
@@ -62,6 +66,7 @@ export function RequestWizardPage() {
             <input
               id={domProfile.wizard.titleInputId}
               data-testid={domProfile.wizard.titleInput}
+              {...gt("wizard.titleInput")}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
             />,
@@ -74,6 +79,7 @@ export function RequestWizardPage() {
             <input
               id={domProfile.wizard.requestedByInputId}
               data-testid={domProfile.wizard.requestedByInput}
+              {...gt("wizard.requestedByInput")}
               value={requestedBy}
               onChange={(event) => setRequestedBy(event.target.value)}
             />,
@@ -88,7 +94,24 @@ export function RequestWizardPage() {
         </section>
       )}
 
-      {step === 2 && (
+      {step === 2 && termsPending && (
+        <section>
+          <h2>Terms</h2>
+          <p>Access is logged and reviewed.</p>
+          <button
+            type="button"
+            data-testid="wizard-terms-agree"
+            onClick={() => {
+              setTermsPending(false);
+              goToStep(3);
+            }}
+          >
+            I agree
+          </button>
+        </section>
+      )}
+
+      {step === 2 && !termsPending && (
         <section>
           <h2 data-testid={domProfile.wizard.stepHeading}>Step 2: Access Scope</h2>
           <label htmlFor={domProfile.wizard.resourceSelectId}>Resource</label>
@@ -137,7 +160,11 @@ export function RequestWizardPage() {
           <button
             type="button"
             data-testid={domProfile.wizard.nextButton}
-            onClick={() => goToStep(3)}
+            onClick={() => {
+              // flow-change `wizard.termsStep`: an extra terms step before review.
+              if (isFlowChanged("wizard.termsStep")) setTermsPending(true);
+              else goToStep(3);
+            }}
           >
             Next
           </button>
@@ -149,7 +176,7 @@ export function RequestWizardPage() {
           <h2 data-testid={domProfile.wizard.stepHeading}>Step 3: Review &amp; Submit</h2>
           <ul data-testid={domProfile.wizard.reviewSummary}>
             <li>Title: {title}</li>
-            <li>Requested By: {requestedBy}</li>
+            <li>Requested By: {isRegressed("wizard.reviewShowsWrongValue") ? title : requestedBy}</li>
             <li>Resource: {resource}</li>
             <li>Duration: {duration}</li>
           </ul>
@@ -160,7 +187,12 @@ export function RequestWizardPage() {
           >
             Back
           </button>
-          <button type="button" data-testid={domProfile.wizard.submitButton} onClick={handleSubmit}>
+          <button
+            type="button"
+            data-testid={domProfile.wizard.submitButton}
+            {...gt("wizard.submitButton")}
+            onClick={handleSubmit}
+          >
             Submit
           </button>
         </section>

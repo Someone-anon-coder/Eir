@@ -1,6 +1,7 @@
 import { type ReactNode, type SubmitEvent, useState } from "react";
 import { domProfile } from "../domProfile";
-import { isWrapped, overrideAttr, overrideTag } from "../mutation/overrides";
+import { isFlowChanged, isRegressed, isWrapped, overrideAttr, overrideTag } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 type BillingCycle = "monthly" | "quarterly" | "annual";
 
@@ -14,9 +15,15 @@ export function ProvisioningPage() {
   const [notes, setNotes] = useState("");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [submitted, setSubmitted] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    // flow-change `provisioning.confirmStep`: an extra confirmation before the request is sent.
+    if (isFlowChanged("provisioning.confirmStep")) {
+      setConfirming(true);
+      return;
+    }
     setSubmitted(true);
   }
 
@@ -30,6 +37,7 @@ export function ProvisioningPage() {
           <input
             id={domProfile.provisioning.requesterNameInputId}
             data-testid={domProfile.provisioning.requesterNameInput}
+            {...gt("provisioning.requesterNameInput")}
             value={requesterName}
             onChange={(event) => setRequesterName(event.target.value)}
           />,
@@ -42,6 +50,7 @@ export function ProvisioningPage() {
             id={domProfile.provisioning.effectiveDateInputId}
             type="date"
             data-testid={domProfile.provisioning.effectiveDateInput}
+            {...gt("provisioning.effectiveDateInput")}
             value={effectiveDate}
             onChange={(event) => setEffectiveDate(event.target.value)}
           />,
@@ -53,6 +62,7 @@ export function ProvisioningPage() {
           <textarea
             id={domProfile.provisioning.notesTextareaId}
             data-testid={domProfile.provisioning.notesTextarea}
+            {...gt("provisioning.notesTextarea")}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
           />,
@@ -70,18 +80,36 @@ export function ProvisioningPage() {
         </select>
 
         {overrideTag("provisioning.submitButton.tag", "button") === "a" ? (
-          <a href="#submit-request" data-testid={domProfile.provisioning.submitButton}>
+          <a
+            href="#submit-request"
+            data-testid={domProfile.provisioning.submitButton}
+            {...gt("provisioning.submitButton")}
+          >
             Submit Request
           </a>
         ) : (
-          <button type="submit" data-testid={domProfile.provisioning.submitButton}>
+          <button
+            type="submit"
+            data-testid={domProfile.provisioning.submitButton}
+            {...gt("provisioning.submitButton")}
+          >
             Submit Request
           </button>
         )}
       </form>
+      {confirming && !submitted && (
+        <div role="alertdialog" aria-label="Confirm submission">
+          <p>Send this provisioning request?</p>
+          <button type="button" data-testid="provisioning-confirm" onClick={() => setSubmitted(true)}>
+            Confirm submission
+          </button>
+        </div>
+      )}
       {submitted && (
         <p data-testid={domProfile.provisioning.successBanner}>
-          Provisioning request submitted for {requesterName || "requester"}.
+          {isRegressed("provisioning.successBecomesError")
+            ? "Provisioning request failed: server error."
+            : `Provisioning request submitted for ${requesterName || "requester"}.`}
         </p>
       )}
     </div>

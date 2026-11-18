@@ -21,6 +21,10 @@ export interface MutationPayload {
   readonly tags: Readonly<Record<string, "button" | "a">>;
   readonly wrap: readonly string[];
   readonly order: Readonly<Record<string, readonly number[]>>;
+  /** `real-regression` (healer comparison): genuine app bugs where every selector still resolves. */
+  readonly regress: readonly string[];
+  /** `flow-change` (healer comparison): structural UI changes beyond selector drift. */
+  readonly flow: readonly string[];
 }
 
 export const EMPTY_PAYLOAD: MutationPayload = {
@@ -29,6 +33,8 @@ export const EMPTY_PAYLOAD: MutationPayload = {
   tags: {},
   wrap: [],
   order: {},
+  regress: [],
+  flow: [],
 };
 
 function isStringRecord(value: unknown): value is Record<string, string> {
@@ -72,7 +78,9 @@ export function isMutationPayload(value: unknown): value is MutationPayload {
     (candidate["text"] === undefined || isStringRecord(candidate["text"])) &&
     (candidate["tags"] === undefined || isTagRecord(candidate["tags"])) &&
     (candidate["wrap"] === undefined || isStringArray(candidate["wrap"])) &&
-    (candidate["order"] === undefined || isOrderRecord(candidate["order"]))
+    (candidate["order"] === undefined || isOrderRecord(candidate["order"])) &&
+    (candidate["regress"] === undefined || isStringArray(candidate["regress"])) &&
+    (candidate["flow"] === undefined || isStringArray(candidate["flow"]))
   );
 }
 
@@ -91,6 +99,8 @@ export function parseMutationPayload(raw: string | undefined): MutationPayload {
     tags: parsed.tags ?? {},
     wrap: parsed.wrap ?? [],
     order: parsed.order ?? {},
+    regress: parsed.regress ?? [],
+    flow: parsed.flow ?? [],
   };
 }
 
@@ -146,4 +156,12 @@ export function overrideOrder<T>(key: string, items: readonly T[]): readonly T[]
     if (item !== undefined) reordered.push(item);
   }
   return reordered;
+}
+
+export function isRegressed(key: string): boolean {
+  return payload.regress.includes(key);
+}
+
+export function isFlowChanged(key: string): boolean {
+  return payload.flow.includes(key);
 }
