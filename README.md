@@ -217,6 +217,34 @@ Full methodology, per-run tables, and the complete honest verdict:
 [`docs/hybrid-comparison.md`](docs/hybrid-comparison.md). **Recommendation,
 and the shipped default: leave it disabled.**
 
+## Eir vs Playwright's healer agent — measured, not assumed
+
+Playwright 1.56 ships an LLM healer that edits the test file until it passes.
+I ran it (Playwright 1.65.1, Claude Code 2.1.318, `claude-sonnet-5-5`, 3 runs per
+target, in a workspace isolated from the app source) against Eir on the same 92
+seeded breakages: the eight classes above plus two added as a counterweight,
+`real-regression` (genuine app bugs) and `flow-change` (structural UI changes).
+
+- **Recovery:** the healer got 232 of 276 runs (84%) correct; Eir healed 42 of
+  92 targets (46%). The healer recovers most of Eir's known weak spots
+  (`class-shuffle`, `near-duplicate-sibling-swap`, most of `sibling-reorder`) and
+  all of `flow-change`. Eir healed no target the healer's majority missed.
+- **Safety:** the healer produced **14 false heals in 276 runs (5.1%)**, all where
+  position matters (`sibling-reorder`). Eir produced **0 in 108 runs**, at the
+  price of 100% misses on that class. No assertion was genuinely weakened (one
+  run was flagged by a strict rule and is benign on inspection).
+- **Real regressions:** both tools stayed red; the healer marked all 21 runs
+  `test.fixme` with the cause named.
+- **Cost:** $8.78 CLI-reported for 276 runs (median $0.028 per run); Eir makes
+  zero API calls.
+
+They are complementary rather than competitors. One caveat that cuts against
+Eir: a test that asserts through the same stale locator it acted through stays
+red under Eir after a correct heal (NOTE-015), and the specs were written to
+avoid measuring that. Threats to validity (single app, model, seed and version;
+bias disclosure), method, and the honest verdict:
+[`docs/healer-comparison.md`](docs/healer-comparison.md).
+
 ## Demo path
 
 Scripted, copy-pasteable, in [`demo/README.md`](demo/README.md): clone →

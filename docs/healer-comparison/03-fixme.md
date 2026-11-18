@@ -9,7 +9,7 @@ Outcome `fixme`. The app's Confirm button does nothing. The healer left the asse
 +++ final
 @@ -1,6 +1,9 @@
  import { test, expect } from '@playwright/test';
- 
+
  test('real-regression.account.confirmDoesNothing', async ({ page }) => {
 +  // FIXME: App regression. Clicking "Confirm Delete" does nothing: the dialog stays open
 +  // and 'account-deleted-banner' never appears. The test is correct; the app needs fixing.
