@@ -772,7 +772,10 @@ Understanding Gate retired for post-1.0 (2026-11-14). Phase tracking lives here,
   - Edit confinement: only `tests/provisioning.spec.ts` changed (locator `getByTestId('provisioning-requester-name')` to `getByLabel('Requester Name')`, assertions unchanged). Playwright creates `test-results/` in the workspace; the out-of-bounds check must ignore it.
   - Isolation: no `~/.claude/CLAUDE.md` exists; auto-memory is keyed by cwd so my repo memory is not loaded in a temp workspace. The init event does list this machine's registered skills, but the agent's tool list excludes `Skill`, so they are unreachable.
   - `pkill -f` against a pattern also present in the invoking command kills the caller's shell; stop servers by PID from `lsof -t -i :<port>`.
-- Parked for this phase (none implemented): none yet.
+- Build (same day): Ward `VITE_EIR_GT_MARKERS` + `real-regression` (7) + `flow-change` (5), all opt-in; 8-class seed-42 baseline byte-identical on the branch both unflagged and on a marked build (`baseline.md` diff 0 lines, 0 non-timestamp lines in `results/`). Harness `bench:healer`, judge, tamper detector, classifiers, parser, resume, budget, aggregation, each unit-tested.
+- Pilot (`id-rename` + `near-duplicate-sibling-swap`, 3 healer runs and 1 Eir run per target, plus an Eir repeat), run 2026-11-18. Healer: 48 of 48 runs `healed-correct`, 0 wrong element, 0 tampering, 0 fixme, 0 infra errors; Sonnet 5.5, CLI 2.1.318, 5 to 15 turns, CLI-reported $1.5159 total (median $0.0253, p90 $0.0498). Eir (heal mode): id-rename 6/8 and near-dup 2/8 `healed-correct` (12/16 and 4/16 runs), 0 wrong heals, run 2 identical to run 1 on 16/16 targets. Matches the committed baseline.
+- Judge defects found by the pilot, both fixed with tests: (1) post-conditions that re-resolved the mutated locator kept Eir red after a correct heal (NOTE-015); specs now verify through an independent route. (2) the Playwright MCP server writes `.playwright-mcp/console-*.log` into the workspace; 6 runs were wrongly flagged `out-of-bounds` and were re-judged from their recorded spec outcome.
+- Parked for this phase (none implemented): NOTE-015 only. Remaining before the full run: spec drafts and ground-truth markers for the other five base classes (40 targets).
 
 ---
 
