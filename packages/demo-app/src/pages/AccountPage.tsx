@@ -83,7 +83,7 @@ export function AccountPage() {
     );
 
   return (
-    <div className={overrideAttr("account.pageClassName", "account-page")}>
+    <div className={overrideAttr("account.pageClassName", "account-page")} {...gt("account.pageClassName")}>
       <h2>Account</h2>
       <p>Manage your Ward account. Deleting your account removes dashboard access.</p>
       {isFlowChanged("account.deleteInOverflow") ? (

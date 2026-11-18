@@ -229,6 +229,7 @@ async function healerOnce(
             env.collector,
           );
 
+    const acted = (draft.actedBy === "path" ? verdict?.actedPath : verdict?.actedOn) ?? [];
     const judgement: Judgement = {
       infraError,
       editedOutsideSpec: outside.length > 0,
@@ -238,7 +239,7 @@ async function healerOnce(
       passesMarked: finalSpec === undefined ? false : verdict?.passesMarked,
       markedFixme: facts?.markedFixme ?? false,
       tamper,
-      actedOn: verdict?.actedOn ?? [],
+      actedOn: acted,
       element: draft.element,
       decoyElement: draft.decoyElement,
       expectation: draft.expectation,
@@ -283,7 +284,7 @@ async function healerOnce(
       outcome: classification.outcome,
       specOutcome: classification.specOutcome,
       reasons: classification.reasons,
-      actedOn: verdict?.actedOn ?? [],
+      actedOn: acted,
       retried: false,
       adjudicated: false,
       healer: detail,
@@ -450,6 +451,7 @@ export async function runClassComparison(options: ClassRunOptions): Promise<Clas
           draft.element,
           draft.decoyElement,
           draft.expectation,
+          draft.actedBy,
         );
         const c = result.classification;
         const eir: EirDetail = {

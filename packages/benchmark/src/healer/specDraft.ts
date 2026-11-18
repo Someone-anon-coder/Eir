@@ -40,6 +40,15 @@ export interface SpecDraft {
   readonly element: string;
   /** near-duplicate twin's element key: acting on it is a false heal. */
   readonly decoyElement?: string;
+  /**
+   * How the judge attributes an action to a marked element. `nearest`: the
+   * innermost marked element under the event (the default). `path`: any marked
+   * ancestor counts, for container targets, because a click on a container
+   * lands on whichever descendant sits at its centre. `path` is weaker
+   * evidence (a fix that selects a descendant still contains the target in
+   * its path) and the docs say so.
+   */
+  readonly actedBy?: "nearest" | "path";
   readonly route: string;
   /** `none` only for `login.*` targets, where logging in is the thing under test. */
   readonly auth: "session" | "none";

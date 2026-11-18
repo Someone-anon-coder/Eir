@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { domProfile } from "../domProfile";
 import { DeviceTable, type DeviceRow, type EditingState } from "../components/DeviceTable";
 import { isFlowChanged, isRegressed, overrideAttr } from "../mutation/overrides";
+import { gt } from "../mutation/gtMarkers";
 
 type TableKey = "active" | "archived";
 type SortDirection = "none" | "asc" | "desc";
@@ -160,7 +161,7 @@ export function DevicesPage() {
   }
 
   return (
-    <div className={overrideAttr("devices.pageClassName", "devices-page")}>
+    <div className={overrideAttr("devices.pageClassName", "devices-page")} {...gt("devices.pageClassName")}>
       {pendingRemove !== null && (
         <div role="alertdialog" aria-label="Confirm removal">
           <p>Remove this device?</p>

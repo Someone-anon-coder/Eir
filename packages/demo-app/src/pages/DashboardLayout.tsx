@@ -27,13 +27,13 @@ function NavItem({ mutationKey, to, testId, label }: NavItemProps) {
   const tag = overrideTag(`${mutationKey}.tag`, "a");
   if (tag === "button") {
     return (
-      <button type="button" data-testid={testId} onClick={() => navigate(to)}>
+      <button type="button" data-testid={testId} {...gt(mutationKey)} onClick={() => navigate(to)}>
         {text}
       </button>
     );
   }
   return (
-    <NavLink to={to} data-testid={testId}>
+    <NavLink to={to} data-testid={testId} {...gt(mutationKey)}>
       {text}
     </NavLink>
   );
@@ -124,7 +124,7 @@ export function DashboardLayout() {
   );
 
   return (
-    <div className={overrideAttr("nav.layoutClassName", "dashboard-layout")}>
+    <div className={overrideAttr("nav.layoutClassName", "dashboard-layout")} {...gt("nav.layoutClassName")}>
       <nav data-testid={domProfile.nav.root}>{wrapNav ? <div>{navChildren}</div> : navChildren}</nav>
       <main>
         <Outlet />

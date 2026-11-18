@@ -28,7 +28,7 @@ export function ProvisioningPage() {
   }
 
   return (
-    <div className={overrideAttr("provisioning.pageClassName", "provisioning-page")}>
+    <div className={overrideAttr("provisioning.pageClassName", "provisioning-page")} {...gt("provisioning.pageClassName")}>
       <h2>New Device Provisioning Request</h2>
       <form data-testid={domProfile.provisioning.form} onSubmit={handleSubmit}>
         <label htmlFor={domProfile.provisioning.requesterNameInputId}>Requester Name</label>

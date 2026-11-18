@@ -65,11 +65,10 @@ describe("spec drafts", () => {
     expect(noAuth.every((id) => id.includes(".login."))).toBe(true);
   });
 
-  it("every pilot-class registry target has a draft", () => {
-    const pilot = ALL_MUTATION_TARGETS.filter(
-      (t) => t.mutationClass === "id-rename" || t.mutationClass === "near-duplicate-sibling-swap",
-    );
-    expect(pilot.filter((t) => draftFor(t.id) === undefined).map((t) => t.id)).toEqual([]);
+  it("every registry target has a draft", () => {
+    expect(
+      ALL_MUTATION_TARGETS.filter((t) => draftFor(t.id) === undefined).map((t) => t.id),
+    ).toEqual([]);
   });
 
   it("near-duplicate drafts name a decoy that differs from the target element", () => {

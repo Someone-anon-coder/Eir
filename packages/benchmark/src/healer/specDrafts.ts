@@ -1,4 +1,5 @@
 import type { SpecDraft } from "./specDraft.js";
+import { BASE_DRAFTS } from "./specDraftsBase.js";
 
 /**
  * Per-target spec drafts. Every body ends in at least one post-condition
@@ -418,10 +419,10 @@ const FLOW_CHANGE: readonly SpecDraft[] = [
   ]),
 ];
 
-/** Authored so far: the pilot classes plus both new kinds. The other five base classes follow the pilot. */
 export const SPEC_DRAFTS: readonly SpecDraft[] = [
   ...ID_RENAME,
   ...NEAR_DUP,
+  ...BASE_DRAFTS,
   ...REAL_REGRESSION,
   ...FLOW_CHANGE,
 ];

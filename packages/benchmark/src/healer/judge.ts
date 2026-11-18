@@ -15,6 +15,7 @@ export interface SpecVerdict {
   readonly passesMarked: boolean;
   /** Distinct marked elements the spec acted on during the marked run. */
   readonly actedOn: readonly string[];
+  readonly actedPath: readonly string[];
 }
 
 /**
@@ -47,6 +48,7 @@ export async function judgeSpec(
       passesBlind: blind.allPassed,
       passesMarked: marked.allPassed,
       actedOn: collector.actedOn(),
+      actedPath: collector.actedOnPaths(),
     };
   } finally {
     await rm(dir, { recursive: true, force: true });

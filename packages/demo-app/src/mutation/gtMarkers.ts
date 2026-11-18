@@ -57,11 +57,17 @@ export function installGtCollector(): void {
         const marked = target.closest("[data-eir-gt]");
         const element = marked?.getAttribute("data-eir-gt");
         if (element === null || element === undefined) return;
+        // Every marked element the event passed through: a click on a container lands on
+        // whichever descendant sits at its centre, so container targets are judged on the path.
+        const path = event
+          .composedPath()
+          .flatMap((node) => (node instanceof Element ? [node.getAttribute("data-eir-gt")] : []))
+          .filter((key): key is string => key !== null);
         void fetch(collector, {
           method: "POST",
           mode: "no-cors",
           keepalive: true,
-          body: JSON.stringify({ type, element }),
+          body: JSON.stringify({ type, element, path }),
         }).catch(() => {});
       },
       true,

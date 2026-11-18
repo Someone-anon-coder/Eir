@@ -141,13 +141,17 @@ export async function verifyWard(handle: WardHandle, options: WardOptions): Prom
 export interface ActedEvent {
   readonly type: string;
   readonly element: string;
+  /** Every marked element the event passed through, nearest first. */
+  readonly path: readonly string[];
 }
 
 export interface Collector {
   readonly url: string;
   reset(): void;
-  /** Distinct element keys acted on since the last reset. */
+  /** Distinct nearest-marked element keys acted on since the last reset. */
   actedOn(): readonly string[];
+  /** Distinct keys of every marked element an event passed through (for container targets). */
+  actedOnPaths(): readonly string[];
   stop(): Promise<void>;
 }
 
@@ -163,7 +167,10 @@ export async function startCollector(port: number): Promise<Collector> {
         if (typeof parsed === "object" && parsed !== null) {
           const r = parsed as Record<string, unknown>;
           if (typeof r["type"] === "string" && typeof r["element"] === "string") {
-            events.push({ type: r["type"], element: r["element"] });
+            const path = Array.isArray(r["path"])
+              ? r["path"].filter((k): k is string => typeof k === "string")
+              : [];
+            events.push({ type: r["type"], element: r["element"], path });
           }
         }
       } catch {
@@ -183,6 +190,7 @@ export async function startCollector(port: number): Promise<Collector> {
       events = [];
     },
     actedOn: () => [...new Set(events.map((e) => e.element))],
+    actedOnPaths: () => [...new Set(events.flatMap((e) => e.path))],
     stop: () => new Promise<void>((resolve) => server.close(() => resolve())),
   };
 }

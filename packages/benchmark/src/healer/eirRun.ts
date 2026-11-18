@@ -71,6 +71,7 @@ export async function runEirOnce(
   element: string,
   decoyElement: string | undefined,
   expectation: Expectation,
+  actedBy: "nearest" | "path" = "nearest",
 ): Promise<EirRunResult> {
   const started = Date.now();
   const dir = await mkdtemp(path.join(tmpdir(), "eir-run-"));
@@ -88,7 +89,7 @@ export async function runEirOnce(
     });
     const events = (await readPolicyLogFile(policyLog)).get(targetId) ?? [];
     const passed = run.allPassed;
-    const actedOn = collector.actedOn();
+    const actedOn = actedBy === "path" ? collector.actedOnPaths() : collector.actedOn();
     const classification = classifyEirRun({
       passed,
       policy: mapEirPolicy(events),

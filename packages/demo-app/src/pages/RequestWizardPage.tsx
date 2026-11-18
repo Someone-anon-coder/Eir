@@ -87,6 +87,7 @@ export function RequestWizardPage() {
           <button
             type="button"
             data-testid={domProfile.wizard.nextButton}
+            {...gt("wizard.nextButton.step1")}
             onClick={() => goToStep(2)}
           >
             {overrideText("wizard.nextButton.step1.text", "Next")}
@@ -117,6 +118,7 @@ export function RequestWizardPage() {
           <label htmlFor={domProfile.wizard.resourceSelectId}>Resource</label>
           <select
             id={domProfile.wizard.resourceSelectId}
+            {...gt("wizard.resourceSelect")}
             value={resource}
             onChange={(event) => setResource(event.target.value)}
           >
@@ -135,6 +137,7 @@ export function RequestWizardPage() {
           <label htmlFor={domProfile.wizard.durationSelectId}>Duration</label>
           <select
             id={domProfile.wizard.durationSelectId}
+            {...gt("wizard.durationSelect")}
             value={duration}
             onChange={(event) => setDuration(event.target.value)}
           >

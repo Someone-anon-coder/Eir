@@ -63,9 +63,9 @@ export function DeviceTable({
   const orderedRows = overrideOrder(`devices.${mutationScope}.rowOrder`, rows);
 
   return (
-    <section className={cardClassName}>
+    <section className={cardClassName} {...gt(`devices.${mutationScope}.card`)}>
       <h2 data-testid={headingTestId}>{heading}</h2>
-      <table className={tableClassName} data-testid={tableTestId}>
+      <table className={tableClassName} data-testid={tableTestId} {...gt(`devices.${mutationScope}.table`)}>
         <thead>
           <tr>
             <th>
