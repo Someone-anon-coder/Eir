@@ -818,7 +818,7 @@ Because `BLUEPRINT.md`, `EIR_BLUEPRINT_APPROACH.md`, and `CLAUDE.md` are meant t
 
 ### 2026-11-18 — CLAUDE.md — §9 lists the healer-comparison commands
 **Triggered by:** the healer comparison task (post-1.0), which says to update §9 in the same PR.
-**Change:** §9's canonical commands gain `bench:healer` (one class and `--all`), `bench:healer-report` and `bench:healer-compile`, with a note that the runs use real Claude quota and that the report is guarded against overwrite. No rule changed.
+**Change:** §9's canonical commands gain `bench:healer` (one class and `--all`), `bench:healer-report`, `bench:healer-compile`, `bench:healer-rejudge`, `bench:healer-trace-check`, `bench:healer-evidence` and `bench:healer-verification`, with a note that the runs use real Claude quota and that the report is guarded against overwrite. No rule changed.
 
 ---
 

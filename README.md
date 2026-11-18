@@ -226,15 +226,22 @@ seeded breakages: the eight classes above plus two added as a counterweight,
 `real-regression` (genuine app bugs) and `flow-change` (structural UI changes).
 
 - **Recovery:** the healer got 232 of 276 runs (84%) correct; Eir healed 42 of
-  92 targets (46%). The healer recovers most of Eir's known weak spots
-  (`class-shuffle`, `near-duplicate-sibling-swap`, most of `sibling-reorder`) and
-  all of `flow-change`. Eir healed no target the healer's majority missed.
+  92 targets (46%). The healer recovers `near-duplicate-sibling-swap`, most of
+  `sibling-reorder`, and all of `flow-change`, and Eir healed no target the
+  healer's majority missed. `class-shuffle` is the exception to read carefully:
+  the healer's 19 of 24 rests on a lenient judging rule (by the element
+  Playwright resolved, 6 of those 19), and in 5 further runs it deleted the
+  failing click.
 - **Safety:** the healer produced **14 false heals in 276 runs (5.1%)**, all where
   position matters (`sibling-reorder`). Eir produced **0 in 108 runs**, at the
-  price of 100% misses on that class. No assertion was genuinely weakened (one
-  run was flagged by a strict rule and is benign on inspection).
+  price of 100% misses on that class. A verification pass (reruns, a trace-based
+  check of the judge) found 7 of the 14 come from specs that pick their row only
+  by position (an identity anchor removed them, 0 of 15) and 7 reproduce on
+  unambiguous specs. No assertion was genuinely weakened (one run was flagged by
+  a strict rule and is benign on inspection); 5 runs deleted the failing step.
 - **Real regressions:** both tools stayed red; the healer marked all 21 runs
-  `test.fixme` with the cause named.
+  `test.fixme` with a comment (the comments are quoted next to the injected bugs
+  in the full report, for review).
 - **Cost:** $8.78 CLI-reported for 276 runs (median $0.028 per run); Eir makes
   zero API calls.
 
@@ -243,7 +250,8 @@ Eir: a test that asserts through the same stale locator it acted through stays
 red under Eir after a correct heal (NOTE-015), and the specs were written to
 avoid measuring that. Threats to validity (single app, model, seed and version;
 bias disclosure), method, and the honest verdict:
-[`docs/healer-comparison.md`](docs/healer-comparison.md).
+[`docs/healer-comparison.md`](docs/healer-comparison.md); everything compiled in one place:
+[`docs/healer-comparison-full-report.md`](docs/healer-comparison-full-report.md).
 
 ## Demo path
 

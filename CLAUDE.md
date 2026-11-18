@@ -125,6 +125,10 @@ pnpm --filter benchmark bench:healer --class <c> --seed 42 [--runs 3] [--tool he
 pnpm --filter benchmark bench:healer --all --seed 42     # all 10 classes (resumable)
 pnpm --filter benchmark bench:healer-report              # writes reports/healer-comparison.{json,md}; guarded, never --force over existing evidence without Aayush's yes
 pnpm --filter benchmark bench:healer-compile             # compiles analysis + all data into docs/healer-comparison-full-report.md; guarded the same way
+pnpm --filter benchmark bench:healer-rejudge             # re-judges saved healer runs with the current rules (no API calls; backs up originals once)
+pnpm --filter benchmark bench:healer-trace-check [--outcome <o>]  # replays final specs with tracing; reads acted-on elements from the trace
+pnpm --filter benchmark bench:healer-evidence            # builds the spec-intent audit and fixme-comment extract
+pnpm --filter benchmark bench:healer-verification        # writes reports/healer-verification.{json,md} from the verification dataset; guarded
 ```
 If a command's shape must change, update this file in the same commit.
 
